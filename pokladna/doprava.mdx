@@ -1,0 +1,210 @@
+---
+title: "Doprava"
+description: "Spôsoby doručenia objednávok, cenové úrovne Dopravy a integrácie s prepravcami Packeta a DPD."
+---
+
+{/* Generated from: ShippingsRepository.php, ShippingLevelsRepository.php, ShippingsSettings.php, CarriersFacade.php, ShipmentsFacade.php, Packeta.php, Dpd.php, PaymentShippingsRepository.php, PacketStatusesEnum.php, DPD/ProductCodes.php | 2026-03-19T00:00:00Z */}
+
+Doprava určuje, ako zákazník dostane svoju Objednávku. V administrácii nastavíte jednotlivé spôsoby doručenia, ich ceny a voliteľne aj prepojenie na fyzického Prepravcu (Packeta alebo DPD), ktorý automaticky prevezme údaje a vygeneruje prepravný štítok.
+
+<Frame>
+  <img src="/images/placeholder.png" alt="Zoznam Dopráv" />
+  <caption>[SCREENSHOT: Zoznam Dopráv v administrácii s názvami, logami a priradenými Prepravcami]</caption>
+</Frame>
+
+## Čo tvorí jednu Dopravu
+
+Každá Doprava má tieto hlavné vlastnosti:
+
+| Vlastnosť | Popis |
+|---|---|
+| **Názov** | Zobrazí sa zákazníkovi v Pokladni; prekladateľný do všetkých jazykov e-shopu |
+| **Logo / ikona** | Obrázok vedľa názvu v Pokladni |
+| **Cenové úrovne** | Cena Dopravy pre rôzne krajiny, meny a hodnoty Objednávky |
+| **Prepravca** | Packeta alebo DPD – ak je priradený, systém môže vytvárať Zásielky automaticky |
+| **Odberné miesto** | Či zákazník musí vybrať konkrétne výdajné miesto (Packeta, DPD ParcelShop) |
+| **Digitálna Doprava** | Pre darčekové karty – doručenie prebieha elektronicky, nie fyzicky |
+| **Čas pre nasledujúci pracovný deň** | Hraničný čas pre objednávku, aby bola doručená na nasledujúci pracovný deň |
+| **Počet dní doručenia** | Koľko pracovných dní trvá doručenie pri splnení hraničného času |
+
+## Cenové úrovne Dopravy
+
+Jedna Doprava môže mať viacero **Úrovní dopravy**, čo vám umožní nastaviť napríklad:
+- inú cenu pre EUR a CZK,
+- dopravu zadarmo od určitej sumy Objednávky,
+- rozdielne ceny pre rôzne krajiny.
+
+Systém automaticky vyberie správnu Úroveň podľa meny a krajiny zákazníka a celkovej hodnoty Košíka.
+
+<Note>
+  Ceny Dopravy sa zákazníkovi zobrazujú **bez DPH**. Systém prepočíta zobrazovanú cenu z cien zadaných s DPH.
+</Note>
+
+<Warning>
+  Dostupnosť a cena Dopravy sa môže líšiť aj podľa Kategórie zákazníka. [VERIFY]
+</Warning>
+
+## Špeciálne prípady pri zobrazení Dopráv
+
+### Doprava zadarmo
+
+Ak má zákazník nárok na Dopravu zadarmo (napr. pri Objednávke nad určitú hodnotu alebo pri uplatnení Kupónu), systém nastaví cenu **všetkých** dostupných Dopráv na 0. Zákazník si môže vybrať ľubovoľný spôsob doručenia bez príplatku.
+
+### Košík s darčekovými kartami
+
+Ak Košík obsahuje **iba darčekové karty**, systém automaticky ponúkne len Dopravu označenú ako digitálnu. Fyzické spôsoby doručenia sa nezobrazia.
+
+## Výber odberného miesta
+
+Niektoré Dopravy vyžadujú, aby si zákazník vybral konkrétne odberné miesto. V Pokladni sa zobrazí interaktívna mapa, kde zákazník miesto vyberie. **Bez výberu odberného miesta zákazník nemôže pokračovať ďalej.**
+
+### Packeta – výber odberného miesta
+
+<Frame>
+  <img src="/images/placeholder.png" alt="Packeta widget" />
+  <caption>[SCREENSHOT: Interaktívna mapa Packeta výdajných miest v kroku Dopravy v Pokladni]</caption>
+</Frame>
+
+Systém zobrazí interaktívnu mapu Packeta výdajných miest filtrovanú podľa krajiny zákazníka a v jeho jazyku. Na mape sú dostupné:
+
+- **Výdajne Packeta** – zákazník si príde po balík sám
+- **Z-BOXy** – automatizované schránky dostupné nonstop
+- **Doručenie externým kuriérom cez Packeta** – Packeta odovzdá zásielku ďalšiemu kuriérovi a doručí na adresu
+
+<Note>
+  Ak má zákazník nainštalovaný blokovač reklám, mapa sa nemusí zobraziť. Systém v takom prípade zobrazí zákazníkovi informáciu o tom, ako postupovať.
+</Note>
+
+Zoznam výdajných miest sa synchronizuje automaticky z API Packeta.
+
+<Warning>
+  Priradenie konkrétnej pobočky Packeta priamo ku spôsobu Dopravy (nie zákazníkovi) vyžaduje overenie funkčnosti. [VERIFY]
+</Warning>
+
+### DPD – výber odberného miesta
+
+Systém zobrazí interaktívnu mapu DPD odberných miest filtrovanú podľa krajiny zákazníka. Zákazník vyberie miesto kliknutím a systém automaticky vyplní jeho identifikátor a názov.
+
+Dostupné typy miest:
+- **DPD ParcelShopy** – výdajné miesta DPD
+- **Z-BOXy a AlzaBoxy** – automatizované schránky
+
+Zoznam pobočiek sa synchronizuje automaticky z DPD API zvlášť pre Slovensko a Česko.
+
+## Integrácia s Prepravcami
+
+Ak má Doprava priradeného Prepravcu, po zadaní Objednávky môžete jedným kliknutím vytvoriť Zásielku priamo v systéme Prepravcu. Systém automaticky prenesie všetky potrebné údaje – nemusíte nič zadávať ručne.
+
+Po vytvorení Zásielky systém uloží sledovacie číslo a zákazník môže sledovať doručenie.
+
+---
+
+### Packeta
+
+<Frame>
+  <img src="/images/placeholder.png" alt="Vytvorenie zásielky Packeta" />
+  <caption>[SCREENSHOT: Sekcia Zásielka v detaile Objednávky – tlačidlo na vytvorenie cez Packeta a zobrazenie sledovacieho čísla]</caption>
+</Frame>
+
+**Čo systém urobí pri vytvorení Zásielky:**
+- Prenesie údaje príjemcu, hmotnosť a hodnotu Objednávky do Packeta.
+- Uloží sledovacie číslo a odkaz na sledovanie.
+- Pri dobierkovej Objednávke odošle sumu dobierky.
+
+**Sledovanie stavu:** Systém automaticky aktualizuje stav Zásielky z Packeta. Možné stavy:
+
+| Stav | Popis |
+|---|---|
+| Neodoslaná prepravcom | Zásielka je v systéme, Packeta ju ešte neprevzala |
+| Odoslaná prepravcom | Zásielka je na ceste |
+| Doručená zákazníkovi | Zákazník balík prevzal |
+| Nedoručená zákazníkovi | Doručenie zlyhalo |
+| Zrušená | Zásielka bola zrušená |
+
+**Štítky:** Prepravné štítky je možné hromadne vytlačiť vo formáte A6 na stranu A4.
+
+**Nastavenia Packeta** (konfiguruje technický tím):
+
+| Nastavenie | Popis |
+|---|---|
+| API heslo | Autentifikačný kľúč pre vytváranie Zásielok |
+| API kľúč | Kľúč pre synchronizáciu výdajných miest a zobrazenie mapy |
+| Meno odosielateľa | Zobrazí sa na prepravnom štítku ako odosielateľ |
+
+---
+
+### DPD
+
+**Čo systém urobí pri vytvorení Zásielky:**
+- Prenesie údaje príjemcu a rozmery balíka (hmotnosť, šírka, výška, hĺbka) do DPD.
+- Uloží sledovacie číslo (mpsid) a odkaz na stiahnutie štítka.
+- Pri dobierkovej Objednávke odošle aj bankové údaje pre vyplatenie dobierky.
+- Ak je Zásielka zadaná **po 14:00**, systém automaticky nastaví dátum odovzdania na nasledujúci deň.
+
+**Typy doručenia DPD:**
+
+| Typ doručenia | Popis |
+|---|---|
+| DPD Home | Doručenie súkromným osobám na adresu |
+| DPD Classic | Doručenie firmám na adresu |
+| DPD Express (do 10:00) | Garantované doručenie do 10:00 nasledujúci deň |
+| DPD Express (do 12:00) | Garantované doručenie do 12:00 nasledujúci deň |
+| DPD ParcelShop | Doručenie na výdajné miesto |
+
+**Sledovanie stavu:** DPD neposiela automatické aktualizácie stavu do systému – stav Zásielky sa aktualizuje na základe notifikácií od DPD.
+
+**Štítky:** Štítky sa sťahujú individuálne a automaticky sa kombinujú na formát A4 (4 štítky na stranu).
+
+**Nastavenia DPD** (konfiguruje technický tím):
+
+| Nastavenie | Popis |
+|---|---|
+| API kľúč | Pre autentifikáciu v DPD |
+| Email | Pre autentifikáciu v DPD |
+| Delis ID | Identifikátor zákazníka v DPD systéme |
+| Pickup ID | ID adresy odosielateľa |
+| Bankový účet (per mena) | Pre vyplatenie dobierky zákazníkovi |
+| Produkčný režim | Prepína medzi testovacím a ostrým prostredím |
+
+## Rozmery a hmotnosť balíka
+
+<Note>
+  Minimálna hmotnosť balíka pri oboch Prepravcoch je **0,1 kg**. Systém automaticky prepočíta hmotnosť z gramov na kilogramy, ak váš e-shop používa gramy ako jednotku. Predvolené rozmery balíka sú 15 × 15 × 15 cm.
+</Note>
+
+## Nastavenia Dopravy
+
+<AccordionGroup>
+  <Accordion title="Predpokladaný dátum doručenia (nasledujúci pracovný deň)">
+    Ak je táto funkcia zapnutá, systém zobrazí zákazníkovi v Pokladni predpokladaný dátum doručenia. Každá Doprava musí mať nastavený hraničný čas a počet pracovných dní doručenia.
+  </Accordion>
+
+  <Accordion title="Používať ceny z Objednávky">
+    <Warning>
+      Účel tohto nastavenia nie je jednoznačne zdokumentovaný a vyžaduje overenie. [VERIFY]
+    </Warning>
+  </Accordion>
+
+  <Accordion title="Používať hmotnosti z Objednávky">
+    <Warning>
+      Účel tohto nastavenia nie je jednoznačne zdokumentovaný a vyžaduje overenie. [VERIFY]
+    </Warning>
+  </Accordion>
+</AccordionGroup>
+
+## Väzba Doprava – Platba
+
+Nie každá Platba je dostupná pri každej Doprave. Napríklad dobierka nemusí byť dostupná pri doručení na výdajné miesto. Povolené kombinácie sa nastavujú vo väzbe Platba–Doprava.
+
+Viac informácií nájdete v časti [Platby](/pokladna/platby).
+
+## Súvisiace funkcie
+
+<CardGroup cols={2}>
+  <Card title="Priebeh Pokladne" icon="shopping-cart" href="/pokladna/checkout-flow">
+    Ako zákazník prechádza Pokladňou a vyberá Dopravu.
+  </Card>
+  <Card title="Platby" icon="credit-card" href="/pokladna/platby">
+    Spôsoby platby a povolené kombinácie s Dopravou.
+  </Card>
+</CardGroup>

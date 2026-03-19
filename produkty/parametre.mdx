@@ -1,0 +1,128 @@
+---
+title: "Parametre produktov"
+description: "Vlastnosti produktov ako farba, veľkosť alebo materiál - nastavenie, hodnoty a použitie vo filtri katalógu."
+---
+
+{/* Generated from: app/BackendModule/CatalogModule/Forms/ParameterFormFactory.php, app/BackendModule/CatalogModule/Forms/ParameterValueFormFactory.php, app/Facades/ProductsFacade.php | 2026-03-19T12:00:00Z */}
+
+Parametre sú vlastnosti produktov - napríklad farba, veľkosť, materiál alebo výkon. Zákazníci ich vidia na stránke produktu a podľa nich môžu filtrovať produkty v katalógu. Správne nastavené parametre výrazne zlepšujú prehľadnosť e-shopu.
+
+---
+
+## Čo je parameter
+
+Parameter je definovaná vlastnosť, ktorú môžete priradiť k produktom. Každý parameter má:
+
+- **Názov** - zobrazuje sa zákazníkovi na stránke produktu (napr. "Farba", "Veľkosť")
+- **Označenie** - alternatívny názov, ktorý sa môže zobraziť napríklad vo filtri na webe
+- **Zoznam hodnôt** - konkrétne možnosti, z ktorých vyberiete pri každom produkte (napr. červená, modrá, XL)
+
+Parameter vytvoríte raz v administrácii a potom ho priraďujete k ľubovoľnému počtu produktov.
+
+<Frame>
+  <img src="/images/placeholder.png" />
+  <caption>[SCREENSHOT: Zoznam parametrov v administrácii - prehľad parametrov s možnosťami filtrovania a zobrazenia]</caption>
+</Frame>
+
+---
+
+## Hodnoty parametra
+
+Každý parameter má zoznam hodnôt. Hodnotu vyberiete pri konkrétnom produkte - napríklad parameter "Farba" má hodnoty "červená", "modrá", "zelená" a pri každom produkte vyberiete tú správnu.
+
+Každá hodnota môže mať:
+
+| Pole | Popis |
+|------|-------|
+| **Názov** | Text zobrazený zákazníkovi, prekladateľný do viacerých jazykov |
+| **Označenie** | Alternatívny názov, napríklad skratka používaná vo filtri |
+
+<Tip>Hodnoty parametra je potrebné vytvoriť pred tým, ako ich začnete priraďovať k produktom. Ak potrebujete novú hodnotu, pridáte ju priamo v nastaveniach parametra.</Tip>
+
+---
+
+## Obrázkový parameter (farebné vzorky)
+
+Špeciálny typ parametra, kde sa hodnoty zobrazujú ako farebné vzorky alebo obrázky namiesto textu. Typicky sa používa pre farbu produktu.
+
+Pri obrázkovom parametri má každá hodnota navyše:
+
+| Pole | Popis |
+|------|-------|
+| **Farba** | Farba vzorky zobrazená zákazníkovi - povinná pre obrázkový parameter |
+| **Obrázok** | Voliteľný obrázok namiesto farebnej vzorky (napríklad vzor látky) |
+| **Orámovanie** | Rámček okolo vzorky - užitočné pre svetlé farby, aby boli viditeľné na bielom pozadí |
+
+<Frame>
+  <img src="/images/placeholder.png" />
+  <caption>[SCREENSHOT: Produkt s obrázkovým parametrom Farba - farebné vzorky na detaile produktu]</caption>
+</Frame>
+
+<Warning>Na jednom produkte môže byť **len jeden obrázkový parameter**. Ak sa pokúsite nastaviť druhý parameter ako obrázkový, systém zmenu zamietne.</Warning>
+
+---
+
+## Zobrazenie na webe
+
+Pre každý parameter nastavíte, kde sa zákazníkovi zobrazí:
+
+| Nastavenie | Čo ovplyvňuje |
+|------------|---------------|
+| **Zobrazuje sa v detaile** | Parameter a jeho hodnota sa zobrazia na stránke produktu v zozname vlastností |
+| **Filtrovateľný** | Zákazníci môžu podľa parametra filtrovať produkty v kategórii |
+
+Parameter môžete nastaviť na jedno, obidve alebo žiadne z týchto možností - napríklad interný parameter "Kód dodávateľa" môžete mať skrytý, ale filtrovateľný len pre potreby administrácie.
+
+<Frame>
+  <img src="/images/placeholder.png" />
+  <caption>[SCREENSHOT: Stránka produktu - tabuľka vlastností so zobrazenými parametrami]</caption>
+</Frame>
+
+---
+
+## Zlúčenie hodnôt vo filtri
+
+Niekedy chcete, aby sa viaceré odtiene zobrazili zákazníkovi vo filtri pod jednou možnosťou. Napríklad "svetlo modrá" a "tmavo modrá" sa pri filtrovaní správajú ako "modrá".
+
+Na to slúži pole **Filtrovať ako** pri každej hodnote parametra. Stačí nastaviť, pod ktorú hlavnú hodnotu sa má táto hodnota zaradiť pri filtrovaní.
+
+Zákazník teda vidí vo filtri "modrá" a dostane výsledky pre oba odtiene - aj "svetlo modrá" aj "tmavo modrá".
+
+<Note>Zlúčenie hodnôt ovplyvňuje len zobrazenie vo filtri. Na stránke produktu sa naďalej zobrazuje presná hodnota ("svetlo modrá").</Note>
+
+---
+
+## Zoradenie hodnôt vo filtri
+
+<Warning>Táto informácia vyžaduje overenie. [VERIFY] - Presné možnosti zoradenia hodnôt parametra vo filtri (napr. abecedne, podľa poradia, podľa počtu produktov) sa zatiaľ nepodarilo potvrdiť. Overte s vývojovým tímom.</Warning>
+
+---
+
+## Kategórie parametrov
+
+Parametre môžete zaradiť do skupín - kategórií parametrov. Táto funkcia pomáha pri správe väčšieho počtu parametrov v administrácii.
+
+<Note>Kategórie parametrov musíte najprv zapnúť v nastaveniach e-shopu.</Note>
+
+---
+
+## Popisy parametra
+
+K parametru môžete pridať popis, ktorý zákazníkom vysvetlí, čo vlastnosť znamená.
+
+| Pole | Popis |
+|------|-------|
+| **Krátky popis** | Stručné vysvetlenie parametra |
+| **Dlhý popis** | Podrobný popis s formátovaním (nadpisy, zoznamy, tučné písmo) |
+
+<Note>Pole pre popisy parametra musíte najprv zapnúť v nastaveniach e-shopu.</Note>
+
+---
+
+## Ako parametre ovplyvňujú vyhľadávanie
+
+Parametre sú súčasťou vyhľadávacieho indexu. Keď zákazník hľadá produkt alebo filtruje v kategórii, systém berie parametre do úvahy.
+
+Pri každej zmene hodnoty parametra systém automaticky označí všetky dotknuté produkty na opätovnú synchronizáciu s vyhľadávaním. Zákazníci teda vždy dostanú aktuálne výsledky.
+
+<Tip>Ak zmeníte nastavenie filtrovateľnosti parametra alebo jeho hodnôt, zmena sa prejaví vo filtri po automatickej synchronizácii - nemusíte robiť nič ručne.</Tip>

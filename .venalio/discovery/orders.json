@@ -1,0 +1,1067 @@
+{
+  "domain": "Objednávky a košík",
+  "source_files": [
+    "app/Facades/OrderFacade.php",
+    "app/FrontendModule/Facades/CartFacade.php",
+    "app/Model/Settings/OrdersSettings.php",
+    "app/Model/Settings/CartsSettings.php",
+    "app/Model/Enums/OrderStatesEnum.php",
+    "app/Model/Enums/OrderTypesEnum.php",
+    "app/Model/Entities/OrderShipment.php",
+    "app/Model/Repositories/OrdersRepository.php",
+    "app/Model/Repositories/OrderItemsRepository.php",
+    "app/Model/Repositories/OrderItemOptionsRepository.php",
+    "app/Model/Repositories/OrderStatesRepository.php",
+    "app/Model/Repositories/OrderStateItemsRepository.php",
+    "app/Model/Repositories/OrderTemplatesRepository.php",
+    "app/Model/Repositories/CartsRepository.php",
+    "app/BackendModule/StoreModule/Presenters/OrderPresenter.php",
+    "app/BackendModule/StoreModule/Presenters/OrdersPresenter.php",
+    "app/BackendModule/StoreModule/Forms/OrderShipmentFormFactory.php",
+    "app/FrontendModule/Components/AddToCart/AddToCart.php",
+    "app/FrontendModule/Traits/Ordering.php",
+    "app/Domain/Orders/ICodeGenerator.php",
+    "app/Infrastructure/Orders/DefaultCodeGenerator.php",
+    "app/Commands/ProcessOrderStatesCommand.php",
+    "app/Model/Events/OrderCreatedEvent.php",
+    "app/Model/Events/CartActionSuccessEvent.php"
+  ],
+  "generated_at": "2026-03-19T00:00:00+00:00",
+  "entities": [
+    {
+      "name": "Objednávka",
+      "name_en": "Order",
+      "description": "Nákup vytvorený zákazníkom alebo administrátorom. Obsahuje produkty, dopravné a platobné údaje, fakturačnú a dodaciu adresu.",
+      "fields": [
+        {
+          "name": "Kód objednávky",
+          "type": "text",
+          "description": "Unikátny kód objednávky. Generuje sa automaticky ako poradové číslo (štartuje od 10000). Systém skúša vložiť objednávku opakovane (max 20x), ak vznikne kolízia kódu.",
+          "verify": false
+        },
+        {
+          "name": "Typ",
+          "type": "enum",
+          "description": "Rozlišuje, či ide o bežnú objednávku alebo rezerváciu.",
+          "values": ["Objednávka (O)", "Rezervácia (R)"],
+          "verify": false
+        },
+        {
+          "name": "Stav objednávky",
+          "type": "relation",
+          "description": "Aktuálny stav spracovania objednávky. Viď entity Stav objednávky.",
+          "verify": false
+        },
+        {
+          "name": "Stav úhrady",
+          "type": "enum",
+          "description": "Stav platby za objednávku. Zobrazuje sa len ak je zapnuté nastavenie 'Používať stavy úhrad'.",
+          "values": ["Neuhradená", "Uhradená", "Čiastočne uhradená"],
+          "verify": false
+        },
+        {
+          "name": "Celková cena s DPH",
+          "type": "number",
+          "description": "Súčet cien produktov + doprava + platba - zľavy - kupóny - vernostné body +/- zaokrúhlenie.",
+          "verify": false
+        },
+        {
+          "name": "Celková cena bez DPH",
+          "type": "number",
+          "description": "Celková suma objednávky bez dane.",
+          "verify": false
+        },
+        {
+          "name": "Celková hmotnosť",
+          "type": "number",
+          "description": "Súčet hmotností všetkých produktov v objednávke.",
+          "verify": false
+        },
+        {
+          "name": "Cena dopravy",
+          "type": "number",
+          "description": "Cena zvoleného spôsobu dopravy. Administrátor ju môže manuálne upraviť alebo prepočítať podľa hladín.",
+          "verify": false
+        },
+        {
+          "name": "Cena platby",
+          "type": "number",
+          "description": "Cena zvoleného spôsobu platby. Administrátor ju môže manuálne upraviť alebo prepočítať podľa hladín.",
+          "verify": false
+        },
+        {
+          "name": "Zľava v %",
+          "type": "number",
+          "description": "Percentuálna zľava na celú objednávku, nastaviteľná administrátorom (0-100 %).",
+          "verify": false
+        },
+        {
+          "name": "Zľava absolútna",
+          "type": "number",
+          "description": "Fixná zľava v mene objednávky.",
+          "verify": false
+        },
+        {
+          "name": "Kupón",
+          "type": "relation",
+          "description": "Zľavový kupón aplikovaný na objednávku.",
+          "verify": false
+        },
+        {
+          "name": "Použité vernostné body",
+          "type": "number",
+          "description": "Počet bodov z vernostného programu, ktoré zákazník použil na zľavu.",
+          "verify": false
+        },
+        {
+          "name": "Zaokrúhlenie",
+          "type": "number",
+          "description": "Zaokrúhlenie hotovostnej platby (platí pre SR od 1.7.2022, slovenské eurové zaokrúhľovanie na 5 centov).",
+          "verify": false
+        },
+        {
+          "name": "Fakturačná adresa",
+          "type": "text",
+          "description": "Meno, priezvisko, firma, IČO, DIČ, IČ DPH, ulica, číslo domu, PSČ, mesto, krajina, kraj.",
+          "verify": false
+        },
+        {
+          "name": "Dodacia adresa",
+          "type": "text",
+          "description": "Meno, priezvisko, firma, ulica, číslo domu, PSČ, mesto, krajina, kraj, telefón, e-mail.",
+          "verify": false
+        },
+        {
+          "name": "Interná poznámka",
+          "type": "text",
+          "description": "Poznámka viditeľná len pre administrátorov.",
+          "verify": false
+        },
+        {
+          "name": "Zákaznícka poznámka",
+          "type": "text",
+          "description": "Poznámka od zákazníka. Zobrazuje sa len ak je zapnuté nastavenie 'Používať zákaznícku poznámku'.",
+          "verify": false
+        },
+        {
+          "name": "Zamknutá (is_freezed)",
+          "type": "boolean",
+          "description": "Po vyskladnení (stav Vybavená) sa objednávka zamkne. Zamknutú objednávku nie je možné bežne upravovať. Administrátor ju môže vrátiť do stavu 'Spracováva sa'.",
+          "verify": false
+        },
+        {
+          "name": "Celkový počet kusov",
+          "type": "number",
+          "description": "Celkový počet kusov bežných produktov v objednávke.",
+          "verify": false
+        },
+        {
+          "name": "Počet rezervovaných kusov",
+          "type": "number",
+          "description": "Počet kusov, ktoré sú fyzicky rezervované na sklade.",
+          "verify": false
+        },
+        {
+          "name": "Pôvodná objednávka",
+          "type": "relation",
+          "description": "Referencia na pôvodnú objednávku, ak bola táto vytvorená ako kópia alebo rozdelená objednávka.",
+          "verify": false
+        },
+        {
+          "name": "Predajňa",
+          "type": "relation",
+          "description": "Predajňa alebo sklad priradený k objednávke.",
+          "verify": false
+        },
+        {
+          "name": "Odporúčanie",
+          "type": "relation",
+          "description": "Zákazník, ktorý objednávku odporučil (referral program). Systém vypočíta zľavu z odporúčania.",
+          "verify": false
+        }
+      ]
+    },
+    {
+      "name": "Položka objednávky",
+      "name_en": "Order Item",
+      "description": "Konkrétny produkt alebo vlastná položka v objednávke. Obsahuje cenu, množstvo, DPH a informácie o skladovej rezervácii.",
+      "fields": [
+        {
+          "name": "Produkt",
+          "type": "relation",
+          "description": "Odkaz na produkt z katalógu. Ak je prázdny, ide o vlastnú položku (line item).",
+          "verify": false
+        },
+        {
+          "name": "Názov vlastnej položky",
+          "type": "text",
+          "description": "Názov položky, ak nejde o produkt z katalógu. Administrátor môže pridať ľubovoľnú položku s vlastným názvom a cenou.",
+          "verify": false
+        },
+        {
+          "name": "Množstvo",
+          "type": "number",
+          "description": "Počet kusov (minimálne 1).",
+          "verify": false
+        },
+        {
+          "name": "Cena s DPH",
+          "type": "number",
+          "description": "Predajná cena za kus s DPH (po zľavách na úrovni produktu).",
+          "verify": false
+        },
+        {
+          "name": "Cena bez DPH",
+          "type": "number",
+          "description": "Predajná cena za kus bez DPH.",
+          "verify": false
+        },
+        {
+          "name": "Pôvodná cena s DPH",
+          "type": "number",
+          "description": "Cena pred akoukoľvek zľavou. Slúži na zobrazenie prečiarknutej ceny.",
+          "verify": false
+        },
+        {
+          "name": "Reálna cena s DPH",
+          "type": "number",
+          "description": "Skutočná cena po rozpočítaní kupónu a vernostných bodov. Používa sa na faktúre.",
+          "verify": false
+        },
+        {
+          "name": "DPH %",
+          "type": "number",
+          "description": "Sadzba DPH v percentách.",
+          "verify": false
+        },
+        {
+          "name": "Hmotnosť",
+          "type": "number",
+          "description": "Hmotnosť jedného kusu produktu.",
+          "verify": false
+        },
+        {
+          "name": "Rezervované zo skladu",
+          "type": "number",
+          "description": "Počet kusov fyzicky rezervovaných na sklade. Administrátor môže manuálne zvýšiť alebo znížiť.",
+          "verify": false
+        },
+        {
+          "name": "Skompletizované",
+          "type": "number",
+          "description": "Počet kusov, ktoré boli fyzicky vyskladnené (napr. skenovaním EAN). Zobrazuje sa len ak je zapnutá kompletizácia.",
+          "verify": false
+        },
+        {
+          "name": "Zľava na položke",
+          "type": "number",
+          "description": "Percentuálna zľava na konkrétnu položku. Zobrazuje sa len ak je zapnuté nastavenie 'Zľava na položku'.",
+          "verify": false
+        },
+        {
+          "name": "Vymazaná",
+          "type": "boolean",
+          "description": "Soft-delete príznak. Vymazané položky sa nezobrazujú, ale zostávajú v databáze.",
+          "verify": false
+        },
+        {
+          "name": "Kupón (darčeková poukážka)",
+          "type": "relation",
+          "description": "Ak je produkt typu darčeková poukážka a bol odoslaný, odkazuje na vygenerovaný kupón.",
+          "verify": false
+        }
+      ]
+    },
+    {
+      "name": "Možnosť položky objednávky",
+      "name_en": "Order Item Option",
+      "description": "Komponenta balíčkového (grouped) produktu v objednávke. Každý balíček sa skladá z viacerých produktov.",
+      "fields": [
+        {
+          "name": "Položka objednávky",
+          "type": "relation",
+          "description": "Rodičovská položka objednávky (balíčkový produkt).",
+          "verify": false
+        },
+        {
+          "name": "Produkt",
+          "type": "relation",
+          "description": "Konkrétny produkt v rámci balíčka.",
+          "verify": false
+        },
+        {
+          "name": "Množstvo",
+          "type": "number",
+          "description": "Počet kusov daného produktu v balíčku.",
+          "verify": false
+        },
+        {
+          "name": "Rezervované zo skladu",
+          "type": "number",
+          "description": "Počet kusov rezervovaných na sklade pre tento komponent balíčka.",
+          "verify": false
+        }
+      ]
+    },
+    {
+      "name": "Stav objednávky (definícia)",
+      "name_en": "Order State Item",
+      "description": "Definícia možného stavu objednávky. Administrátor môže meniť poradie stavov a nastavovať, ktorý stav je počiatočný.",
+      "fields": [
+        {
+          "name": "Názov",
+          "type": "text",
+          "description": "Zobrazovaný názov stavu v administrácii aj pre zákazníka. Prekladateľný do viacerých jazykov.",
+          "verify": false
+        },
+        {
+          "name": "Kód",
+          "type": "enum",
+          "description": "Interný kód stavu, ktorý určuje správanie systému.",
+          "values": [
+            "W - Čaká na platbu",
+            "C - Prijatá",
+            "P - Spracováva sa",
+            "S - Odoslaná",
+            "O - Vybavená",
+            "U - Nedostupná",
+            "A - Zrušená",
+            "R - Vrátená",
+            "N - Neprevzatá"
+          ],
+          "verify": false
+        },
+        {
+          "name": "Počiatočný stav",
+          "type": "boolean",
+          "description": "Označuje, že tento stav sa automaticky priradí novej objednávke.",
+          "verify": false
+        },
+        {
+          "name": "Počiatočný stav pre online platbu",
+          "type": "boolean",
+          "description": "Stav priradený novej objednávke s online platobnou bránou (typicky 'Čaká na platbu').",
+          "verify": false
+        },
+        {
+          "name": "Počiatočný stav pre veľkoobchod",
+          "type": "boolean",
+          "description": "Stav priradený novej veľkoobchodnej objednávke.",
+          "verify": false
+        },
+        {
+          "name": "Typ objednávky",
+          "type": "enum",
+          "description": "Filtrovanie stavov podľa typu objednávky (bežná, rezervácia, alebo oba).",
+          "values": ["Objednávka", "Rezervácia", "Oba"],
+          "verify": false
+        },
+        {
+          "name": "Farba pozadia",
+          "type": "text",
+          "description": "Farba pozadia riadku objednávky v administrácii pre rýchlejšiu orientáciu.",
+          "verify": false
+        },
+        {
+          "name": "Poradie",
+          "type": "number",
+          "description": "Poradie zobrazenia stavov v zozname.",
+          "verify": false
+        },
+        {
+          "name": "Poslať e-mail",
+          "type": "boolean",
+          "description": "Či sa pri prechode do tohto stavu automaticky pošle e-mail zákazníkovi (nastaviteľné per jazyková mutácia).",
+          "verify": false
+        },
+        {
+          "name": "Poslať SMS",
+          "type": "boolean",
+          "description": "Či sa pri prechode do tohto stavu automaticky pošle SMS zákazníkovi (nastaviteľné per jazyková mutácia).",
+          "verify": false
+        }
+      ]
+    },
+    {
+      "name": "História stavov objednávky",
+      "name_en": "Order State",
+      "description": "Záznam o zmene stavu objednávky. Každá zmena stavu sa zaznamenáva s dátumom a administrátorom, ktorý zmenu vykonal.",
+      "fields": [
+        {
+          "name": "Objednávka",
+          "type": "relation",
+          "description": "Objednávka, ktorej sa zmena týka.",
+          "verify": false
+        },
+        {
+          "name": "Nový stav",
+          "type": "relation",
+          "description": "Stav, do ktorého bola objednávka presunutá.",
+          "verify": false
+        },
+        {
+          "name": "Administrátor",
+          "type": "relation",
+          "description": "Administrátor, ktorý zmenu vykonal (null ak zmenu vykonal systém).",
+          "verify": false
+        },
+        {
+          "name": "Dátum",
+          "type": "text",
+          "description": "Dátum a čas zmeny stavu.",
+          "verify": false
+        }
+      ]
+    },
+    {
+      "name": "Zásielka",
+      "name_en": "Order Shipment",
+      "description": "Zásielka odoslaná prepravcom pre objednávku. Jedna objednávka môže mať viacero zásielok.",
+      "fields": [
+        {
+          "name": "Prepravca",
+          "type": "text",
+          "description": "Kód prepravcu (napr. Packeta, GLS, DPD...).",
+          "verify": false
+        },
+        {
+          "name": "Trackovacie číslo",
+          "type": "text",
+          "description": "Číslo na sledovanie zásielky.",
+          "verify": false
+        },
+        {
+          "name": "Trackovací odkaz",
+          "type": "text",
+          "description": "URL adresa na sledovanie zásielky.",
+          "verify": false
+        },
+        {
+          "name": "Na dobierku",
+          "type": "boolean",
+          "description": "Či je zásielka odoslaná na dobierku.",
+          "verify": false
+        },
+        {
+          "name": "Stiahnutá",
+          "type": "boolean",
+          "description": "Či bol štítok zásielky už stiahnutý pre tlač.",
+          "verify": false
+        },
+        {
+          "name": "Stiahnuteľná",
+          "type": "boolean",
+          "description": "Či je štítok zásielky pripravený na stiahnutie.",
+          "verify": false
+        },
+        {
+          "name": "Priložiť faktúru",
+          "type": "boolean",
+          "description": "Či sa k zásielke prikladá faktúra.",
+          "verify": false
+        },
+        {
+          "name": "Externý stav",
+          "type": "text",
+          "description": "Stav zásielky podľa prepravcu.",
+          "verify": false
+        },
+        {
+          "name": "PLT zásielka",
+          "type": "boolean",
+          "description": "Či ide o paletovú zásielku.",
+          "verify": false
+        }
+      ]
+    },
+    {
+      "name": "Košík",
+      "name_en": "Cart",
+      "description": "Dočasný nákupný košík zákazníka. Ukladá sa do databázy a je prepojený so session. Po vytvorení objednávky sa košík vyčistí.",
+      "fields": [
+        {
+          "name": "Web",
+          "type": "relation",
+          "description": "Webstránka, na ktorej bol košík vytvorený.",
+          "verify": false
+        },
+        {
+          "name": "Jazyk",
+          "type": "relation",
+          "description": "Jazyková mutácia košíka.",
+          "verify": false
+        },
+        {
+          "name": "Cenová hladina",
+          "type": "relation",
+          "description": "Cenová hladina, podľa ktorej sa počítajú ceny v košíku.",
+          "verify": false
+        },
+        {
+          "name": "Zákazník",
+          "type": "relation",
+          "description": "Prihlásený zákazník (môže byť prázdne pre anonymných návštevníkov).",
+          "verify": false
+        },
+        {
+          "name": "Kupón",
+          "type": "relation",
+          "description": "Aplikovaný zľavový kupón.",
+          "verify": false
+        },
+        {
+          "name": "Cena produktov",
+          "type": "number",
+          "description": "Celková cena produktov v košíku.",
+          "verify": false
+        },
+        {
+          "name": "Celková cena",
+          "type": "number",
+          "description": "Celková cena vrátane zliav, kupónov a vernostných bodov (bez dopravy a platby).",
+          "verify": false
+        },
+        {
+          "name": "Celková hmotnosť",
+          "type": "number",
+          "description": "Súčet hmotností produktov v košíku.",
+          "verify": false
+        },
+        {
+          "name": "Celkový počet kusov",
+          "type": "number",
+          "description": "Celkový počet kusov v košíku.",
+          "verify": false
+        },
+        {
+          "name": "Použité vernostné body",
+          "type": "number",
+          "description": "Počet bodov z vernostného programu aplikovaných na košík.",
+          "verify": false
+        },
+        {
+          "name": "Hash",
+          "type": "text",
+          "description": "Unikátny identifikátor košíka pre obnovenie alebo zdieľanie.",
+          "verify": true
+        }
+      ]
+    },
+    {
+      "name": "Šablóna objednávky",
+      "name_en": "Order Template",
+      "description": "Šablóna e-mailov a notifikácií súvisiacich s objednávkami. Má viacjazyčné preklady (predmet, text e-mailu).",
+      "fields": [
+        {
+          "name": "Predmet",
+          "type": "text",
+          "description": "Predmet e-mailovej notifikácie (prekladateľný).",
+          "verify": false
+        },
+        {
+          "name": "Text",
+          "type": "text",
+          "description": "Obsah e-mailovej notifikácie s placeholdermi (%firstName%, %orderCode%, %paymentInfo%, %created%, %totalPrice%).",
+          "verify": false
+        }
+      ]
+    }
+  ],
+  "features": [
+    {
+      "name": "Pridanie produktu do košíka",
+      "description": "Zákazník pridá produkt do košíka z produktovej stránky alebo zoznamu. Ak je produkt skladom a zákazník zadá množstvo, systém ho vloží do košíka.",
+      "behavior": [
+        "Ak je produkt už v košíku a nie je zaradený do zľavovej akcie, systém zvýši množstvo namiesto pridania duplikátu.",
+        "Systém validuje dostupné množstvo na sklade. Ak produkt nie je na sklade a nemá povolené predpredaje, zákazník ho nemôže pridať.",
+        "Maximálne množstvo je limitované stavom skladu plus predpredajovým limitom.",
+        "Množstvo, ktoré zákazník už má v košíku, sa odčíta od dostupného maxima.",
+        "Po pridaní sa automaticky prepočítajú ceny, zľavy a hmotnosť košíka."
+      ],
+      "settings": [
+        "Využívanie skladových počtov (products.useStockCounts) - ak je zapnuté, systém validuje dostupnosť"
+      ],
+      "verify_items": []
+    },
+    {
+      "name": "Hromadné zľavy v košíku",
+      "description": "Systém automaticky aplikuje zľavové akcie, keď zákazník pridá do košíka dostatočný počet produktov z akcie.",
+      "behavior": [
+        "Systém kontroluje aktívne zľavové akcie a počíta, koľko produktov z akcie je v košíku.",
+        "Typ 'Zľava na všetky produkty' - percentuálna zľava sa aplikuje na všetky produkty zaradené do akcie.",
+        "Typ 'Najlacnejší produkt' - zľava sa aplikuje len na najlacnejší produkt, ostatné sú označené ako súčasť akcie.",
+        "Ak má položka množstvo väčšie ako 1 a je zaradená do akcie, systém ju rozdelí na viaceré položky (split).",
+        "Systém vyhodnocuje akcie opakovane, kým nachádza nové zhody."
+      ],
+      "settings": [],
+      "verify_items": []
+    },
+    {
+      "name": "Kupóny v košíku",
+      "description": "Zákazník môže zadať zľavový kód (kupón), ktorý sa aplikuje na košík.",
+      "behavior": [
+        "Kupón môže poskytovať absolútnu alebo percentuálnu zľavu.",
+        "Kupón môže zabezpečiť dopravu zadarmo.",
+        "Ak košík obsahuje len darčekové poukážky, kupón sa automaticky odstráni.",
+        "Zľava z kupónu sa rozpočíta proporcionálne medzi oprávnené položky."
+      ],
+      "settings": [],
+      "verify_items": []
+    },
+    {
+      "name": "Vernostné body v košíku",
+      "description": "Prihlásený zákazník môže uplatniť vernostné body na zľavu z košíka.",
+      "behavior": [
+        "Maximálna zľava z bodov je obmedzená percentuálnym limitom z celkovej ceny (nastavenie maxAllowedPercent).",
+        "Body sa prepočítavajú na menu podľa kurzu (applyRate) pre konkrétnu menu.",
+        "Zákazník nemôže použiť viac bodov, ako má k dispozícii.",
+        "Body fungujú len pre registrovaných zákazníkov s rovnakou menou vernostných bodov.",
+        "Ak sa zmení obsah košíka, systém automaticky zvaliduje, či body nepresahujú maximum."
+      ],
+      "settings": [
+        "Zapnutie/vypnutie vernostného programu",
+        "Maximálny % podiel zľavy z bodov",
+        "Kurz prepočtu bodov na menu (per mena)"
+      ],
+      "verify_items": []
+    },
+    {
+      "name": "Obnova cien v košíku",
+      "description": "Systém môže aktualizovať ceny produktov v košíku, ak sa medzičasom zmenili v katalógu.",
+      "behavior": [
+        "Systém porovná aktuálne ceny produktov s cenami v košíku.",
+        "Ak sa ceny zmenili, aktualizuje ich a prepočíta košík.",
+        "Zľavové akcie sa pri obnove cien neprepisujú."
+      ],
+      "settings": [
+        "Obnoviť ceny v košíku (carts.renewPrices)"
+      ],
+      "verify_items": []
+    },
+    {
+      "name": "Validácia dostupnosti pri pokladni",
+      "description": "Pred dokončením objednávky systém overí, či sú všetky produkty stále dostupné.",
+      "behavior": [
+        "Systém skontroluje skladové zásoby pre každý produkt v košíku.",
+        "Ak produkt nie je dostupný, zákazník dostane chybovú hlášku s názvom produktu a dostupným množstvom.",
+        "Ak je produkt súčasťou balíčka a niektorá komponenta nie je dostupná, celý balíček je označený ako nedostupný.",
+        "Zákazník je presmerovaný späť do košíka, kde musí upraviť množstvo alebo odstrániť nedostupné produkty.",
+        "Systém tiež kontroluje, či produkty neboli medzičasom skryté z e-shopu."
+      ],
+      "settings": [],
+      "verify_items": []
+    },
+    {
+      "name": "Vytvorenie objednávky",
+      "description": "Zákazník dokončí nákup a systém vytvorí objednávku z košíka.",
+      "behavior": [
+        "Systém vygeneruje unikátny kód objednávky (sekvenčné číslo od 10000).",
+        "Objednávke sa priradí počiatočný stav podľa typu platby: iný stav pre online platbu (typicky 'Čaká na platbu'), iný pre bežnú platbu (typicky 'Prijatá').",
+        "Systém priradí položky košíka k objednávke a vyčistí košík.",
+        "Systém zníži skladové zásoby o objednané množstvo a vytvorí rezervácie.",
+        "Ak má produkt nastavený predpredajový limit a ten sa vyčerpá, systém prepne dostupnosť produktu.",
+        "Ak zákazník použil vernostné body, systém ich odčíta z najstarších nevyčerpaných bodov.",
+        "Systém vypočíta celkové sumy vrátane zliav a zaokrúhlenia.",
+        "Systém odošle notifikácie (e-mail, SMS) podľa nastavenia počiatočného stavu.",
+        "Systém vyšle udalosť OrderCreatedEvent pre ďalšie spracovanie."
+      ],
+      "settings": [
+        "Používať kódy objednávok (orders.useCodes) - ak je vypnuté, zobrazuje sa ID"
+      ],
+      "verify_items": []
+    },
+    {
+      "name": "Zmena stavu objednávky",
+      "description": "Administrátor zmení stav objednávky, čo spustí automatické procesy a notifikácie.",
+      "behavior": [
+        "Pri zmene stavu na 'Zrušená': systém vráti rezervované zásoby na sklad, vráti vernostné body zákazníkovi, a uvoľnené zásoby automaticky prerozdelí na čakajúce objednávky podľa FIFO.",
+        "Pri zmene stavu na 'Vybavená': systém overí, že všetky položky sú plne rezervované (inak nedovolí zmenu). Vytvorí výdajku zo skladu. Objednávka sa zamkne.",
+        "Pri zmene stavu na 'Odoslaná' alebo 'Vybavená': systém vygeneruje kupóny pre darčekové poukážky a odošle ich e-mailom príjemcovi.",
+        "Pri zmene stavu na 'Neprevzatá': systém overí, že ide o neuhradenú objednávku na dobierku s existujúcou výdajkou. Vytvorí prijímku (vrátenie na sklad), dobropis a vynuluje vyskladnenie.",
+        "Pri každej zmene sa vytvorí záznam v histórii stavov.",
+        "Systém odošle e-mail s textom nastaveným pre daný stav a jazyk zákazníka.",
+        "Systém odošle SMS s textom nastaveným pre daný stav (ak je povolené).",
+        "E-mail obsahuje zoznam položiek objednávky a v prípade stavov Odoslaná/Vybavená priloží faktúru a formulár na odstúpenie od zmluvy.",
+        "Administrátor si môže zvoliť, či chce poslať e-mail alebo SMS a pridať vlastné prílohy."
+      ],
+      "settings": [
+        "Počiatočný stav pre bežnú objednávku",
+        "Počiatočný stav pre online platbu",
+        "Počiatočný stav pre veľkoobchod",
+        "Text e-mailu a SMS per stav a jazyk"
+      ],
+      "verify_items": []
+    },
+    {
+      "name": "Zmena stavu úhrady",
+      "description": "Administrátor alebo platobná brána zmení stav úhrady objednávky.",
+      "behavior": [
+        "Stavy úhrady: Neuhradená, Uhradená, Čiastočne uhradená.",
+        "Pri zmene na 'Uhradená' sa automaticky vystaví faktúra (ak je zapnuté nastavenie).",
+        "Pri zmene na 'Uhradená' a objednávka čaká na platbu: systém ju automaticky prepne do stavu 'Prijatá'.",
+        "Pri zmene na 'Uhradená' a digitálna doprava: systém ju automaticky prepne do stavu 'Vybavená' a vystaví faktúru.",
+        "Ak objednávka nie je plne rezervovaná a je uhradená, systém vystaví zálohovú faktúru a daňový doklad k prijatej platbe.",
+        "Každá zmena stavu úhrady sa loguje s dátumom a sumou."
+      ],
+      "settings": [
+        "Používať stavy úhrad (orders.usePaidStates)",
+        "Vystaviť faktúru pre uhradenú objednávku (issue_invoice_for_paid_order)"
+      ],
+      "verify_items": []
+    },
+    {
+      "name": "Správa položiek objednávky v administrácii",
+      "description": "Administrátor môže pridávať, upravovať a mazať produkty a vlastné položky v objednávke.",
+      "behavior": [
+        "Pridanie produktu: administrátor vyberie produkt, zadá množstvo a voliteľne vlastnú cenu. Ak cena nie je zadaná, použije sa aktuálna predajná cena z cenovej hladiny.",
+        "Pridanie vlastnej položky: administrátor zadá názov, cenu a množstvo. Položka nemá väzbu na katalóg.",
+        "Úprava produktu: administrátor zmení cenu a/alebo množstvo. Systém prepočíta ceny bez DPH a celkovú sumu objednávky.",
+        "Úprava vlastnej položky: administrátor zmení názov, cenu a/alebo množstvo.",
+        "Vymazanie položky: systém uvoľní skladovú rezerváciu a prepočíta dostupnosť produktu.",
+        "Zľava na položku: administrátor zadá percentuálnu zľavu, systém prepočíta cenu z pôvodnej ceny.",
+        "Variantové produkty nie je možné pridať do objednávky."
+      ],
+      "settings": [
+        "Zľava na položku (orders.itemDiscount)"
+      ],
+      "verify_items": []
+    },
+    {
+      "name": "Kompletizácia objednávky",
+      "description": "Administrátor fyzicky vyskladňuje objednávku skenovaním EAN kódov produktov.",
+      "behavior": [
+        "Administrátor sa označí ako spracovávateľ objednávky.",
+        "Pri spustení spracovania sa objednávka prepne do stavu 'Spracováva sa' a vystaví sa faktúra.",
+        "Administrátor skenuje EAN kódy produktov. Systém zvýši počet skompletizovaných kusov.",
+        "Ak sú všetky produkty skompletizované, objednávka sa automaticky prepne do stavu 'Odoslaná' a odošle sa prepravcovi.",
+        "Ak administrátor naskenuje nesprávny EAN, systém ho upozorní."
+      ],
+      "settings": [
+        "Používať kompletizáciu (orders.useCompletion)",
+        "Používať spracovanie (orders.useProcessing)"
+      ],
+      "verify_items": []
+    },
+    {
+      "name": "Rozdelenie a presun objednávky",
+      "description": "Administrátor môže rozdeliť objednávku alebo presunúť položky medzi objednávkami rovnakého zákazníka.",
+      "behavior": [
+        "Kopírovanie: systém vytvorí novú objednávku s vybranými položkami. Administrátor si vyberie, či položky presunúť alebo kopírovať a či zachovať cenu dopravy.",
+        "Presun položiek: systém presunie vybrané položky do existujúcej objednávky rovnakého zákazníka.",
+        "Nová objednávka dostane odkaz na pôvodnú objednávku (order_original_id).",
+        "Po presune sa prepočítajú súčty oboch objednávok."
+      ],
+      "settings": [
+        "Presun medzi objednávkami rôznych pôvodov (orders.crossOrderItemMoving)"
+      ],
+      "verify_items": []
+    },
+    {
+      "name": "Správa skladových rezervácií",
+      "description": "Administrátor môže manuálne vytvárať a rušiť skladové rezervácie pre položky objednávky.",
+      "behavior": [
+        "Hromadné zarezervovanie: systém zarezervuje maximálne dostupné množstvo pre vybrané položky.",
+        "Hromadné zrušenie rezervácie: systém uvoľní rezervácie a prepočíta dostupnosť.",
+        "Jednotlivé zvýšenie/zníženie: administrátor môže meniť rezerváciu po jednom kuse.",
+        "Na zamknutej objednávke nie je možné meniť rezervácie.",
+        "Objednávku nie je možné odoslať (stav Vybavená), ak nie je plne rezervovaná."
+      ],
+      "settings": [],
+      "verify_items": []
+    },
+    {
+      "name": "Zásielky a prepravcovia",
+      "description": "Administrátor vytvára zásielky a tlačí štítky pre prepravcov.",
+      "behavior": [
+        "Administrátor vytvorí zásielku zadaním hmotnosti. Systém komunikuje s API prepravcu.",
+        "Administrátor môže manuálne pridať číslo balíka.",
+        "Štítky sa dajú sťahovať jednotlivo alebo hromadne pre všetky nestiahnuté zásielky daného prepravcu.",
+        "Zásielku je možné zmazať (zruší sa aj u prepravcu).",
+        "Zásielka je na dobierku, ak spôsob platby je hotovostná platba.",
+        "Systém zaznamenáva externý stav zásielky od prepravcu."
+      ],
+      "settings": [],
+      "verify_items": []
+    },
+    {
+      "name": "Doprava a platba",
+      "description": "Systém počíta ceny dopravy a platby podľa cenovej hladiny, krajiny, hmotnosti a sumy objednávky.",
+      "behavior": [
+        "Cena dopravy závisí od: cenovej hladiny, krajiny, hmotnosti, sumy objednávky a kategórie zákazníka.",
+        "Cena platby závisí od: cenovej hladiny, krajiny, sumy objednávky a kategórie zákazníka.",
+        "Systém kontroluje, či je kombinácia dopravy a platby povolená (payment-shipping väzba).",
+        "Doprava zadarmo: systém nájde najnižšiu sumu, od ktorej je nejaká doprava zadarmo (price_from kde cena dopravy = 0).",
+        "Digitálna doprava: objednávka sa pri uhradení automaticky presunie na 'Vybavená' bez fyzického vyskladnenia.",
+        "Kupón môže zabezpečiť dopravu zadarmo."
+      ],
+      "settings": [],
+      "verify_items": []
+    },
+    {
+      "name": "Automatické spracovanie stavov (CRON)",
+      "description": "Plánovaná úloha, ktorá automaticky spracováva stavy objednávok.",
+      "behavior": [
+        "Objednávky v stave 'Čaká na platbu' staršie ako 24 hodín sa automaticky zrušia.",
+        "Objednávky v stave 'Čaká na platbu' staršie ako 1 hodinu dostanú upomienku o platbe e-mailom (jednorazovo).",
+        "Text upomienky sa berie zo šablóny objednávky (ORDER_TEMPLATE_PAYMENT_REMINDER_ID).",
+        "Upomienka obsahuje informácie o platbe (číslo účtu, IBAN, variabilný symbol).",
+        "Automatické zrušenie a upomienky sa týkajú len objednávok z nového e-shopu (bez external_id)."
+      ],
+      "settings": [],
+      "verify_items": [
+        "[VERIFY] Ako dlho čaká systém pred automatickým zrušením - v kóde je 1 deň, ale mohlo sa to meniť"
+      ]
+    },
+    {
+      "name": "Fakturácia z objednávky",
+      "description": "Systém vystavuje faktúry, zálohové faktúry, dobropisy a daňové doklady k objednávkam.",
+      "behavior": [
+        "Ostrá faktúra: obsahuje položky objednávky, dopravu, platbu, zľavy rozpočítané podľa DPH sadzieb.",
+        "Zálohová faktúra: vystavuje sa ak objednávka nie je plne rezervovaná a je uhradená. Administrátor môže zadať % depozitu.",
+        "Dobropis: vystavuje sa k existujúcej faktúre (celý alebo čiastočný - len vybrané položky).",
+        "Daňový doklad k prijatej platbe: vystavuje sa automaticky spolu so zálohovou faktúrou.",
+        "Faktúra sa automaticky priloží k e-mailu pri odoslaní objednávky.",
+        "Pre EU B2C objednávky so zálohou sa záloha odráta z ostrej faktúry.",
+        "Mimo EÚ sa na faktúru dopisuje text o oslobodení od DPH.",
+        "Faktúra sa čísle podľa číselného radu, ktorý závisí od typu dokumentu, krajiny a webu."
+      ],
+      "settings": [
+        "Používať reálne ceny na faktúre (invoices.useRealPrices) - ceny po rozpočítaní kupónov a bodov"
+      ],
+      "verify_items": []
+    },
+    {
+      "name": "Zoznam objednávok v administrácii",
+      "description": "Administrátor si prehliada objednávky s bohatým filtrovaním a možnosťou exportu.",
+      "behavior": [
+        "Filtrovanie podľa: kódu objednávky, stavu, stavu úhrady, zákazníka, e-mailu, krajiny, platby, dopravy, dátumu, produktu, kupónu, internej poznámky, sumy, meny, trackingového čísla, faktúry, dostupnosti, rezervácií, fulfillmentu, a ďalších.",
+        "Administrátor môže ukladať obľúbené filtre.",
+        "Export do XLSX: obsahuje detailné informácie o objednávkach a položkách vrátane kategórií produktov.",
+        "Export dopráv do CSV: obsahuje informácie o dopravách a trackingových číslach.",
+        "Stránkovanie s nastaviteľným počtom položiek na stránku.",
+        "Zobrazenie sumy za stránku a za celý filter (per mena).",
+        "Štatistiky: graf obratov a počtov objednávok podľa dní/týždňov/mesiacov/rokov s filtrovaním podľa krajiny, platby, stavu a segmentáciou."
+      ],
+      "settings": [],
+      "verify_items": []
+    },
+    {
+      "name": "Zaokrúhľovanie hotovostných platieb",
+      "description": "Od 1.7.2022 sa hotovostné platby na Slovensku zaokrúhľujú na najbližších 5 centov.",
+      "behavior": [
+        "Platí len pre hotovostné platby na Slovensku (payment.is_cash_payment a country_id = SK).",
+        "Zaokrúhlenie sa pripočíta k celkovej cene objednávky.",
+        "Pre HUF sa zaokrúhľuje na násobok 5."
+      ],
+      "settings": [],
+      "verify_items": []
+    },
+    {
+      "name": "Darčekové poukážky",
+      "description": "Objednávka môže obsahovať darčekové poukážky, ktoré sa pri odoslaní vygenerujú ako kupóny.",
+      "behavior": [
+        "Pri zmene stavu na 'Odoslaná' alebo 'Vybavená' sa pre každú darčekovú poukážku vygeneruje unikátny kupónový kód.",
+        "Kupón má platnosť 1 rok, jednorazové použitie a absolútnu zľavu rovnú cene poukážky.",
+        "Na obrázok poukážky sa vpíše kód a dátum platnosti.",
+        "E-mail s poukážkou sa odošle na adresu príjemcu (gift_card_email) s obrázkom poukážky v prílohe."
+      ],
+      "settings": [],
+      "verify_items": []
+    },
+    {
+      "name": "Vrátenie objednávky do spracovania",
+      "description": "Administrátor môže vrátiť uzatvorenú (vybavená/zamknutá) objednávku späť do stavu 'Spracováva sa'.",
+      "behavior": [
+        "Systém vytvorí prijímku (vrátenie tovaru na sklad).",
+        "Odomkne objednávku (is_freezed = false).",
+        "Nastaví stav na 'Spracováva sa' bez odoslania notifikácií."
+      ],
+      "settings": [],
+      "verify_items": []
+    }
+  ],
+  "relationships": [
+    {
+      "from": "Objednávka",
+      "to": "Položka objednávky",
+      "type": "one-to-many",
+      "description": "Objednávka obsahuje jednu alebo viac položiek (produktov alebo vlastných položiek)."
+    },
+    {
+      "from": "Položka objednávky",
+      "to": "Možnosť položky objednávky",
+      "type": "one-to-many",
+      "description": "Balíčkový produkt sa skladá z viacerých komponentov."
+    },
+    {
+      "from": "Objednávka",
+      "to": "História stavov objednávky",
+      "type": "one-to-many",
+      "description": "Každá zmena stavu objednávky sa zaznamenáva v histórii."
+    },
+    {
+      "from": "Objednávka",
+      "to": "Zásielka",
+      "type": "one-to-many",
+      "description": "K objednávke môže patriť viacero zásielok (napr. viacero balíkov)."
+    },
+    {
+      "from": "Košík",
+      "to": "Položka objednávky",
+      "type": "one-to-many",
+      "description": "Košík obsahuje položky, ktoré sa pri vytvorení objednávky prepoja na objednávku. Položky zdieľajú tabuľku order_items - košík aj objednávka ich referencujú."
+    },
+    {
+      "from": "Objednávka",
+      "to": "Zákazník",
+      "type": "many-to-one",
+      "description": "Objednávka patrí jednému zákazníkovi."
+    },
+    {
+      "from": "Objednávka",
+      "to": "Doprava",
+      "type": "many-to-one",
+      "description": "Objednávka má zvolený spôsob dopravy."
+    },
+    {
+      "from": "Objednávka",
+      "to": "Platba",
+      "type": "many-to-one",
+      "description": "Objednávka má zvolený spôsob platby."
+    },
+    {
+      "from": "Objednávka",
+      "to": "Kupón",
+      "type": "many-to-one",
+      "description": "Na objednávku môže byť aplikovaný jeden zľavový kupón."
+    },
+    {
+      "from": "Objednávka",
+      "to": "Faktúra",
+      "type": "one-to-many",
+      "description": "K objednávke môže patriť ostrá faktúra, zálohová faktúra, dobropis a daňový doklad."
+    },
+    {
+      "from": "Objednávka",
+      "to": "Objednávka (pôvodná)",
+      "type": "many-to-one",
+      "description": "Skopírovaná alebo rozdelená objednávka odkazuje na pôvodnú objednávku."
+    },
+    {
+      "from": "Objednávka",
+      "to": "Predajňa",
+      "type": "many-to-one",
+      "description": "Objednávka môže byť priradená ku konkrétnej predajni."
+    },
+    {
+      "from": "Stav objednávky (definícia)",
+      "to": "Objednávka",
+      "type": "one-to-many",
+      "description": "Jeden stav môže byť priradený mnohým objednávkam."
+    },
+    {
+      "from": "Položka objednávky",
+      "to": "Produkt",
+      "type": "many-to-one",
+      "description": "Položka objednávky odkazuje na produkt z katalógu (voliteľné - vlastné položky nemajú produkt)."
+    },
+    {
+      "from": "Košík",
+      "to": "Cenová hladina",
+      "type": "many-to-one",
+      "description": "Ceny v košíku sa počítajú podľa cenovej hladiny zákazníka."
+    }
+  ],
+  "business_rules": [
+    {
+      "rule": "Objednávku nie je možné odoslať (stav 'Vybavená'), ak nie sú všetky položky plne rezervované na sklade. Výnimkou je digitálna doprava.",
+      "source": "app/Facades/OrderFacade.php (setOrderState - COMPLETED branch)",
+      "verify": false
+    },
+    {
+      "rule": "Objednávku nie je možné označiť ako 'Neprevzatá', ak nie je na dobierku a neuhradená. Musí mať existujúcu výdajku.",
+      "source": "app/Facades/OrderFacade.php (setOrderState - UNACCEPTED branch)",
+      "verify": false
+    },
+    {
+      "rule": "Pri zrušení objednávky sa vrátia skladové zásoby a uvoľnené zásoby sa automaticky prerozdeľujú na čakajúce objednávky podľa dátumu vytvorenia (FIFO).",
+      "source": "app/Facades/OrderFacade.php (setOrderState - CANCELED branch)",
+      "verify": false
+    },
+    {
+      "rule": "Pri zrušení objednávky s použitými vernostnými bodmi sa body vracajú zákazníkovi s novým dátumom expirácie.",
+      "source": "app/Facades/OrderFacade.php (setOrderState - CANCELED branch, loyalty points)",
+      "verify": false
+    },
+    {
+      "rule": "B2B zákazníci nemôžu objednať produkty, ktoré sú pod minimálnym skladovým počtom (minimálny počet je rezervovaný pre B2C).",
+      "source": "app/Facades/OrderFacade.php (createOrder - is_b2b branch)",
+      "verify": false
+    },
+    {
+      "rule": "Generovanie kódu objednávky sa opakuje max 20x, ak nastane kolízia. Medzi pokusmi je pauza 100ms.",
+      "source": "app/Facades/OrderFacade.php (createOrder - retry loop)",
+      "verify": false
+    },
+    {
+      "rule": "Hotovostné platby na Slovensku (od 1.7.2022) sa zaokrúhľujú na 5 centov EUR. Pre HUF na násobok 5.",
+      "source": "app/Facades/OrderFacade.php (getRounding)",
+      "verify": false
+    },
+    {
+      "rule": "PSČ sa pri ukladaní automaticky normalizuje - prevádza na veľké písmená a odstraňuje medzery.",
+      "source": "app/Model/Repositories/OrdersRepository.php (insert, update)",
+      "verify": false
+    },
+    {
+      "rule": "Kombinácia dopravy a platby musí byť explicitne povolená (väzba payment_shippings). Systém nepovolenej kombinácii zabráni.",
+      "source": "app/Facades/OrderFacade.php (isShippingPaymentAllowed)",
+      "verify": false
+    },
+    {
+      "rule": "Ak kupón pokrýva len časť produktov, zľava sa rozpočíta proporcionálne medzi oprávnené položky s korekciou centového rozdielu na poslednej položke.",
+      "source": "app/Facades/OrderFacade.php (recalculateTotal, calculateDiscountItemsByTaxRates)",
+      "verify": false
+    },
+    {
+      "rule": "Zľava na objednávke nemôže byť vyššia ako cena produktov (záporná objednávka nie je povolená).",
+      "source": "app/Facades/OrderFacade.php (recalculateTotal - summedDiscounts cap)",
+      "verify": false
+    },
+    {
+      "rule": "Darčeková poukážka sa generuje len raz - pri zmene stavu na 'Odoslaná' alebo 'Vybavená', a len ak ešte nemá priradený kupón.",
+      "source": "app/Facades/OrderFacade.php (setOrderState - gift card generation)",
+      "verify": false
+    },
+    {
+      "rule": "Neuhradené objednávky s online platbou staršie ako 24 hodín sa automaticky rušia. Po 1 hodine sa posiela e-mailová upomienka (jednorazovo).",
+      "source": "app/Commands/ProcessOrderStatesCommand.php",
+      "verify": false
+    },
+    {
+      "rule": "Administrátor s obmedzenými právami nemôže vstúpiť do objednávok mimo svoje predajne alebo jazykové mutácie.",
+      "source": "app/BackendModule/StoreModule/Presenters/OrderPresenter.php (startup - access check)",
+      "verify": false
+    },
+    {
+      "rule": "Pri pridaní produktu do košíka, ak rovnaký produkt už existuje a nemá zľavovú akciu, systém len zvýši množstvo namiesto vytvorenia duplicitnej položky.",
+      "source": "app/FrontendModule/Facades/CartFacade.php (addToCart - existingNotDeletedOrderItem)",
+      "verify": false
+    },
+    {
+      "rule": "Zníženie množstva v košíku na 0 automaticky označí položku ako vymazanú.",
+      "source": "app/FrontendModule/Facades/CartFacade.php (decreaseQuantity)",
+      "verify": false
+    },
+    {
+      "rule": "Ak sa zmení cenová hladina košíka, systém prepočíta ceny všetkých produktov podľa novej hladiny.",
+      "source": "app/FrontendModule/Facades/CartFacade.php (setPriceLevel)",
+      "verify": false
+    },
+    {
+      "rule": "Po uhradení objednávky s digitálnou dopravou sa objednávka automaticky presunie do stavu 'Vybavená' s faktúrou.",
+      "source": "app/Facades/OrderFacade.php (setPaidState - is_digital_delivery)",
+      "verify": false
+    }
+  ]
+}

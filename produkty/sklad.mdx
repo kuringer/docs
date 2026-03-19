@@ -1,0 +1,122 @@
+---
+title: "Sklad a dostupnosť"
+description: "Správa skladu - skladové varianty, počty kusov, vypredané produkty a dostupnosť na predajniach."
+---
+
+{/* Generated from: app/BackendModule/CatalogModule/Forms/StockOptionsFormFactory.php, app/Facades/ProductsFacade.php, app/Model/Repositories/ProductsRepository.php | 2026-03-19T12:00:00Z */}
+
+Sklad v systéme Venalio funguje na dvoch úrovniach: **skladová varianta** určuje stav dostupnosti a správanie pri objednávaní, **počet kusov** sleduje aktuálnu zásobu. Tieto dve veci fungujú oddelene a každá ovplyvňuje zákazníka inak.
+
+---
+
+## Skladové varianty
+
+Skladová varianta je pomenovaný stav dostupnosti - napríklad "Skladom", "Na objednávku" alebo "Dočasne nedostupné". Každý produkt má priradenú práve jednu skladovú variantu.
+
+Skladovú variantu vytvoríte raz a potom ju priraďujete k produktom. Môžete mať ľubovoľný počet skladových variantov pre rôzne situácie.
+
+<Frame>
+  <img src="/images/placeholder.png" />
+  <caption>[SCREENSHOT: Správa skladových variantov - zoznam variantov s nastaveniami dostupnosti]</caption>
+</Frame>
+
+### Čo nastavíte pri skladovej variante
+
+| Pole | Popis |
+|------|-------|
+| **Názov** | Text zobrazený zákazníkovi na stránke produktu (napr. "Skladom", "Na objednávku") - prekladateľný |
+| **Povoliť pridať do košíka** | Či si zákazník môže produkt s touto skladovou variantou objednať |
+| **Doba dodania v dňoch** | Používa sa v exportoch pre cenové porovnávače. Hodnota 0 znamená okamžité odoslanie, prázdne pole znamená, že produkt nie je objednateľný |
+
+<Warning>Táto informácia vyžaduje overenie. [VERIFY] - Presné možnosti poľa Google dostupnosť (in stock, out of stock, preorder) a ich mapovanie na Google Merchant Center sa zatiaľ nepodarilo potvrdiť. Overte s vývojovým tímom.</Warning>
+
+### Príklady skladových variantov
+
+<Accordion title="Typické príklady nastavení">
+
+| Variant | Pridanie do košíka | Doba dodania | Použitie |
+|---------|--------------------|--------------|----------|
+| Skladom | Áno | 1 | Produkt fyzicky na sklade |
+| Na objednávku | Áno | 14 | Produkt sa objedná na požiadanie |
+| Dočasne nedostupné | Nie | prázdne | Produkt nebude objednateľný |
+| Predpredaj | Áno | 30 | Produkt ešte nie je dostupný |
+
+</Accordion>
+
+---
+
+## Počet kusov na sklade
+
+Ak sledujete fyzický stav skladu, môžete na produkte evidovať **počet kusov**. Táto funkcia musí byť zapnutá v nastaveniach e-shopu.
+
+<Note>Sledovanie počtu kusov je voliteľné. Systém funguje aj bez neho - stačí správne nastaviť skladovú variantu.</Note>
+
+### Záporné stavy skladu
+
+V nastaveniach e-shopu môžete povoliť **záporné stavy skladu**. To znamená, že systém umožní objednávky aj keď je počet kusov 0 alebo záporný. Vhodné napríklad pri dropshippingu alebo keď nesynchronizujete sklad v reálnom čase.
+
+---
+
+## Vypredaný produkt
+
+Keď produkt nemá žiadne kusy na sklade a neplánujete ho dopĺňať, môžete ho označiť ako **Vypredané**.
+
+**Čo sa stane keď označíte produkt ako Vypredané:**
+- Systém produkt okamžite vyradí z vyhľadávania - zákazníci ho nenájdu
+- Produkt zostáva v administrácii a môžete ho kedykoľvek reaktivovať
+
+**Automatické zrušenie príznaku Vypredané:**
+
+Systém sám zruší príznak Vypredané, keď sa produkt vráti na sklad. Presnejšie: keď nastavíte niektorému variantu alebo jednoduchému produktu skladovú variantu zodpovedajúcu stavu "Skladom", systém automaticky zruší príznak Vypredané na rodičovskom produkte.
+
+<Tip>Nemusíte ručne zrušiť príznak Vypredané po doplnení skladu - systém to urobí za vás.</Tip>
+
+<Frame>
+  <img src="/images/placeholder.png" />
+  <caption>[SCREENSHOT: Formulár produktu - príznak Vypredané a priradená skladová varianta]</caption>
+</Frame>
+
+---
+
+## Sklad na predajniach
+
+Ak prevádzkujete viacero fyzických predajní alebo výdajných miest, systém eviduje stav zásob na každej predajni zvlášť.
+
+Produkt môže mať iný stav zásob v sklade v Bratislave aj v sklade v Košiciach. Zákazník pri výbere výdajného miesta vidí informácie relevantné pre danú predajňu.
+
+---
+
+## Import produktov a sklad
+
+Ak importujete produkty z externého systému (napríklad z ERP alebo skladu), systém sleduje stav spracovania importu.
+
+Produkty, ktoré neboli aktualizované počas posledného importu, systém automaticky nastaví na stav **dočasne vypredané** a zaradí ich na synchronizáciu s vyhľadávaním.
+
+<Note>Toto správanie sa týka len e-shopov s nastaveným automatickým importom produktov. Pri ručnej správe produktov sa vás netýka.</Note>
+
+---
+
+## Sklad a exporty do porovnávačov
+
+Informácie o dostupnosti sa prenášajú aj do exportov pre cenové porovnávače (Heureka, Google).
+
+| Čo sa exportuje | Odkiaľ sa berie |
+|-----------------|-----------------|
+| Stav dostupnosti | Z nastavenia Google dostupnosť na skladovej variante |
+| Doba dodania | Z poľa Doba dodania v dňoch na skladovej variante |
+
+Produkty, ktoré nie je možné pridať do košíka (skladová varianta má zakázané pridanie do košíka), sa do porovnávačov **neexportujú**.
+
+<Tip>Správne nastavenie doby dodania na skladových variantách zlepšuje zobrazenie vašich produktov na Heureke a Google Shopping.</Tip>
+
+---
+
+## Súhrn: čo ovplyvňuje to, čo zákazník vidí
+
+| Situácia | Čo zákazník vidí |
+|----------|-----------------|
+| Skladová varianta: Pridanie do košíka = Áno | Tlačidlo "Pridať do košíka" je aktívne |
+| Skladová varianta: Pridanie do košíka = Nie | Tlačidlo nie je dostupné alebo je skryté |
+| Produkt označený ako Vypredané | Produkt sa nezobrazí vo vyhľadávaní |
+| Variantový produkt bez aktívnych variantov | Produkt sa nezobrazí vo vyhľadávaní |
+| Počet kusov = 0 (pri zapnutom sledovaní skladu) | Závisí od nastavenia záporných stavov - systém buď zakáže alebo povolí objednávku |

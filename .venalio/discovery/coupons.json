@@ -1,0 +1,594 @@
+{
+  "domain": "Kupóny a zľavy",
+  "source_files": [
+    "app/Facades/CouponFacade.php",
+    "app/BackendModule/StoreModule/Forms/CouponFormFactory.php",
+    "app/BackendModule/StoreModule/Forms/CouponGeneratorFormFactory.php",
+    "app/BackendModule/StoreModule/Presenters/CouponsPresenter.php",
+    "app/BackendModule/StoreModule/Presenters/DiscountsPresenter.php",
+    "app/Model/Settings/CouponsSettings.php",
+    "app/Model/Settings/DiscountsSettings.php",
+    "app/Model/Enums/ApplyDiscountTypesEnum.php",
+    "app/Model/Enums/DiscountsType.php",
+    "app/Model/Repositories/CouponsRepository.php",
+    "app/Model/Repositories/DiscountsRepository.php",
+    "app/Model/Repositories/DiscountProductsRepository.php",
+    "app/Model/Repositories/ProductDiscountsRepository.php",
+    "app/Model/Events/CouponAddedEvent.php",
+    "app/Model/Events/CouponRemovedEvent.php",
+    "app/FrontendModule/Exceptions/InvalidCouponException.php",
+    "app/Commands/Eshop/DiscountsApplyCommand.php",
+    "app/Commands/Eshop/DiscountsClearCommand.php",
+    "app/BackendModule/CatalogModule/Presenters/BatchTraits/ChangeDiscountPriceTrait.php",
+    "app/BackendModule/CatalogModule/Presenters/BatchTraits/DiscountTrait.php",
+    "app/Facades/PricesFacade.php"
+  ],
+  "generated_at": "2026-03-19T12:00:00Z",
+  "entities": [
+    {
+      "name": "Kupón",
+      "name_en": "Coupon",
+      "description": "Zľavový kód, ktorý zákazník zadá pri nákupe. Poskytuje percentuálnu alebo fixnú zľavu na produkty v košíku, prípadne dopravu zadarmo.",
+      "fields": [
+        {
+          "name": "Kód",
+          "type": "text",
+          "description": "Unikátny textový kód kupónu, ktorý zákazník zadáva. Maximálne 50 znakov. Ak sa vytvára viac kupónov naraz, systém kódy generuje automaticky.",
+          "verify": false
+        },
+        {
+          "name": "Poznámka",
+          "type": "text",
+          "description": "Interná poznámka viditeľná len v administrácii.",
+          "verify": false
+        },
+        {
+          "name": "Stav",
+          "type": "enum",
+          "description": "Určuje, či je kupón aktívny.",
+          "values": ["aktívny", "neaktívny", "zmazaný"],
+          "verify": false
+        },
+        {
+          "name": "Jazyk",
+          "type": "relation",
+          "description": "Obmedzenie kupónu na konkrétnu jazykovú mutáciu. Ak nie je nastavené, kupón platí pre všetky jazyky.",
+          "verify": false
+        },
+        {
+          "name": "Mena",
+          "type": "relation",
+          "description": "Obmedzenie kupónu na konkrétnu menu. Ak nie je nastavené, kupón platí pre všetky meny.",
+          "verify": false
+        },
+        {
+          "name": "Kategórie",
+          "type": "relation",
+          "description": "Obmedzenie kupónu na produkty z vybraných kategórií. Ak nie je nastavené, platí pre všetky produkty. Dostupné len ak sú kategórie povolené v nastaveniach.",
+          "verify": false
+        },
+        {
+          "name": "Štítky",
+          "type": "relation",
+          "description": "Obmedzenie kupónu na produkty s vybranými štítkami. Ak nie je nastavené, platí pre všetky produkty. Dostupné len ak sú štítky povolené v nastaveniach.",
+          "verify": false
+        },
+        {
+          "name": "Povolené krajiny",
+          "type": "relation",
+          "description": "Obmedzenie kupónu na zákazníkov z konkrétnych krajín. Ak nie je nastavené, kupón platí pre všetky krajiny.",
+          "verify": false
+        },
+        {
+          "name": "Povolené kategórie zákazníkov",
+          "type": "relation",
+          "description": "Obmedzenie kupónu na zákazníkov v konkrétnych zákazníckych kategóriách. Ak nie je nastavené, kupón platí pre všetkých zákazníkov.",
+          "verify": false
+        },
+        {
+          "name": "Vylúčiť produkty s akciovou cenou",
+          "type": "boolean",
+          "description": "Ak je zapnuté, kupón sa neaplikuje na produkty, ktoré už majú zľavnenú cenu. V košíku musí byť aspoň jeden produkt bez akcie.",
+          "verify": false
+        },
+        {
+          "name": "Maximálny počet použití",
+          "type": "number",
+          "description": "Koľkokrát môže byť kupón celkovo použitý. Počíta sa podľa vytvorených objednávok. Ak nie je vyplnené, kupón sa dá použiť neobmedzene.",
+          "verify": false
+        },
+        {
+          "name": "Minimálny nákup",
+          "type": "number",
+          "description": "Minimálna hodnota relevantných produktov v košíku (vo vybranej mene), aby bolo možné kupón uplatniť.",
+          "verify": false
+        },
+        {
+          "name": "Platný od",
+          "type": "text",
+          "description": "Dátum, od ktorého je kupón platný (vrátane). Ak nie je vyplnené, kupón platí okamžite.",
+          "verify": false
+        },
+        {
+          "name": "Platný do",
+          "type": "text",
+          "description": "Dátum, do ktorého je kupón platný (vrátane). Ak nie je vyplnené, kupón platí neobmedzene.",
+          "verify": false
+        },
+        {
+          "name": "Doprava zadarmo",
+          "type": "boolean",
+          "description": "Ak je zapnuté, kupón poskytuje dopravu zadarmo.",
+          "verify": false
+        },
+        {
+          "name": "Fixná výška zľavy",
+          "type": "number",
+          "description": "Zľava v pevnej sume (napr. 10 EUR). Zaokrúhľuje sa na dve desatinné miesta. Nie je možné kombinovať s percentuálnou zľavou.",
+          "verify": false
+        },
+        {
+          "name": "Percentuálna výška zľavy",
+          "type": "number",
+          "description": "Zľava v percentách (0-100). Zaokrúhľuje sa na dve desatinné miesta. Nie je možné kombinovať s fixnou zľavou.",
+          "verify": false
+        },
+        {
+          "name": "Jednorazový",
+          "type": "boolean",
+          "description": "Kupón možno použiť len raz. Vytvára sa automaticky cez systém (napr. vernostný program, darčekové poukážky).",
+          "verify": true
+        },
+        {
+          "name": "Vytvoril",
+          "type": "relation",
+          "description": "Administrátor, ktorý kupón vytvoril.",
+          "verify": false
+        },
+        {
+          "name": "Väzba na darčekovú poukážku",
+          "type": "relation",
+          "description": "Ak kupón vznikol z darčekovej poukážky, je naviazaný na konkrétnu položku objednávky a nedá sa zmazať.",
+          "verify": false
+        }
+      ]
+    },
+    {
+      "name": "Zľava",
+      "name_en": "Discount",
+      "description": "Hromadná zľavová akcia priradená na vybrané produkty. Systém automaticky prepočítava akciové ceny podľa nastavení.",
+      "fields": [
+        {
+          "name": "Interný názov",
+          "type": "text",
+          "description": "Názov zľavy viditeľný len v administrácii. Maximálne 100 znakov.",
+          "verify": false
+        },
+        {
+          "name": "Typ zľavy",
+          "type": "enum",
+          "description": "Spôsob aplikácie zľavy na produkty.",
+          "values": ["Zľava na všetky produkty", "Zľava na najlacnejší produkt"],
+          "verify": false
+        },
+        {
+          "name": "Minimálny počet produktov",
+          "type": "number",
+          "description": "Koľko produktov zo zľavovej akcie musí byť v košíku, aby sa zľava uplatnila. Pri type 'Zľava na najlacnejší produkt' musí byť minimálne 2.",
+          "verify": false
+        },
+        {
+          "name": "Stav",
+          "type": "enum",
+          "description": "Určuje, či je zľava aktívna.",
+          "values": ["aktívny", "neaktívny", "zmazaný"],
+          "verify": false
+        },
+        {
+          "name": "Názov (preložiteľný)",
+          "type": "text",
+          "description": "Verejný názov zľavy zobrazený zákazníkovi. Nastavuje sa pre každú jazykovú mutáciu zvlášť. Maximálne 200 znakov.",
+          "verify": false
+        },
+        {
+          "name": "Popis (preložiteľný)",
+          "type": "text",
+          "description": "Verejný popis zľavy zobrazený zákazníkovi. Nastavuje sa pre každú jazykovú mutáciu zvlášť. Maximálne 1000 znakov.",
+          "verify": false
+        }
+      ]
+    },
+    {
+      "name": "Nastavenie zľavy pre cenovú hladinu",
+      "name_en": "Discount Entry",
+      "description": "Percentuálna zľava a jej časové trvanie nastavené pre konkrétnu cenovú hladinu v rámci zľavovej akcie.",
+      "fields": [
+        {
+          "name": "Zľava [%]",
+          "type": "number",
+          "description": "Percentuálna výška zľavy pre danú cenovú hladinu.",
+          "verify": false
+        },
+        {
+          "name": "Trvanie od",
+          "type": "text",
+          "description": "Dátum a čas, od kedy je zľava pre túto cenovú hladinu aktívna.",
+          "verify": false
+        },
+        {
+          "name": "Trvanie do",
+          "type": "text",
+          "description": "Dátum a čas, do kedy je zľava pre túto cenovú hladinu aktívna.",
+          "verify": false
+        }
+      ]
+    },
+    {
+      "name": "Produkt v zľave",
+      "name_en": "Discount Product",
+      "description": "Prepojenie medzi zľavovou akciou a konkrétnym produktom. Určuje, na ktoré produkty sa zľava vzťahuje.",
+      "fields": [
+        {
+          "name": "Produkt",
+          "type": "relation",
+          "description": "Produkt zaradený do zľavovej akcie.",
+          "verify": false
+        },
+        {
+          "name": "Pridaný kým",
+          "type": "relation",
+          "description": "Administrátor, ktorý produkt do akcie zaradil.",
+          "verify": false
+        },
+        {
+          "name": "Dátum pridania",
+          "type": "text",
+          "description": "Kedy bol produkt zaradený do akcie.",
+          "verify": false
+        }
+      ]
+    }
+  ],
+  "features": [
+    {
+      "name": "Správa kupónov",
+      "description": "Vytváranie, úprava a správa zľavových kupónov, ktoré zákazníci zadávajú pri nákupe pre získanie zľavy alebo dopravy zadarmo.",
+      "behavior": [
+        "Kupón musí mať buď percentuálnu alebo fixnú zľavu - nie je možné nastaviť obe súčasne.",
+        "Kód kupónu musí byť unikátny. Systém neumožní vytvoriť kupón s kódom, ktorý už existuje - ani keď bol pôvodný kupón zmazaný.",
+        "Pri vytváraní je možné zadať počet kusov. Ak je viac ako 1, systém automaticky vygeneruje náhodné kódy.",
+        "Kupón naviazaný na darčekovú poukážku nie je možné zmazať.",
+        "Kupón je možné zapnúť/vypnúť bez zmazania.",
+        "Každý kupón eviduje, ktorý administrátor ho vytvoril."
+      ],
+      "settings": [
+        "Celý modul kupónov je možné zapnúť/vypnúť v nastaveniach (predvolene vypnutý)."
+      ],
+      "verify_items": []
+    },
+    {
+      "name": "Generátor kupónov",
+      "description": "Hromadné generovanie kupónov podľa vzoru alebo náhodne. Všetky vygenerované kupóny zdieľajú rovnaké nastavenia zľavy a cielenia.",
+      "behavior": [
+        "Ak je vzor prázdny, systém generuje 10-znakové náhodné kódy (čísla a veľké písmená).",
+        "Vzor podporuje rozsahy znakov: [0-9], [a-z], [A-Z] - na mieste rozsahu sa vygeneruje náhodný znak.",
+        "Vzor podporuje poradové číslo: <NNN> - vygeneruje číslo s doplnením núl podľa dĺžky N (napr. <NNN> = 001, 002, 003...).",
+        "Ak vzor vygeneruje kód, ktorý už existuje, systém sa pokúsi vygenerovať iný. Ak to nie je možné (vzor nemá náhodné časti), kupón sa preskočí.",
+        "Po generovaní systém zobrazí, koľko kupónov bolo úspešne vytvorených."
+      ],
+      "settings": [],
+      "verify_items": []
+    },
+    {
+      "name": "Validácia kupónu pri nákupe",
+      "description": "Systém kontroluje platnosť kupónu, keď ho zákazník zadá v košíku. Kontroluje sa viacero podmienok a zákazník dostane zrozumiteľnú chybovú hlášku.",
+      "behavior": [
+        "Kupón musí existovať a byť v stave 'aktívny'.",
+        "Ak je kupón obmedzený na jazyk, musí sa zhodovať s aktuálnym jazykom zákazníka.",
+        "Ak je kupón obmedzený na menu, musí sa zhodovať s aktuálnou menou.",
+        "Kupón musí byť v platnom časovom rozmedzí (platný od / do).",
+        "Ak je kupón obmedzený na krajiny, krajina zákazníka musí byť v zozname.",
+        "Ak je kupón obmedzený na kategórie zákazníkov, zákazník musí patriť do povolenej kategórie.",
+        "Ak kupón vylučuje zlacnené produkty, v košíku musí byť aspoň jeden produkt za plnú cenu.",
+        "Hodnota relevantných produktov v košíku musí dosiahnuť minimálnu hranicu nákupu.",
+        "Ak je nastavený maximálny počet použití, systém skontroluje, koľkokrát bol kupón už použitý v objednávkach.",
+        "Ak je kupón obmedzený na štítky, v košíku musí byť aspoň jeden produkt s príslušným štítkom.",
+        "Ak je kupón obmedzený na kategórie, v košíku musí byť aspoň jeden produkt z príslušnej kategórie.",
+        "Produkty typu darčeková poukážka sa nezapočítavajú do hodnoty nákupu pre kupón."
+      ],
+      "settings": [],
+      "verify_items": []
+    },
+    {
+      "name": "Výpočet zľavy kupónu",
+      "description": "Systém vypočíta výšku zľavy z kupónu na základe relevantných produktov v košíku.",
+      "behavior": [
+        "Pri fixnej zľave: ak je zľava vyššia ako cena relevantných produktov, zľava sa zníži na cenu produktov (zákazník nezíska záporný doplatkok).",
+        "Pri percentuálnej zľave: systém prepočíta percento z ceny relevantných produktov.",
+        "Zľava sa zaokrúhľuje podľa nastavenia meny (počet desatinných miest).",
+        "Pre maďarský forint (HUF): zľava sa zaokrúhľuje nahor na najbližší násobok 5.",
+        "Ak je kupón obmedzený na kategórie alebo štítky, do výpočtu sa započítavajú len ceny relevantných produktov.",
+        "Ak kupón vylučuje zlacnené produkty, produkty s akciovou cenou sa nezapočítavajú."
+      ],
+      "settings": [],
+      "verify_items": []
+    },
+    {
+      "name": "Štatistiky kupónov",
+      "description": "Prehľad použitia kupónov s možnosťou filtrovania a rôzneho časového vzorkovania.",
+      "behavior": [
+        "Zobrazuje počet použití, celkové tržby a celkové zľavy pre každý kupón.",
+        "Vzorkovanie: celé obdobie, po dňoch, po týždňoch, po mesiacoch, po rokoch.",
+        "Výsledky sú zoskupené podľa kupónov a zoradené podľa počtu použití.",
+        "Predvolené obdobie: posledných 7 dní."
+      ],
+      "settings": [],
+      "verify_items": []
+    },
+    {
+      "name": "Export kupónov",
+      "description": "Export zoznamu kupónov a ich použití do CSV súboru.",
+      "behavior": [
+        "Export kupónov: obsahuje kód, dátumy platnosti, zľavu, počet použití, stav, kto vytvoril, celkovú cenu objednávok a kódy objednávok.",
+        "Export použití kupónov: obsahuje denný rozpis použití pre každý kupón s počtami.",
+        "Export rešpektuje aktuálne filtre v zozname kupónov."
+      ],
+      "settings": [],
+      "verify_items": []
+    },
+    {
+      "name": "Filtrovanie kupónov",
+      "description": "Rozsiahle možnosti filtrovania v zozname kupónov pre rýchle vyhľadanie.",
+      "behavior": [
+        "Filtrovať je možné podľa: kódu, platnosti od/do, použitia od/do, platnosti neobmedzene, či bol použitý, jazyka, meny, fixnej zľavy, percentuálnej zľavy, jednorazového kupónu, max. počtu použití, dopravy zadarmo, minimálneho nákupu, stavu, dátumu vytvorenia, poznámky a administrátora.",
+        "Zoznam kupónov zobrazuje počet skutočných použití (objednávok) pre každý kupón.",
+        "Kupóny sú predvolene zoradené podľa dátumu vytvorenia (najnovšie prvé)."
+      ],
+      "settings": [],
+      "verify_items": []
+    },
+    {
+      "name": "Zľavové akcie na produkty",
+      "description": "Hromadné zľavové akcie priradené na konkrétne produkty. Systém automaticky prepočítava akciové ceny.",
+      "behavior": [
+        "Dva typy zľavy: zľava na všetky produkty v akcii, alebo zľava na najlacnejší produkt (vyžaduje min. 2 produkty v košíku).",
+        "Zľava sa nastavuje percentom zvlášť pre každú cenovú hladinu.",
+        "Každá cenová hladina môže mať vlastné časové trvanie zľavy (od-do).",
+        "Zľava má verejný názov a popis preložiteľný do každej jazykovej mutácie.",
+        "Produkty sa do akcie pridávajú a odoberajú jednotlivo.",
+        "Pri pridaní variantného produktu systém automaticky zaradí aj všetky jeho varianty.",
+        "Pri odobraní variantného produktu systém automaticky odoberie aj všetky jeho varianty."
+      ],
+      "settings": [
+        "Celý modul zliav je možné zapnúť/vypnúť v nastaveniach (predvolene vypnutý)."
+      ],
+      "verify_items": []
+    },
+    {
+      "name": "Automatická aplikácia zliav",
+      "description": "Systém automaticky každých 5 minút aplikuje a aktualizuje akciové ceny na produktoch podľa aktívnych zľavových akcií.",
+      "behavior": [
+        "Spúšťa sa automaticky každých 5 minút.",
+        "Aplikuje zľavy len pre typ 'Zľava na všetky produkty' s minimálnym počtom 1.",
+        "Ak má produkt existujúcu zľavu, nová zľava sa aplikuje len ak je väčšia ako existujúca.",
+        "Ak sa produkt odoberie zo zľavovej akcie, pôvodná cena sa obnoví.",
+        "Ak sa zľavová akcia vypne alebo zmaže, akciové ceny priradených produktov sa obnovia.",
+        "Ak vypršala platnosť zľavy (podľa dátumu 'do'), akciová cena sa automaticky odstráni.",
+        "Systém si pamätá pôvodnú zľavovú cenu pred aplikáciou akcie a pri zrušení ju obnoví.",
+        "Po zmene cien systém označí produkty na synchronizáciu s vyhľadávaním.",
+        "Proces je zamknutý - nemôže bežať súčasne viackrát."
+      ],
+      "settings": [],
+      "verify_items": []
+    },
+    {
+      "name": "Automatické čistenie expirovaných zliav",
+      "description": "Systém automaticky každých 5 minút kontroluje a odstraňuje expirované zľavové ceny z produktov.",
+      "behavior": [
+        "Spúšťa sa automaticky každých 5 minút.",
+        "Odstraňuje akciové ceny, ktorým vypršal dátum platnosti.",
+        "Odstraňuje neplatné zľavy, kde je akciová cena vyššia alebo rovná predajnej cene.",
+        "Každú celú hodinu spúšťa synchronizáciu aktívnych zľavnených produktov s vyhľadávaním (pre filter 'Akcia')."
+      ],
+      "settings": [],
+      "verify_items": []
+    },
+    {
+      "name": "Skupinové nastavenie zľavy na produktoch",
+      "description": "Hromadná zmena akciových cien pre vybrané produkty priamo z katalógu.",
+      "behavior": [
+        "Zľava sa zadáva v percentách (0-100).",
+        "Je možné vybrať, pre ktoré cenové hladiny sa zľava aplikuje.",
+        "Voliteľné nastavenie časového trvania akcie (od-do).",
+        "Pri nastavení zľavy 0% sa akciová cena odstráni.",
+        "Pri variantných produktoch sa zľava aplikuje na všetky varianty.",
+        "Po zmene systém nastaví štítok akcie na produkte.",
+        "Po zmene systém spustí synchronizáciu s vyhľadávaním."
+      ],
+      "settings": [],
+      "verify_items": [
+        "[VERIFY] Presná logika nastavovania štítka akcie (setDiscountFlag) nie je viditeľná v analyzovaných súboroch."
+      ]
+    },
+    {
+      "name": "Skupinové pridanie/odobranie produktov zo zľavovej akcie",
+      "description": "Hromadné zaradenie alebo vyradenie vybraných produktov z existujúcej zľavovej akcie z katalógu.",
+      "behavior": [
+        "Majiteľ vyberie produkty v katalógu a priradí ich do existujúcej zľavovej akcie.",
+        "Rovnako je možné hromadne odobrať produkty zo zľavovej akcie.",
+        "Pri variantných produktoch sa automaticky pracuje aj s variantmi."
+      ],
+      "settings": [],
+      "verify_items": []
+    },
+    {
+      "name": "Zákaznícka zľava",
+      "description": "Individuálna percentuálna zľava nastavená pre zákazníka alebo kategóriu zákazníkov, aplikovaná automaticky na ceny produktov.",
+      "behavior": [
+        "Tri režimy aplikácie: na všetky produkty, len na nezlacnené produkty, alebo len na zlacnené produkty.",
+        "Zľava sa vypočíta z ceny produktu a zaokrúhli na 2 desatinné miesta.",
+        "Zľava sa aplikuje len ak je väčšia ako 0."
+      ],
+      "settings": [],
+      "verify_items": [
+        "[VERIFY] Kde presne sa zákaznícka zľava nastavuje (na zákazníkovi alebo kategórii zákazníka) nie je z analyzovaných súborov jednoznačné."
+      ]
+    },
+    {
+      "name": "Udalosti kupónov",
+      "description": "Systém oznamuje pridanie a odobratie kupónu v košíku, čo umožňuje ďalšie automatické reakcie.",
+      "behavior": [
+        "Pri pridaní kupónu do košíka sa vyvolá udalosť s identifikátorom kupónu.",
+        "Pri odobraní kupónu z košíka sa vyvolá udalosť s identifikátorom kupónu."
+      ],
+      "settings": [],
+      "verify_items": [
+        "[VERIFY] Aké konkrétne reakcie (listenery) sú napojené na tieto udalosti nie je z analyzovaných súborov zistiteľné."
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "from": "Kupón",
+      "to": "Objednávka",
+      "type": "one-to-many",
+      "description": "Jeden kupón môže byť použitý vo viacerých objednávkach (ak nie je jednorazový alebo nemá limit použití)."
+    },
+    {
+      "from": "Kupón",
+      "to": "Jazyková mutácia",
+      "type": "many-to-one",
+      "description": "Kupón môže byť obmedzený na jednu jazykovú mutáciu."
+    },
+    {
+      "from": "Kupón",
+      "to": "Mena",
+      "type": "many-to-one",
+      "description": "Kupón môže byť obmedzený na jednu menu."
+    },
+    {
+      "from": "Kupón",
+      "to": "Kategória",
+      "type": "many-to-many",
+      "description": "Kupón môže byť obmedzený na produkty z vybraných kategórií."
+    },
+    {
+      "from": "Kupón",
+      "to": "Štítok",
+      "type": "many-to-many",
+      "description": "Kupón môže byť obmedzený na produkty s vybranými štítkami."
+    },
+    {
+      "from": "Kupón",
+      "to": "Krajina",
+      "type": "many-to-many",
+      "description": "Kupón môže byť obmedzený na zákazníkov z vybraných krajín."
+    },
+    {
+      "from": "Kupón",
+      "to": "Kategória zákazníka",
+      "type": "many-to-many",
+      "description": "Kupón môže byť obmedzený na zákazníkov v konkrétnych kategóriách."
+    },
+    {
+      "from": "Zľava",
+      "to": "Cenová hladina",
+      "type": "many-to-many",
+      "description": "Každá zľava sa nastavuje zvlášť pre každú cenovú hladinu (vlastné percento a trvanie)."
+    },
+    {
+      "from": "Zľava",
+      "to": "Produkt",
+      "type": "many-to-many",
+      "description": "Zľava sa vzťahuje na konkrétne produkty. Jeden produkt môže byť vo viacerých zľavových akciách."
+    },
+    {
+      "from": "Zľava",
+      "to": "Jazyková mutácia",
+      "type": "one-to-many",
+      "description": "Zľava má preklad (názov a popis) pre každú jazykovú mutáciu."
+    }
+  ],
+  "business_rules": [
+    {
+      "rule": "Kupón musí mať buď fixnú alebo percentuálnu zľavu - nikdy obe súčasne a nikdy žiadnu.",
+      "source": "app/BackendModule/StoreModule/Forms/CouponFormFactory.php",
+      "verify": false
+    },
+    {
+      "rule": "Kód kupónu musí byť unikátny v celom systéme. Zmazané kupóny blokujú opätovné použitie rovnakého kódu.",
+      "source": "app/BackendModule/StoreModule/Forms/CouponFormFactory.php",
+      "verify": false
+    },
+    {
+      "rule": "Kupón naviazaný na darčekovú poukážku (cez položku objednávky) nie je možné zmazať.",
+      "source": "app/BackendModule/StoreModule/Presenters/CouponsPresenter.php",
+      "verify": false
+    },
+    {
+      "rule": "Produkty typu darčeková poukážka sa nezapočítavajú do hodnoty nákupu pre výpočet kupónovej zľavy.",
+      "source": "app/Facades/CouponFacade.php",
+      "verify": false
+    },
+    {
+      "rule": "Pri fixnej zľave kupónu: ak je zľava vyššia ako cena produktov, zľava sa zníži na cenu produktov (zákazník nedostane záporný rozdiel).",
+      "source": "app/Facades/CouponFacade.php",
+      "verify": false
+    },
+    {
+      "rule": "Pre maďarský forint (HUF) sa zľava z kupónu zaokrúhľuje nahor na najbližší násobok 5.",
+      "source": "app/Facades/CouponFacade.php",
+      "verify": false
+    },
+    {
+      "rule": "Typ zľavy 'Zľava na najlacnejší produkt' vyžaduje minimálny počet produktov aspoň 2.",
+      "source": "app/BackendModule/StoreModule/Presenters/DiscountsPresenter.php",
+      "verify": false
+    },
+    {
+      "rule": "Pri automatickej aplikácii zliav sa nová zľava aplikuje len ak je väčšia ako existujúca zľava na produkte.",
+      "source": "app/Commands/Eshop/DiscountsApplyCommand.php",
+      "verify": false
+    },
+    {
+      "rule": "Ak je akciová cena produktu vyššia alebo rovná predajnej cene, systém ju automaticky odstráni.",
+      "source": "app/Commands/Eshop/DiscountsClearCommand.php",
+      "verify": false
+    },
+    {
+      "rule": "Automatická aplikácia zliav funguje len pre typ 'Zľava na všetky produkty' s minimálnym počtom 1. Typ 'Zľava na najlacnejší produkt' a akcie s vyšším minimálnym počtom sa riešia pri výpočte košíka.",
+      "source": "app/Commands/Eshop/DiscountsApplyCommand.php",
+      "verify": true
+    },
+    {
+      "rule": "Pri pridaní variantného produktu do zľavovej akcie systém automaticky pridá aj všetky jeho varianty. To isté platí pri odobraní.",
+      "source": "app/Model/Repositories/DiscountProductsRepository.php",
+      "verify": false
+    },
+    {
+      "rule": "Automatická aplikácia a čistenie zliav beží na pozadí každých 5 minút.",
+      "source": "app/Commands/Eshop/DiscountsApplyCommand.php",
+      "verify": false
+    },
+    {
+      "rule": "Po zmene akciových cien systém označí produkty na synchronizáciu s vyhľadávaním (ElasticSearch).",
+      "source": "app/Commands/Eshop/DiscountsApplyCommand.php",
+      "verify": false
+    },
+    {
+      "rule": "Zákaznícka zľava sa aplikuje podľa režimu: na všetky produkty, len na nezlacnené, alebo len na zlacnené.",
+      "source": "app/Facades/PricesFacade.php",
+      "verify": false
+    },
+    {
+      "rule": "Každú celú hodinu systém synchronizuje aktívne zľavnené produkty s vyhľadávaním, aby bol filter 'Akcia' aktuálny.",
+      "source": "app/Commands/Eshop/DiscountsClearCommand.php",
+      "verify": false
+    },
+    {
+      "rule": "Systém si pri aplikácii zľavovej akcie pamätá pôvodnú zľavovú cenu a po skončení akcie ju obnoví.",
+      "source": "app/Commands/Eshop/DiscountsApplyCommand.php",
+      "verify": false
+    }
+  ]
+}

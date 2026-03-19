@@ -1,0 +1,849 @@
+{
+  "domain": "Pokladňa, Doprava a Platby",
+  "source_files": [
+    "app/FrontendModule/Presenters/CheckoutPresenter.php",
+    "app/FrontendModule/Traits/CheckoutManagement.php",
+    "app/FrontendModule/Forms/Checkout/BasicInfoFormFactory.php",
+    "app/FrontendModule/Forms/Checkout/BasicInfoFormData.php",
+    "app/FrontendModule/Forms/Checkout/ShippingFormFactory.php",
+    "app/FrontendModule/Forms/Checkout/ShippingFormData.php",
+    "app/FrontendModule/Forms/Checkout/PaymentFormFactory.php",
+    "app/FrontendModule/Forms/Checkout/PaymentFormData.php",
+    "app/FrontendModule/Forms/Checkout/CustomerFormData.php",
+    "app/FrontendModule/Forms/Checkout/CustomerFormShippingData.php",
+    "app/FrontendModule/Forms/Checkout/CustomerFormBillingData.php",
+    "app/FrontendModule/Forms/Checkout/CompleteCheckoutFormFactory.php",
+    "app/FrontendModule/Forms/Checkout/CompleteCheckoutFormData.php",
+    "app/Domain/Carriers/CarriersFacade.php",
+    "app/Domain/Carriers/Carrier.php",
+    "app/Domain/Carriers/ICarrier.php",
+    "app/Domain/Carriers/ShipmentDTO.php",
+    "app/Domain/Carriers/ParcelDTO.php",
+    "app/Domain/Carriers/ShipmentsFacade.php",
+    "app/Domain/Payments/Payment.php",
+    "app/Domain/Payments/IPayment.php",
+    "app/Domain/Payments/IRedirectPayment.php",
+    "app/Domain/Payments/INestedPayment.php",
+    "app/Domain/Payments/RedirectPayment.php",
+    "app/Domain/Payments/NestedPayment.php",
+    "app/Domain/Payments/PaymentFactory.php",
+    "app/Domain/Payments/PaymentStatusDTO.php",
+    "app/Domain/Payments/RefundStatusDTO.php",
+    "app/Model/Repositories/ShippingsRepository.php",
+    "app/Model/Repositories/ShippingLevelsRepository.php",
+    "app/Model/Repositories/PaymentsRepository.php",
+    "app/Model/Repositories/PaymentLevelsRepository.php",
+    "app/Model/Repositories/PaymentShippingsRepository.php",
+    "app/Model/Settings/ShippingsSettings.php",
+    "app/Infrastructure/Carriers/Packeta/Packeta.php",
+    "app/Infrastructure/Carriers/DPD/Dpd.php",
+    "app/Infrastructure/Payments/Comgate/Comgate.php",
+    "app/Infrastructure/Payments/TrustPay/TrustPay.php",
+    "app/Model/Enums/PaymentRequestStatus.php",
+    "app/Model/Enums/RefundRequestStatus.php",
+    "app/Model/Enums/PacketStatusesEnum.php",
+    "app/Infrastructure/Carriers/DPD/ProductCodes.php"
+  ],
+  "generated_at": "2026-03-19T00:00:00Z",
+  "entities": [
+    {
+      "name": "Doprava",
+      "name_en": "Shipping",
+      "description": "Spôsob doručenia objednávky zákazníkovi. Každá doprava môže mať obrázok, preklad do viacerých jazykov a priradený prepravca.",
+      "fields": [
+        {
+          "name": "Názov",
+          "type": "text",
+          "description": "Názov spôsobu dopravy zobrazený zákazníkovi (prekladateľný do viacerých jazykov)",
+          "verify": false
+        },
+        {
+          "name": "Obrázok",
+          "type": "relation",
+          "description": "Logo alebo ikona dopravy zobrazená v pokladni",
+          "verify": false
+        },
+        {
+          "name": "Digitálne doručenie",
+          "type": "boolean",
+          "description": "Označuje, či ide o digitálne doručenie (používa sa pri darčekových kartách)",
+          "verify": false
+        },
+        {
+          "name": "Používa pobočky",
+          "type": "boolean",
+          "description": "Určuje, či zákazník musí vybrať odberné miesto pri tejto doprave",
+          "verify": false
+        },
+        {
+          "name": "Prepravca",
+          "type": "text",
+          "description": "Názov služby prepravcu priradeného k tejto doprave (napr. Packeta, DPD)",
+          "verify": false
+        },
+        {
+          "name": "Čas pre nasledujúci pracovný deň",
+          "type": "text",
+          "description": "Hraničný čas, do ktorého musí byť objednávka vytvorená, aby bola doručená nasledujúci pracovný deň",
+          "verify": false
+        },
+        {
+          "name": "Dni pre nasledujúci pracovný deň",
+          "type": "number",
+          "description": "Počet pracovných dní na doručenie, ak je objednávka podaná do hraničného času",
+          "verify": false
+        },
+        {
+          "name": "Pobočka prepravcu",
+          "type": "relation",
+          "description": "Priradená pobočka prepravcu na úrovni dopravy (pre externého kuriéra cez Packeta)",
+          "verify": true
+        }
+      ]
+    },
+    {
+      "name": "Úroveň dopravy",
+      "name_en": "Shipping Level",
+      "description": "Cenová úroveň dopravy. Umožňuje nastaviť rôzne ceny tej istej dopravy podľa meny, krajiny, celkovej ceny objednávky, hmotnosti a kategórie zákazníka.",
+      "fields": [
+        {
+          "name": "Mena",
+          "type": "relation",
+          "description": "Mena, v ktorej platí táto cenová úroveň",
+          "verify": false
+        },
+        {
+          "name": "Cena",
+          "type": "number",
+          "description": "Cena dopravy v danej mene (s DPH)",
+          "verify": false
+        }
+      ]
+    },
+    {
+      "name": "Platba",
+      "name_en": "Payment",
+      "description": "Spôsob úhrady objednávky. Každá platba môže mať obrázok, preklady a priradenú platobnú bránu.",
+      "fields": [
+        {
+          "name": "Názov",
+          "type": "text",
+          "description": "Názov spôsobu platby zobrazený zákazníkovi (prekladateľný)",
+          "verify": false
+        },
+        {
+          "name": "Obrázok",
+          "type": "relation",
+          "description": "Logo alebo ikona platby zobrazená v pokladni",
+          "verify": false
+        },
+        {
+          "name": "Platobná brána",
+          "type": "text",
+          "description": "Názov služby platobnej brány (napr. Comgate, TrustPay). Ak je vyplnená, ide o online platbu.",
+          "verify": false
+        },
+        {
+          "name": "Online platba",
+          "type": "boolean",
+          "description": "Označuje, či ide o online platbu (zákazník je po objednávke presmerovaný na platbu)",
+          "verify": false
+        }
+      ]
+    },
+    {
+      "name": "Úroveň platby",
+      "name_en": "Payment Level",
+      "description": "Cenová úroveň platby. Umožňuje nastaviť rôzne príplatky za platbu podľa meny, krajiny, celkovej ceny objednávky a kategórie zákazníka.",
+      "fields": [
+        {
+          "name": "Mena",
+          "type": "relation",
+          "description": "Mena, v ktorej platí táto cenová úroveň",
+          "verify": false
+        },
+        {
+          "name": "Cena",
+          "type": "number",
+          "description": "Príplatok za platbu v danej mene (s DPH)",
+          "verify": false
+        }
+      ]
+    },
+    {
+      "name": "Väzba platba-doprava",
+      "name_en": "Payment-Shipping Link",
+      "description": "Určuje, ktoré platby sú povolené pri akej doprave. Ak je väzba vypnutá, zákazník nemôže danú platbu pri zvolenej doprave použiť.",
+      "fields": [
+        {
+          "name": "Aktívna",
+          "type": "boolean",
+          "description": "Ak je zapnutá, daná kombinácia platby a dopravy je dostupná",
+          "verify": false
+        }
+      ]
+    },
+    {
+      "name": "Zásielka",
+      "name_en": "Shipment",
+      "description": "Konkrétna zásielka vytvorená v systéme prepravcu pre odoslanie objednávky.",
+      "fields": [
+        {
+          "name": "Číslo na sledovanie",
+          "type": "text",
+          "description": "Sledovacie číslo zásielky od prepravcu",
+          "verify": false
+        },
+        {
+          "name": "URL na sledovanie",
+          "type": "text",
+          "description": "Odkaz na sledovanie zásielky na webe prepravcu",
+          "verify": false
+        },
+        {
+          "name": "Externý stav",
+          "type": "enum",
+          "description": "Aktuálny stav zásielky synchronizovaný z prepravcu",
+          "values": [
+            "Neodoslaná prepravcom",
+            "Odoslaná prepravcom",
+            "Doručená zákazníkovi",
+            "Nedoručená zákazníkovi",
+            "Zrušená"
+          ],
+          "verify": false
+        },
+        {
+          "name": "Hmotnosť",
+          "type": "number",
+          "description": "Hmotnosť zásielky",
+          "verify": false
+        },
+        {
+          "name": "Dobierka",
+          "type": "boolean",
+          "description": "Či sa za zásielku platí pri doručení",
+          "verify": false
+        },
+        {
+          "name": "Štítok stiahnutý",
+          "type": "boolean",
+          "description": "Či bol prepravný štítok už stiahnutý/vytlačený",
+          "verify": false
+        },
+        {
+          "name": "Nasledujúce sledovacie číslo",
+          "type": "text",
+          "description": "Sledovacie číslo externého prepravcu (napr. keď Packeta odovzdá zásielku ďalšiemu kuriérovi)",
+          "verify": false
+        },
+        {
+          "name": "Referencia 1",
+          "type": "text",
+          "description": "Vlastná referencia na balíku (DPD)",
+          "verify": false
+        },
+        {
+          "name": "Referencia 2",
+          "type": "text",
+          "description": "Vlastná referencia na balíku (DPD)",
+          "verify": false
+        },
+        {
+          "name": "Metadáta",
+          "type": "text",
+          "description": "Doplnkové údaje od prepravcu (napr. URL štítka pri DPD)",
+          "verify": false
+        }
+      ]
+    },
+    {
+      "name": "Balík",
+      "name_en": "Parcel",
+      "description": "Jednotlivý balík v rámci zásielky. Jedna zásielka môže obsahovať viacero balíkov.",
+      "fields": [
+        {
+          "name": "Hmotnosť",
+          "type": "number",
+          "description": "Hmotnosť balíka v kg (minimálne 0.1 kg)",
+          "verify": false
+        },
+        {
+          "name": "Šírka",
+          "type": "number",
+          "description": "Šírka balíka v cm (predvolené: 15 cm)",
+          "verify": false
+        },
+        {
+          "name": "Výška",
+          "type": "number",
+          "description": "Výška balíka v cm (predvolené: 15 cm)",
+          "verify": false
+        },
+        {
+          "name": "Hĺbka",
+          "type": "number",
+          "description": "Hĺbka balíka v cm (predvolené: 15 cm)",
+          "verify": false
+        }
+      ]
+    },
+    {
+      "name": "Pobočka prepravcu",
+      "name_en": "Carrier Branch",
+      "description": "Výdajné miesto alebo odberné miesto prepravcu (napr. Packeta Z-BOX, DPD ParcelShop). Synchronizované automaticky z API prepravcu.",
+      "fields": [
+        {
+          "name": "Externé ID",
+          "type": "text",
+          "description": "Identifikátor pobočky v systéme prepravcu",
+          "verify": false
+        },
+        {
+          "name": "Názov",
+          "type": "text",
+          "description": "Názov pobočky",
+          "verify": false
+        },
+        {
+          "name": "Miesto",
+          "type": "text",
+          "description": "Lokalita pobočky",
+          "verify": false
+        },
+        {
+          "name": "Ulica",
+          "type": "text",
+          "description": "Ulica pobočky",
+          "verify": false
+        },
+        {
+          "name": "PSČ",
+          "type": "text",
+          "description": "Poštové smerovacie číslo",
+          "verify": false
+        },
+        {
+          "name": "Mesto",
+          "type": "text",
+          "description": "Mesto pobočky",
+          "verify": false
+        },
+        {
+          "name": "Krajina",
+          "type": "text",
+          "description": "Kód krajiny pobočky",
+          "verify": false
+        },
+        {
+          "name": "Adresové doručenie",
+          "type": "boolean",
+          "description": "Ak je true, nejde o výdajné miesto, ale o externého prepravcu cez Packeta (napr. DPD cez Packeta)",
+          "verify": false
+        }
+      ]
+    },
+    {
+      "name": "Stav platobnej požiadavky",
+      "name_en": "Payment Request Status",
+      "description": "Stav online platby evidovaný v systéme.",
+      "fields": [
+        {
+          "name": "Stav",
+          "type": "enum",
+          "description": "Aktuálny stav platby",
+          "values": [
+            "Neuhradené",
+            "Spracováva sa",
+            "Uhradené",
+            "Refundované",
+            "Zlyhané"
+          ],
+          "verify": false
+        }
+      ]
+    },
+    {
+      "name": "Stav refundácie",
+      "name_en": "Refund Request Status",
+      "description": "Stav požiadavky na vrátenie platby.",
+      "fields": [
+        {
+          "name": "Stav",
+          "type": "enum",
+          "description": "Aktuálny stav refundácie",
+          "values": [
+            "Refundované",
+            "Spracováva sa",
+            "Zlyhané"
+          ],
+          "verify": false
+        }
+      ]
+    }
+  ],
+  "features": [
+    {
+      "name": "Viackroková pokladňa",
+      "description": "Pokladňa je rozdelená na 5 po sebe idúcich krokov: 1) Kontaktný e-mail, 2) Doprava, 3) Platba, 4) Adresa, 5) Zhrnutie. Zákazník musí prejsť kroky postupne a nemôže žiadny preskočiť.",
+      "behavior": [
+        "Systém presmeruje zákazníka na košík, ak je košík prázdny",
+        "Zákazník nemôže preskočiť krok - systém ho vráti na najvyšší dosiahnutý krok",
+        "Prihlásený zákazník automaticky preskočí krok kontaktný e-mail (použije sa jeho e-mail)",
+        "Ak zákazník zmení dopravu, systém automaticky resetuje výber platby (nové overenie kompatibility)",
+        "Systém obsahuje ochranu proti zacykleniu - po 5 presmerovaniach medzi rovnakými krokmi resetuje pokladňu a presmeruje na košík",
+        "Každý krok si ukladá dáta do session - pri návrate na krok sa predvyplnia",
+        "Na poslednom kroku (Zhrnutie) systém aktualizuje ceny produktov v košíku, ak je to nastavené",
+        "Pokladňa nie je dostupná na platforme Agetto"
+      ],
+      "settings": [
+        "Možnosť zapnúť obnovu cien pri vstupe na zhrnutie (renewPrices)",
+        "Vernostný program - ak je zapnutý, systém revaliduje body pri každom kroku",
+        "Poznámka k objednávke - konfigurovateľné zapnutie/vypnutie (useNote)"
+      ],
+      "verify_items": []
+    },
+    {
+      "name": "Krok 1: Kontaktný e-mail",
+      "description": "Zákazník zadá kontaktný e-mail, ktorý sa použije pre komunikáciu o objednávke. Ak je zákazník prihlásený, tento krok sa automaticky preskočí.",
+      "behavior": [
+        "E-mail musí byť v platnom formáte",
+        "Systém overuje existenciu e-mailovej domény (časť za zavináčom) - ak doména neexistuje, zobrazí varovanie",
+        "Po zadaní e-mailu systém umožní prihlásenie cez Google a Facebook",
+        "E-mail sa uloží do košíka pre ďalšie spracovanie"
+      ],
+      "settings": [],
+      "verify_items": []
+    },
+    {
+      "name": "Krok 2: Výber dopravy",
+      "description": "Zákazník si vyberie spôsob doručenia zo zoznamu dostupných dopráv. Dostupnosť závisí od krajiny doručenia, meny, celkovej ceny košíka, hmotnosti a kategórie zákazníka.",
+      "behavior": [
+        "Systém zobrazí len dopravy dostupné pre danú krajinu, menu a cenový rozsah",
+        "Ak košík obsahuje iba darčekové karty, systém ponúkne len digitálne doručenie",
+        "Ak má zákazník nárok na dopravu zadarmo, ceny všetkých dopráv sa nastavia na 0",
+        "Ak doprava vyžaduje výber odberného miesta (pobočky), zákazník musí vybrať konkrétne miesto",
+        "Systém dokáže zobraziť predpokladaný dátum doručenia na nasledujúci pracovný deň (ak je nastavený)",
+        "Ceny dopravy sa zobrazujú bez DPH (systém prepočítava z cien s DPH)",
+        "Hmotnosť košíka ovplyvňuje dostupnosť a cenu dopravy",
+        "Kategória zákazníka môže ovplyvniť dostupné dopravy a ich ceny"
+      ],
+      "settings": [
+        "Nasledujúci pracovný deň - zapnutie zobrazovania predpokladaného dátumu doručenia (nextBusinessDay)"
+      ],
+      "verify_items": [
+        "[VERIFY] Presná logika filtrovania dopráv podľa ceny a hmotnosti je v orderFacade.getShippings"
+      ]
+    },
+    {
+      "name": "Krok 3: Výber platby",
+      "description": "Zákazník si vyberie spôsob platby. Nie každá platba je dostupná pri každej doprave - systém povolené kombinácie kontroluje.",
+      "behavior": [
+        "Systém zobrazí všetky platby, ale nepovolené kombinácie s vybranou dopravou sú zablokované (disabled)",
+        "Ak zákazník zmení dopravu, výber platby sa resetuje",
+        "Ceny platby (príplatok) sa zobrazujú bez DPH",
+        "Pri platbe s platobnou bránou (TrustPay) sa v pokladni môže zobraziť aj vlastný formulár brány (embedded fields)",
+        "Dostupnosť platby závisí od krajiny, meny, celkovej ceny a kategórie zákazníka"
+      ],
+      "settings": [],
+      "verify_items": [
+        "[VERIFY] Presná logika povolených kombinácií platba-doprava je v orderFacade.getAllowedPayments"
+      ]
+    },
+    {
+      "name": "Krok 4: Adresy zákazníka",
+      "description": "Zákazník vyplní dodaciu a fakturačnú adresu. Existujú dva prístupy - buď sa najprv zadá dodacia adresa, alebo fakturačná.",
+      "behavior": [
+        "Zákazník môže mať odlišnú dodaciu a fakturačnú adresu",
+        "Prihlásený zákazník si môže vybrať z uložených adries",
+        "Systém kontroluje, či fakturačná adresa je kompletná (ulica, číslo, PSČ, mesto, krajina, telefón)",
+        "Pre firemných zákazníkov systém vyžaduje aj názov firmy a IČO",
+        "Pre súkromných zákazníkov systém vyžaduje meno a priezvisko",
+        "Zákazník môže označiť, že chce nakupovať na firmu (is_company)",
+        "Neregistrovaný zákazník sa môže v tomto kroku zaregistrovať (chcem sa registrovať + heslo)",
+        "Uložené adresy musia mať vyplnené všetky povinné polia a krajina musí byť z povolených krajín",
+        "Ak krajina používa regióny, adresa musí mať vyplnený aj región",
+        "Ak zákazník zmení aktívnu krajinu, systém normalizuje krajinu v dodacej adrese"
+      ],
+      "settings": [
+        "Prístup fakturačná-najprv alebo dodacia-najprv je konfigurovateľný (checkout.form.customer)"
+      ],
+      "verify_items": []
+    },
+    {
+      "name": "Krok 5: Zhrnutie a dokončenie",
+      "description": "Zákazník skontroluje celú objednávku a dokončí nákup. Systém overí všetky predchádzajúce kroky, vytvorí objednávku a prípadne presmeruje na platbu.",
+      "behavior": [
+        "Systém znovu overí, že doprava a platba sú stále dostupné (ceny a podmienky sa mohli zmeniť)",
+        "Systém overí, že košík nie je prázdny (ochrana proti prázdnym objednávkam)",
+        "Zákazník musí súhlasiť s obchodnými podmienkami",
+        "Zákazník môže pridať poznámku k objednávke (ak je nastavenie zapnuté)",
+        "Zákazník sa môže prihlásiť na odber noviniek",
+        "Zákazník v SK a CZ môže odmietnuť Heureka dotazník spokojnosti",
+        "Po dokončení systém vytvorí zákazníka (ak nie je prihlásený) alebo aktualizuje údaje prihláseného",
+        "Nový zákazník sa automaticky prihlási, ak si zvolil registráciu",
+        "Ak e-mail je už registrovaný a zákazník chce registráciu, systém ho vráti na krok kontaktný e-mail",
+        "Nová dodacia adresa sa uloží k zákazníkovi; ak nemá predvolenú, nastaví sa ako predvolená",
+        "Pri existujúcej adrese sa aktualizuje dátum posledného použitia",
+        "Ak je zvolená online platba (platobná brána), zákazník je presmerovaný na platbu",
+        "Ak nie je online platba, zákazník je presmerovaný na stránku úspešnej objednávky",
+        "Systém vyšle udalosť o vytvorení objednávky (pre webhooky, emaily a pod.)",
+        "Objednávka obsahuje priradený fakturačný profil - od prihláseného zákazníka alebo predvolený pre krajinu"
+      ],
+      "settings": [
+        "Poznámka k objednávke (useNote)",
+        "Heureka Overené zákazníkmi (zobrazuje sa len pre SK a CZ)",
+        "Odber noviniek pri objednávke"
+      ],
+      "verify_items": []
+    },
+    {
+      "name": "Výber odberného miesta (Packeta)",
+      "description": "Zákazník si pri doprave cez Packeta vyberie odberné miesto z interaktívnej mapy (widget).",
+      "behavior": [
+        "Systém zobrazí Packeta widget s mapou výdajných miest filtrovaných podľa aktívnej krajiny",
+        "Widget sa zobrazuje v jazyku zákazníka",
+        "Ak je widget zablokovaný ad-blockerom, systém zobrazí chybovú hlášku s inštrukciou",
+        "Pobočky sa synchronizujú automaticky z API Packeta (výdajné miesta, Z-BOXy aj externí prepravcovia)",
+        "Systém rozlišuje medzi výdajným miestom (zákazník si vyzdvihne) a adresovým doručením (kuriér cez Packeta)"
+      ],
+      "settings": [],
+      "verify_items": []
+    },
+    {
+      "name": "Výber odberného miesta (DPD)",
+      "description": "Zákazník si pri doprave cez DPD ParcelShop vyberie odberné miesto z interaktívneho widgetu.",
+      "behavior": [
+        "Systém zobrazí DPD widget v overlaji s mapou DPD ParcelShopov",
+        "Widget je filtrovaný podľa aktívnej krajiny a jazyka zákazníka",
+        "Zákazník vyberie miesto kliknutím - systém automaticky vyplní ID a názov pobočky",
+        "Podporované sú DPD ParcelShopy, Z-BOXy a AlzaBoxy",
+        "Pobočky sa synchronizujú automaticky z DPD API (SK aj CZ zvlášť)"
+      ],
+      "settings": [],
+      "verify_items": []
+    },
+    {
+      "name": "Prepravca Packeta",
+      "description": "Integrácia s prepravcom Packeta (Zásilkovňa) pre vytváranie zásielok, tlač štítkov a sledovanie stavu.",
+      "behavior": [
+        "Systém vytvára zásielku v Packeta cez SOAP API",
+        "Zásielka obsahuje údaje príjemcu, hmotnosť, hodnotu a menu",
+        "Ak je objednávka na dobierku, systém pošle sumu dobierky prepravcom",
+        "Minimálna hmotnosť balíka je 0.1 kg",
+        "Pri vytvorení zásielky systém uloží sledovacie číslo a URL na sledovanie",
+        "Systém automaticky aktualizuje stav zásielky z Packeta (prijaté, odoslané, doručené, nedoručené, zrušené)",
+        "Možnosť hromadnej tlače štítkov vo formáte A6 na A4",
+        "Systém rozlišuje medzi pobočkovým a adresovým doručením - pri adresovom vyplní aj adresu",
+        "Pri externom kuriérovi cez Packeta systém generuje priamy kuriérsky štítok",
+        "Hmotnosť sa automaticky prepočíta z gramov na kilogramy (ak e-shop používa gramy)"
+      ],
+      "settings": [
+        "API heslo (apiPassword) - konfigurované per website",
+        "API kľúč (apiKey) - pre widget a synchronizáciu pobočiek",
+        "Názov odosielateľa (senderName)"
+      ],
+      "verify_items": []
+    },
+    {
+      "name": "Prepravca DPD",
+      "description": "Integrácia s prepravcom DPD pre vytváranie zásielok, tlač štítkov a správu pobočiek.",
+      "behavior": [
+        "Systém vytvára zásielku v DPD cez JSON-RPC API",
+        "Podporuje rôzne DPD produkty: DPD Home (súkromné osoby), DPD Classic (firmy), DPD Express (do 10:00/12:00), ParcelShop Delivery",
+        "Ak je objednávka na dobierku, systém pošle informácie o dobierke vrátane bankového účtu",
+        "Balík obsahuje hmotnosť, šírku, výšku a hĺbku",
+        "Pickup dátum sa automaticky nastaví na dnes (ak je pred 14:00) alebo zajtra",
+        "Systém uloží tracking number (mpsid) a URL štítka do metadát",
+        "Zrušenie zásielky sa vykonáva cez DPD API",
+        "Štítky sa sťahujú individuálne cez URL a kombinujú sa na A4 formát (po 4 na stránku)",
+        "DPD nepodporuje automatickú aktualizáciu stavu (používa notifikácie)",
+        "Synchronizácia pobočiek z DPD API zvlášť pre SK a CZ",
+        "Podporuje testovací aj produkčný režim (rôzne API endpointy)"
+      ],
+      "settings": [
+        "API kľúč (apiKey) - konfigurované per website",
+        "Email (email) - pre autentifikáciu",
+        "Delis ID (delisId) - identifikátor zákazníka v DPD",
+        "Pickup ID (pickupId) - ID adresy odosielateľa",
+        "Bankový účet (bankAccountId) - per mena, pre dobierky",
+        "Produkčný režim (production) - prepína medzi testovacím a ostrým prostredím"
+      ],
+      "verify_items": []
+    },
+    {
+      "name": "Platobná brána Comgate",
+      "description": "Integrácia s platobnou bránou Comgate pre online platby kartou a ďalšími metódami. Zákazník je presmerovaný na platobnú stránku Comgate.",
+      "behavior": [
+        "Zákazník je po objednávke presmerovaný na platobnú stránku Comgate",
+        "Systém vytvorí platbu v Comgate s celkovou sumou objednávky v správnej mene",
+        "Stav platby sa overuje cez Comgate API (Uhradené, Spracováva sa, Zrušené)",
+        "Systém podporuje refundácie - vrátenie celej alebo čiastočnej sumy",
+        "Jazyková lokalizácia platobnej stránky (SK, CS, PL, EN)",
+        "Podporuje testovací aj produkčný režim"
+      ],
+      "settings": [
+        "Merchant ID - konfigurované per website",
+        "Secret - tajný kľúč per website",
+        "Brána (gateway) - URL platobnej brány",
+        "Typ platby (type) - typ platobnej metódy",
+        "Produkčný režim (production)"
+      ],
+      "verify_items": []
+    },
+    {
+      "name": "Platobná brána TrustPay",
+      "description": "Integrácia s platobnou bránou TrustPay pre online platby. Podporuje dva režimy - presmerovanie a vložené platobné polia (embedded fields).",
+      "behavior": [
+        "Podporuje klasické presmerovanie na platobnú stránku aj vložené polia priamo v e-shope",
+        "Systém vytvára platobný intent s inicializáciou Apple Pay a Google Pay",
+        "Stav platby sa overuje cez TrustPay API",
+        "Systém overuje podpis odpovede od TrustPay (HMAC-SHA256) pre bezpečnosť",
+        "Podporuje notifikačné URL pre asynchrónnu aktualizáciu stavu",
+        "Pri embedded fields systém rozpoznáva desiatky stavových kódov (úspech, čakanie, zlyhanie, nedostatočné prostriedky, neplatný CVV, a pod.)",
+        "Systém má ochranu proti príliš častým dotazom (rate limiting) - pri kóde 1132014 odloží ďalšie overenie",
+        "Podporuje testovací aj produkčný režim"
+      ],
+      "settings": [
+        "API kľúč (apiKey) - per website, pre embedded fields",
+        "Project ID (projectId) - per website, pre presmerovanie",
+        "Secret Key (secretKey) - per website, pre overovanie podpisov a autentifikáciu",
+        "Produkčný režim (production)"
+      ],
+      "verify_items": []
+    },
+    {
+      "name": "Nastavenia dopravy",
+      "description": "Globálne nastavenia ovplyvňujúce správanie dopravy v celom systéme.",
+      "behavior": [],
+      "settings": [
+        "Používať ceny z objednávky (useOrderPrices) - [VERIFY] pravdepodobne pre prepočet pri zmenách",
+        "Používať hmotnosti z objednávky (useOrderWeights) - [VERIFY] pravdepodobne pre vytvorenie zásielky",
+        "Nasledujúci pracovný deň (nextBusinessDay) - zobrazenie predpokladaného dátumu doručenia v pokladni"
+      ],
+      "verify_items": [
+        "[VERIFY] Účel nastavení useOrderPrices a useOrderWeights nie je z kódu jednoznačne zrejmý"
+      ]
+    },
+    {
+      "name": "Registrácia počas objednávky",
+      "description": "Neregistrovaný zákazník sa môže zaregistrovať priamo počas dokončovania objednávky.",
+      "behavior": [
+        "Zákazník zaškrtne 'chcem sa registrovať' a zadá heslo",
+        "Systém overí, že e-mail ešte nie je registrovaný",
+        "Po vytvorení objednávky sa zákazník automaticky prihlási",
+        "Dodacia adresa sa uloží ako predvolená adresa nového zákazníka",
+        "Zdroj registrácie sa eviduje ako 'objednávka'"
+      ],
+      "settings": [],
+      "verify_items": []
+    },
+    {
+      "name": "Prihlásenie cez sociálne siete v pokladni",
+      "description": "Zákazník sa môže na prvom kroku pokladne prihlásiť cez Google alebo Facebook.",
+      "behavior": [
+        "Po prihlásení je zákazník presmerovaný späť do pokladne",
+        "Facebook prihlásenie používa jazyk zákazníka",
+        "K dispozícii je aj AJAX Facebook prihlásenie"
+      ],
+      "settings": [],
+      "verify_items": []
+    }
+  ],
+  "relationships": [
+    {
+      "from": "Doprava",
+      "to": "Úroveň dopravy",
+      "type": "one-to-many",
+      "description": "Jedna doprava môže mať viacero cenových úrovní pre rôzne meny, krajiny a podmienky"
+    },
+    {
+      "from": "Platba",
+      "to": "Úroveň platby",
+      "type": "one-to-many",
+      "description": "Jedna platba môže mať viacero cenových úrovní pre rôzne meny, krajiny a podmienky"
+    },
+    {
+      "from": "Doprava",
+      "to": "Platba",
+      "type": "many-to-many",
+      "description": "Väzba platba-doprava určuje povolené kombinácie. Niektoré platby nemusia byť dostupné pri všetkých dopravách."
+    },
+    {
+      "from": "Doprava",
+      "to": "Prepravca",
+      "type": "many-to-one",
+      "description": "Doprava môže mať priradeného prepravcu (Packeta, DPD), ktorý zabezpečí fyzické doručenie"
+    },
+    {
+      "from": "Prepravca",
+      "to": "Pobočka prepravcu",
+      "type": "one-to-many",
+      "description": "Prepravca má zoznam výdajných miest/pobočiek synchronizovaných z jeho API"
+    },
+    {
+      "from": "Objednávka",
+      "to": "Zásielka",
+      "type": "one-to-many",
+      "description": "K jednej objednávke je možné vytvoriť viacero zásielok"
+    },
+    {
+      "from": "Zásielka",
+      "to": "Balík",
+      "type": "one-to-many",
+      "description": "Jedna zásielka môže obsahovať viacero balíkov s rôznymi rozmermi a hmotnosťou"
+    },
+    {
+      "from": "Objednávka",
+      "to": "Doprava",
+      "type": "many-to-one",
+      "description": "Objednávka má priradený jeden spôsob dopravy zvolený zákazníkom v pokladni"
+    },
+    {
+      "from": "Objednávka",
+      "to": "Platba",
+      "type": "many-to-one",
+      "description": "Objednávka má priradený jeden spôsob platby zvolený zákazníkom v pokladni"
+    },
+    {
+      "from": "Platba",
+      "to": "Platobná brána",
+      "type": "many-to-one",
+      "description": "Platba môže mať priradenú platobnú bránu (Comgate, TrustPay). Ak nemá, ide o offline platbu (dobierka, prevod)."
+    },
+    {
+      "from": "Doprava",
+      "to": "Kategória zákazníka",
+      "type": "many-to-many",
+      "description": "Dostupnosť a cena dopravy sa môže líšiť podľa kategórie zákazníka [VERIFY]"
+    },
+    {
+      "from": "Platba",
+      "to": "Kategória zákazníka",
+      "type": "many-to-many",
+      "description": "Dostupnosť a cena platby sa môže líšiť podľa kategórie zákazníka [VERIFY]"
+    }
+  ],
+  "business_rules": [
+    {
+      "rule": "Ak je košík prázdny, systém nepustí zákazníka do pokladne a presmeruje ho na košík",
+      "source": "CheckoutPresenter.php (startup)",
+      "verify": false
+    },
+    {
+      "rule": "Zákazník nemôže preskočiť žiadny krok pokladne - systém ho vráti na najvyšší dosiahnutý krok",
+      "source": "CheckoutPresenter.php (startup), CheckoutManagement.php",
+      "verify": false
+    },
+    {
+      "rule": "Po 5 cyklických presmerovaniach medzi krokmi systém resetuje pokladňu a presmeruje na košík (ochrana proti zacykleniu)",
+      "source": "CheckoutManagement.php (loopProtection)",
+      "verify": false
+    },
+    {
+      "rule": "Ak košík obsahuje iba darčekové karty, zobrazí sa len digitálne doručenie",
+      "source": "CheckoutPresenter.php (startup - giftCardsOnly filter)",
+      "verify": false
+    },
+    {
+      "rule": "Ak má zákazník nárok na dopravu zadarmo, všetky ceny dopravy sa nastavia na 0",
+      "source": "CheckoutPresenter.php (startup - hasFreeShipping)",
+      "verify": false
+    },
+    {
+      "rule": "Zmena spôsobu dopravy automaticky resetuje výber platby (zákazník musí vybrať platbu znovu)",
+      "source": "CheckoutPresenter.php (createComponentShippingForm onSuccess)",
+      "verify": false
+    },
+    {
+      "rule": "Nie každá kombinácia doprava-platba je povolená. Systém zablokuje nepovolené platby pri zvolenej doprave.",
+      "source": "CheckoutPresenter.php (actionPayment)",
+      "verify": false
+    },
+    {
+      "rule": "Ak zvolená doprava alebo platba prestane byť dostupná (napr. zmena ceny, krajiny), systém upozorní zákazníka a vráti ho na príslušný krok",
+      "source": "CheckoutPresenter.php (beforeRender, completeCheckoutFormSuccess)",
+      "verify": false
+    },
+    {
+      "rule": "Systém overuje existenciu e-mailovej domény - ak doména neexistuje, zobrazí varovanie (neblokuje odoslanie)",
+      "source": "BasicInfoFormFactory.php (onValidate)",
+      "verify": false
+    },
+    {
+      "rule": "Ak doprava vyžaduje odberné miesto (is_using_branches), zákazník ho musí vybrať pred pokračovaním",
+      "source": "ShippingFormFactory.php (carrier_branch_id validácia)",
+      "verify": false
+    },
+    {
+      "rule": "Pred dokončením objednávky systém znovu overí dostupnosť a cenu dopravy aj platby podľa aktuálnych podmienok",
+      "source": "CheckoutPresenter.php (completeCheckoutFormSuccess)",
+      "verify": false
+    },
+    {
+      "rule": "Neregistrovaný zákazník nemôže použiť e-mail, ktorý je už registrovaný, ak si zvolí registráciu počas objednávky",
+      "source": "CheckoutPresenter.php (completeCheckoutFormSuccess)",
+      "verify": false
+    },
+    {
+      "rule": "Heureka dotazník spokojnosti sa zobrazuje len zákazníkom v SR a ČR",
+      "source": "CheckoutPresenter.php (actionSummary)",
+      "verify": false
+    },
+    {
+      "rule": "Ak je online platba (brána), zákazník je po objednávke presmerovaný na platbu. Inak na stránku úspechu.",
+      "source": "CheckoutPresenter.php (completeCheckoutFormSuccess)",
+      "verify": false
+    },
+    {
+      "rule": "Minimálna hmotnosť balíka odosielaného prepravcom je 0.1 kg",
+      "source": "Packeta.php, Dpd.php",
+      "verify": false
+    },
+    {
+      "rule": "Systém automaticky prepočítava hmotnosť z gramov na kilogramy, ak e-shop používa gramy ako jednotku",
+      "source": "Carrier.php (getWeight)",
+      "verify": false
+    },
+    {
+      "rule": "DPD zásielky podané po 14:00 majú pickup dátum nastavený na nasledujúci deň",
+      "source": "Dpd.php (createShipment)",
+      "verify": false
+    },
+    {
+      "rule": "TrustPay embedded fields overuje podpis odpovede pomocou HMAC-SHA256 pre bezpečnosť",
+      "source": "TrustPay.php (verifySignature)",
+      "verify": false
+    },
+    {
+      "rule": "Pri príliš častých dotazoch na stav platby TrustPay (kód 1132014) systém odloží ďalšie overenie",
+      "source": "TrustPay.php (getPaymentStatus)",
+      "verify": false
+    },
+    {
+      "rule": "Comgate podporuje čiastočnú refundáciu - je možné vrátiť menej ako celú sumu objednávky",
+      "source": "Comgate.php (refund)",
+      "verify": false
+    },
+    {
+      "rule": "Zákazník musí súhlasiť s obchodnými podmienkami pred dokončením objednávky",
+      "source": "CompleteCheckoutFormFactory.php",
+      "verify": false
+    },
+    {
+      "rule": "Pri vernostnom programe systém revaliduje body zákazníka pri každom kroku pokladne",
+      "source": "CheckoutPresenter.php (startup)",
+      "verify": false
+    },
+    {
+      "rule": "Nová dodacia adresa neregistrovaného zákazníka sa pri registrácii nastaví ako predvolená",
+      "source": "CheckoutPresenter.php (completeCheckoutFormSuccess)",
+      "verify": false
+    },
+    {
+      "rule": "Prihlásenému zákazníkovi sa nová dodacia adresa nastaví ako predvolená, len ak ešte žiadnu predvolenú nemá",
+      "source": "CheckoutPresenter.php (completeCheckoutFormSuccess)",
+      "verify": false
+    }
+  ]
+}

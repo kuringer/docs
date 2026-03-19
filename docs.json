@@ -1,86 +1,63 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "Mint Starter Kit",
+  "name": "Venalio Dokumentácia",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#1E40AF",
+    "light": "#3B82F6",
+    "dark": "#1E3A8A"
   },
   "favicon": "/favicon.svg",
   "navigation": {
     "tabs": [
       {
-        "tab": "Guides",
+        "tab": "Dokumentácia",
         "groups": [
           {
-            "group": "Getting started",
+            "group": "Začíname",
             "pages": [
               "index",
-              "quickstart",
-              "development"
+              "produkt",
+              "slovnik"
             ]
           },
           {
-            "group": "Customization",
+            "group": "Produkty a katalóg",
             "pages": [
-              "essentials/settings",
-              "essentials/navigation"
+              "produkty/prehlad",
+              "produkty/parametre",
+              "produkty/kategorie",
+              "produkty/ceny-a-zlava",
+              "produkty/sklad"
             ]
           },
           {
-            "group": "Writing content",
+            "group": "Objednávky",
             "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/reusable-snippets"
+              "objednavky/prehlad",
+              "objednavky/stavy",
+              "objednavky/spracovanie"
             ]
           },
           {
-            "group": "AI tools",
+            "group": "Pokladňa",
             "pages": [
-              "ai-tools/cursor",
-              "ai-tools/claude-code",
-              "ai-tools/windsurf"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "API reference",
-        "groups": [
-          {
-            "group": "API documentation",
-            "pages": [
-              "api-reference/introduction"
+              "pokladna/checkout-flow",
+              "pokladna/doprava",
+              "pokladna/platby"
             ]
           },
           {
-            "group": "Endpoint examples",
+            "group": "Kupóny a zľavy",
             "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
+              "kupony/prehlad"
             ]
           }
         ]
       }
     ],
     "global": {
-      "anchors": [
-        {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
-        },
-        {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
-        }
-      ]
+      "anchors": []
     }
   },
   "logo": {
@@ -88,35 +65,7 @@
     "dark": "/logo/dark.svg"
   },
   "navbar": {
-    "links": [
-      {
-        "label": "Support",
-        "href": "mailto:hi@mintlify.com"
-      }
-    ],
-    "primary": {
-      "type": "button",
-      "label": "Dashboard",
-      "href": "https://dashboard.mintlify.com"
-    }
+    "links": []
   },
-  "contextual": {
-    "options": [
-     "copy",
-     "view",
-     "chatgpt",
-     "claude",
-     "perplexity",
-     "mcp",
-     "cursor",
-     "vscode"
-   ]
-  },
-  "footer": {
-    "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
-    }
-  }
+  "footer": {}
 }

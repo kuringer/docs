@@ -1,0 +1,168 @@
+---
+title: "Priebeh pokladne"
+description: "Ako funguje 5-krokový nákupný proces od výberu dopravy až po záväznú objednávku."
+---
+
+{/* Generated from: CheckoutPresenter.php, CheckoutManagement.php, BasicInfoFormFactory.php, ShippingFormFactory.php, PaymentFormFactory.php, CompleteCheckoutFormFactory.php, CustomerFormData.php, CustomerFormShippingData.php, CustomerFormBillingData.php | 2026-03-19T00:00:00Z */}
+
+Pokladňa je proces, ktorým zákazník dokončí nákup. Skladá sa z piatich krokov, ktoré na seba nadväzujú. Zákazník musí každý krok absolvovať postupne – žiadny krok nie je možné preskočiť.
+
+<Frame>
+  <img src="/images/placeholder.png" alt="Priebeh pokladne" />
+  <caption>[SCREENSHOT: Celkový pohľad na indikátor pokroku v Pokladni so všetkými 5 krokmi]</caption>
+</Frame>
+
+## Päť krokov Pokladne
+
+<Steps>
+  <Step title="Kontaktný e-mail">
+    Zákazník zadá e-mailovú adresu, na ktorú dostane potvrdenie Objednávky a ďalšiu komunikáciu.
+
+    Ak je zákazník prihlásený, **tento krok sa automaticky preskočí** – systém použije e-mail z jeho účtu.
+
+    **Čo systém overí:**
+    - E-mail musí mať platný formát (napr. `meno@domena.sk`).
+    - Systém overí existenciu e-mailovej domény. Ak doména neexistuje, zákazník dostane varovanie – napriek tomu môže pokračovať ďalej.
+
+    Na tomto kroku sa zákazník môže prihlásiť aj cez **Google** alebo **Facebook**. Po prihlásení ho systém vráti späť do Pokladne a prvý krok preskočí.
+  </Step>
+
+  <Step title="Výber Dopravy">
+    Zákazník si vyberie spôsob doručenia Objednávky.
+
+    Systém zobrazí iba Dopravy dostupné pre aktuálnu krajinu, menu a celkovú hodnotu Košíka. Hmotnosť obsahu Košíka tiež ovplyvňuje, ktoré Dopravy sa ponúknu.
+
+    **Špeciálne prípady:**
+    - Košík obsahuje iba darčekové karty - systém ponúkne výhradne digitálne doručenie; fyzické Dopravy sa neobjavia.
+    - Zákazník má nárok na Dopravu zadarmo - systém nastaví cenu všetkých dostupných Dopráv na 0.
+    - Doprava vyžaduje výber odberného miesta (napr. Packeta alebo DPD ParcelShop) - zákazník musí konkrétne miesto vybrať; bez toho nemôže pokračovať.
+
+    Ak je táto funkcia nastavená, systém zobrazí pri každej Doprave predpokladaný dátum doručenia na nasledujúci pracovný deň.
+
+    <Note>
+      Ak zákazník zmení Dopravu po tom, čo už vybral Platbu, výber Platby sa automaticky zruší. Zákazník musí Platbu zvoliť znovu. Dôvodom je, že nie každá kombinácia Dopravy a Platby je povolená.
+    </Note>
+
+    <Warning>
+      Presná logika filtrovania Dopráv podľa hodnoty a hmotnosti Košíka môže byť v niektorých prípadoch odlišná. [VERIFY]
+    </Warning>
+  </Step>
+
+  <Step title="Výber Platby">
+    Zákazník si vyberie spôsob úhrady Objednávky.
+
+    Systém zobrazí všetky Platby, ale tie nepovolené pre zvolenú Dopravu sú zablokované – zákazník ich vidí, ale nemôže ich vybrať.
+
+    <Warning>
+      Presná logika povolených kombinácií Platby a Dopravy môže byť v niektorých prípadoch odlišná. [VERIFY]
+    </Warning>
+
+    Pri niektorých platobných bránach (napr. TrustPay) sa môžu platobné polia zobraziť priamo v Pokladni – zákazník tak nemusí opúšťať e-shop.
+
+    Ceny Platby (príplatky za zvolený spôsob platby) sa zobrazujú bez DPH.
+  </Step>
+
+  <Step title="Adresy">
+    Zákazník vyplní dodaciu adresu a voliteľne aj fakturačnú adresu, ak sa líši.
+
+    **Prihlásený zákazník** si môže vybrať z uložených adries alebo zadať novú.
+
+    **Firemný nákup:** Zákazník môže označiť, že nakupuje na firmu. V takom prípade systém vyžaduje aj názov firmy a IČO.
+
+    Systém kontroluje úplnosť adresy – povinné polia sú ulica, číslo, PSČ, mesto, krajina a telefón. Ak krajina vyžaduje aj región, je región tiež povinný.
+
+    <Note>
+      Neregistrovaný zákazník sa môže na tomto kroku zaregistrovať – zaškrtne políčko „Chcem sa zaregistrovať" a zadá heslo. Podrobnosti nájdete v časti [Registrácia počas objednávky](#registracia-pocas-objednavky) nižšie.
+    </Note>
+
+    Poradie polí (najprv dodacia alebo najprv fakturačná adresa) je konfigurovateľné technickým tímom.
+  </Step>
+
+  <Step title="Zhrnutie a dokončenie">
+    Zákazník skontroluje celú Objednávku – produkty, Dopravu, Platbu a celkovú cenu. Ak je všetko správne, Objednávku dokončí.
+
+    Pred dokončením systém znovu overí, či sú zvolená Doprava a Platba stále dostupné a platné. Ak sa medzitým zmenili podmienky, systém zákazníka upozorní a vráti ho na príslušný krok.
+
+    **Na tomto kroku zákazník:**
+    - Súhlasí s obchodnými podmienkami (povinné).
+    - Môže pridať poznámku k Objednávke (ak je táto funkcia zapnutá).
+    - Môže sa prihlásiť na odber noviniek.
+    - Môže odmietnuť zaslanie Heureka dotazníka spokojnosti (zobrazuje sa iba zákazníkom v SR a ČR).
+
+    **Čo sa stane po dokončení:**
+    - Online Platba (platobná brána): systém zákazníka presmeruje na platobnú stránku.
+    - Iná Platba (napr. dobierka, prevod): systém zákazníka presmeruje na stránku s potvrdením Objednávky.
+    - Nová dodacia adresa sa automaticky uloží k zákazníkovmu účtu.
+    - Systém odošle udalosť o novej Objednávke (potvrdzovacie emaily, Webhooky a pod.).
+  </Step>
+</Steps>
+
+## Dôležité pravidlá Pokladne
+
+<AccordionGroup>
+  <Accordion title="Zákazník nemôže preskočiť žiadny krok">
+    Systém sleduje, na ktorom kroku sa zákazník nachádza. Ak sa pokúsi prejsť priamo na neskorší krok (napr. cez adresu v prehliadači), systém ho presmeruje späť na najvyšší dosiahnutý krok.
+  </Accordion>
+
+  <Accordion title="Prázdny Košík – vstup do Pokladne zamietnutý">
+    Ak je Košík prázdny, systém zákazníka do Pokladne nepustí a presmeruje ho na stránku Košíka.
+  </Accordion>
+
+  <Accordion title="Ochrana proti zacykleniu">
+    Ak systém zistí, že zákazník je presmerovaný medzi rovnakými krokmi viac ako 5-krát za sebou, automaticky resetuje celú Pokladňu a presmeruje zákazníka na Košík. Toto chráni pred technickými chybami spôsobenými nekonzistentným stavom relácie.
+  </Accordion>
+
+  <Accordion title="Uloženie rozpracovanej Pokladne">
+    Systém si pri každom kroku pamätá vyplnené údaje. Ak sa zákazník vráti na predchádzajúci krok alebo obnoví stránku, formulár bude predvyplnený tým, čo zadal predtým.
+  </Accordion>
+
+  <Accordion title="Overenie cien a podmienok pri dokončení">
+    Systém tesne pred vytvorením Objednávky znovu overí dostupnosť a ceny zvolenej Dopravy aj Platby. Ak sa niečo zmenilo (napr. skončila akcia), zákazník sa dozvie o zmene a môže ju potvrdiť alebo výber zmeniť.
+  </Accordion>
+</AccordionGroup>
+
+## Registrácia počas objednávky
+
+Neregistrovaný zákazník sa môže zaregistrovať priamo počas nákupu na **kroku Adresy** – bez toho, aby musel prerušiť Pokladňu.
+
+**Postup:**
+
+1. Zákazník zaškrtne políčko „Chcem sa zaregistrovať" a zadá heslo.
+2. Systém overí, či zadaný e-mail ešte nie je registrovaný. Ak e-mail existuje, zákazníka vráti na prvý krok, kde sa môže prihlásiť.
+3. Po vytvorení Objednávky sa zákazník automaticky prihlási.
+4. Dodacia adresa sa uloží ako predvolená adresa nového účtu.
+
+<Note>
+  Zdroj registrácie sa eviduje ako „objednávka". Môžete ho použiť pri analýze toho, odkiaľ zákazníci prichádzajú a registrujú sa.
+</Note>
+
+## Nastavenia Pokladne
+
+<AccordionGroup>
+  <Accordion title="Obnova cien pri Zhrnutí">
+    Ak je táto funkcia zapnutá, systém na poslednom kroku Pokladne aktualizuje ceny produktov v Košíku podľa aktuálnych cenníkov. Chráni to pred situáciou, keď zákazník zaplatí starú cenu po zmene cenníka počas nákupu.
+  </Accordion>
+
+  <Accordion title="Poznámka k Objednávke">
+    Zapnutím tejto funkcie sa na kroku Zhrnutie zobrazí zákazníkovi textové pole pre poznámku. Zákazník môže napísať napríklad „prosím doručiť do 18:00" alebo „zazvoniť na 2. zvonček".
+  </Accordion>
+
+  <Accordion title="Predpokladaný dátum doručenia (nasledujúci pracovný deň)">
+    Ak je táto funkcia zapnutá a každá Doprava má nastavený hraničný čas a počet pracovných dní, zákazník na kroku Dopravy uvidí predpokladaný dátum doručenia. Nastavenia sú pri každej Doprave zvlášť.
+  </Accordion>
+
+  <Accordion title="Vernostný program">
+    Ak je na e-shope zapnutý [Vernostný program](/zakaznici/vernostny-program), systém overuje stav bodov zákazníka pri každom kroku Pokladne a zabezpečuje, že zobrazené body sú aktuálne.
+  </Accordion>
+</AccordionGroup>
+
+## Súvisiace funkcie
+
+<CardGroup cols={2}>
+  <Card title="Doprava" icon="truck" href="/pokladna/doprava">
+    Nastavenie spôsobov doručenia, cenových úrovní a integrácia prepravcov Packeta a DPD.
+  </Card>
+  <Card title="Platby" icon="credit-card" href="/pokladna/platby">
+    Nastavenie spôsobov platby, platobných brán a správa refundácií.
+  </Card>
+</CardGroup>

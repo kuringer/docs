@@ -1,0 +1,128 @@
+---
+title: "Kategórie produktov"
+description: "Stromová štruktúra kategórií, zaradenie produktov a pravidlá predvolenej kategórie."
+---
+
+{/* Generated from: app/Model/Repositories/CategoriesRepository.php, app/Facades/ProductsFacade.php | 2026-03-19T12:00:00Z */}
+
+Kategórie organizujú produkty do prehľadnej stromovej štruktúry. Zákazník sa v katalógu pohybuje cez kategórie a podkategórie, kým nenájde, čo hľadá. Každý produkt môže byť zaradený vo viacerých kategóriách naraz - jedna z nich je vždy predvolená.
+
+---
+
+## Stromová štruktúra kategórií
+
+Kategórie tvoria strom: každá kategória môže mať ľubovoľný počet podkategórií, ktoré môžu mať ďalšie podkategórie. Hĺbka stromu nie je technicky obmedzená.
+
+Príklad:
+```
+Elektronika
+├── Mobilné telefóny
+│   ├── Apple
+│   └── Samsung
+└── Notebooky
+    ├── Pre prácu
+    └── Herné
+```
+
+Poradie kategórií v zozname môžete meniť **pretiahnutím** priamo v administrácii. Zmena sa okamžite prejaví na webe.
+
+<Frame>
+  <img src="/images/placeholder.png" />
+  <caption>[SCREENSHOT: Správa kategórií - stromová štruktúra s možnosťou preusporiadania ťahaním]</caption>
+</Frame>
+
+### Ako zákazník prechádza kategóriami
+
+Keď zákazník otvorí kategóriu, vidí všetky produkty zaradené v tejto kategórii aj v jej podkategóriách. Produkt zaradený v podkategórii "Apple" sa teda automaticky zobrazí aj pri prehliadaní nadradenej kategórie "Mobilné telefóny".
+
+---
+
+## Čo kategória obsahuje
+
+| Pole | Popis |
+|------|-------|
+| **Názov** | Hlavný názov kategórie, prekladateľný do viacerých jazykov |
+| **Krátky názov** | Skrátená verzia zobrazovaná napríklad v navigácii |
+| **URL adresa** | Webová adresa stránky kategórie, automaticky generovaná z názvu |
+| **Popis** | Text zobrazený na stránke kategórie, prekladateľný |
+| **Nadradená kategória** | Kategória, pod ktorou sa táto nachádza v strome |
+| **Obrázok** | Hlavný obrázok kategórie - zobrazuje sa napríklad na prehľade kategórií |
+
+---
+
+## Zaradenie produktu do kategórií
+
+Jeden produkt môže byť zaradený vo **viacerých kategóriách** naraz. Napríklad "Vodeodolný bluetooth reproduktor" môže byť v kategóriách "Reproduktory" aj "Outdoorové vybavenie".
+
+<Steps>
+  <Step title="Otvorte produkt v administrácii">
+    Prejdite na záložku alebo sekciu Kategórie v detaile produktu.
+  </Step>
+  <Step title="Vyberte kategóriu">
+    Z kategoriálneho stromu vyberte kategóriu, do ktorej chcete produkt zaradiť.
+  </Step>
+  <Step title="Uložte">
+    Systém uloží zaradenie. Pri prvej kategórii ju automaticky nastaví ako predvolenú.
+  </Step>
+</Steps>
+
+<Frame>
+  <img src="/images/placeholder.png" />
+  <caption>[SCREENSHOT: Zaradenie produktu do kategórií - výber z kategoriálneho stromu, zvýraznenie predvolenej kategórie]</caption>
+</Frame>
+
+### Hromadné presúvanie produktov
+
+Produkty môžete presúvať medzi kategóriami aj hromadne - napríklad keď rušíte kategóriu alebo reorganizujete katalóg.
+
+---
+
+## Predvolená kategória
+
+Každý produkt musí mať presne **jednu predvolenú kategóriu**. Predvolená kategória sa používa pri:
+
+- Zobrazení navigačnej cesty (breadcrumb) na stránke produktu
+- Exportoch do cenových porovnávačov (Heureka a podobné)
+
+### Automatické pravidlá
+
+Systém spravuje predvolenú kategóriu automaticky:
+
+| Situácia | Čo sa stane |
+|----------|-------------|
+| Pridáte prvú kategóriu | Systém ju automaticky nastaví ako predvolenú |
+| Odstránite predvolenú kategóriu | Systém automaticky nastaví ako predvolenú prvú zostávajúcu kategóriu |
+| Pridáte ďalšie kategórie | Predvolená kategória sa nemení - zostáva pôvodná |
+
+<Note>Predvolenú kategóriu môžete kedykoľvek zmeniť ručne v detaile produktu.</Note>
+
+---
+
+## Heureka kategórie
+
+Pre export produktov do cenových porovnávačov Heureka môžete ku každej kategórii priradiť zodpovedajúcu Heureka kategóriu.
+
+| Pole | Popis |
+|------|-------|
+| **Slovenská Heureka kategória** | Kategória z Heureka.sk pre export na slovenský trh |
+| **Česká Heureka kategória** | Kategória z Heureka.cz pre export na český trh |
+
+Priradenie na úrovni kategórie sa automaticky použije pre všetky produkty v nej zaradené pri generovaní exportu. Správne zaradenie zlepšuje viditeľnosť produktov na Heureke.
+
+<Tip>Ak produkt patrí do viacerých kategórií, pri exporte sa použije Heureka kategória priradená k **predvolenej kategórii** produktu.</Tip>
+
+---
+
+## SEO nastavenia kategórie
+
+<Warning>Táto informácia vyžaduje overenie. [VERIFY] - Presné umiestnenie a dostupnosť SEO polí (title, meta description) v nastaveniach kategórie sa zatiaľ nepodarilo potvrdiť. Overte s vývojovým tímom.</Warning>
+
+Kategórie podporujú SEO nastavenia - title a meta description - ktoré sa zobrazujú vo výsledkoch vyhľadávania. Tieto polia sú prekladateľné pre každý jazyk zvlášť.
+
+---
+
+## Kategórie a viac webov
+
+Ak prevádzkujete viacero webov alebo jazykových mutácií, každá kategória sa zobrazuje len na tých weboch, ku ktorým je priradená.
+
+<Note>Produkt zaradený v kategórii sa zobrazí na danom webe len vtedy, ak je aj samotná kategória priradená k tomuto webu.</Note>

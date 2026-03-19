@@ -1,0 +1,1442 @@
+{
+  "domain": "Produkty a katalóg",
+  "source_files": [
+    "app/Facades/ProductsFacade.php",
+    "app/Facades/ProductRatingsFacade.php",
+    "app/Model/Settings/ProductsSettings.php",
+    "app/Model/Settings/SimilarProductsSettings.php",
+    "app/Model/Enums/ProductTypesEnum.php",
+    "app/Model/Enums/ProductImageType.php",
+    "app/Model/DTOs/ProductPriceDTO.php",
+    "app/Model/Entities/ProductPrice.php",
+    "app/BackendModule/CatalogModule/Forms/ParameterFormFactory.php",
+    "app/BackendModule/CatalogModule/Forms/ParameterValueFormFactory.php",
+    "app/BackendModule/CatalogModule/Forms/PriceLevelFormFactory.php",
+    "app/BackendModule/CatalogModule/Forms/FlagFormFactory.php",
+    "app/BackendModule/CatalogModule/Forms/BrandFormFactory.php",
+    "app/BackendModule/CatalogModule/Forms/StockOptionsFormFactory.php",
+    "app/BackendModule/CatalogModule/Forms/VatRateFormFactory.php",
+    "app/BackendModule/CatalogModule/Forms/TagsFormFactory.php",
+    "app/BackendModule/CatalogModule/Forms/UspsFormFactory.php",
+    "app/BackendModule/CatalogModule/Forms/QuestionsFormFactory.php",
+    "app/BackendModule/CatalogModule/Forms/RatingFormFactory.php",
+    "app/BackendModule/CatalogModule/ProductsModule/Forms/MetadataFormFactory.php",
+    "app/Providers/ProductPricesProvider.php",
+    "app/Model/Repositories/ProductsRepository.php",
+    "app/Model/Repositories/CategoriesRepository.php",
+    "app/FrontendModule/Components/ContentElements/Elements/ProductsList/ProductsStrategyTypesEnum.php"
+  ],
+  "generated_at": "2026-03-19T12:00:00Z",
+  "entities": [
+    {
+      "name": "Produkt",
+      "name_en": "Product",
+      "description": "Tovar ponúkaný na e-shope. Môže mať rôzne typy - jednoduchý, variantový, zoskupený, konfigurovateľný alebo darčeková poukážka. Každý produkt má preklady (názov, popis, URL) pre každú jazykovú mutáciu.",
+      "fields": [
+        {
+          "name": "Typ produktu",
+          "type": "enum",
+          "description": "Určuje ako sa produkt správa - či má varianty, skupiny, alebo je jednoduchý",
+          "values": [
+            "Jednoduchý produkt (R)",
+            "Variantový produkt (V)",
+            "Zoskupený produkt (G)",
+            "Zoskupený voliteľný produkt (P)",
+            "Konfigurovateľný produkt (C)",
+            "Darčeková poukážka (I)"
+          ],
+          "verify": false
+        },
+        {
+          "name": "Kód produktu",
+          "type": "text",
+          "description": "Interný kód produktu, zapína sa v nastaveniach",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Názov",
+          "type": "text",
+          "description": "Hlavný názov produktu, prekladateľný do viacerých jazykov",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Sekundárny názov",
+          "type": "text",
+          "description": "Druhý názov produktu, zapína sa v nastaveniach",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Terciárny názov",
+          "type": "text",
+          "description": "Tretí názov produktu, zapína sa v nastaveniach",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Krátky názov",
+          "type": "text",
+          "description": "Skrátená verzia názvu, používa sa napríklad u variantov",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "URL adresa (slug)",
+          "type": "text",
+          "description": "Webová adresa produktu, automaticky generovaná z názvu. Ak existuje duplicita, systém pridá číslo na koniec",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Popis",
+          "type": "text",
+          "description": "Dlhý popis produktu s formátovaním, prekladateľný",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Krátky popis (excerpt)",
+          "type": "text",
+          "description": "Stručný popis produktu",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Stav",
+          "type": "enum",
+          "description": "Či je produkt aktívny, neaktívny alebo zmazaný",
+          "values": [
+            "Aktívny (enabled)",
+            "Neaktívny (disabled)",
+            "Zmazaný (deleted)"
+          ],
+          "verify": false
+        },
+        {
+          "name": "Vypredané",
+          "type": "boolean",
+          "description": "Označuje, či je produkt kompletne vypredaný. Systém ho automaticky odstraní z vyhľadávania",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Značka",
+          "type": "relation",
+          "description": "Výrobca alebo značka priradená k produktu",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Skladová varianta",
+          "type": "relation",
+          "description": "Určuje stav dostupnosti produktu na sklade",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Počet kusov na sklade",
+          "type": "number",
+          "description": "Aktuálny počet kusov. Zapína sa v nastaveniach, voliteľne možno povoliť záporné stavy",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Vlastné poradie",
+          "type": "number",
+          "description": "Manuálne nastavené poradie produktu v kategórii",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Hmotnosť",
+          "type": "number",
+          "description": "Hmotnosť produktu, zapína sa v nastaveniach. Jednotka je nastaviteľná (predvolene kg)",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Vylúčiť z exportov",
+          "type": "boolean",
+          "description": "Produkt nebude exportovaný do cenových porovnávačov a feedov",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Nadriadený produkt",
+          "type": "relation",
+          "description": "U variantov - odkaz na hlavný (rodičovský) produkt",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Skupina DPH",
+          "type": "relation",
+          "description": "Skupina sadzby DPH, z ktorej sa určí konkrétna sadzba podľa krajiny zákazníka",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Boost vo vyhľadávaní",
+          "type": "number",
+          "description": "Ovplyvňuje poradie produktu vo výsledkoch vyhľadávania",
+          "values": [],
+          "verify": true
+        },
+        {
+          "name": "Násobiteľ skóre",
+          "type": "number",
+          "description": "Ovplyvňuje relevantnosť produktu vo vyhľadávaní",
+          "values": [],
+          "verify": true
+        },
+        {
+          "name": "Priemerné hodnotenie",
+          "type": "number",
+          "description": "Priemerná známka zo zákazníckych hodnotení, automaticky prepočítaná",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Počet hodnotení",
+          "type": "number",
+          "description": "Celkový počet schválených hodnotení produktu",
+          "values": [],
+          "verify": false
+        }
+      ]
+    },
+    {
+      "name": "Kategória",
+      "name_en": "Category",
+      "description": "Skupina produktov podľa typu. Kategórie tvoria stromovú štruktúru (rodič - dieťa) a dajú sa zoradiť ťahaním. Každý produkt môže patriť do viacerých kategórií, jedna z nich je predvolená.",
+      "fields": [
+        {
+          "name": "Názov",
+          "type": "text",
+          "description": "Názov kategórie, prekladateľný do viacerých jazykov",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Krátky názov",
+          "type": "text",
+          "description": "Skrátená verzia názvu, zobrazuje sa napríklad v navigácii",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "URL adresa (slug)",
+          "type": "text",
+          "description": "Webová adresa kategórie, automaticky generovaná z názvu",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Popis",
+          "type": "text",
+          "description": "Popis kategórie, prekladateľný",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Nadradená kategória",
+          "type": "relation",
+          "description": "Kategória, pod ktorou sa táto nachádza v stromovej štruktúre",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Poradie",
+          "type": "number",
+          "description": "Pozícia kategórie v zozname, nastaviteľná ťahaním",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Hĺbka",
+          "type": "number",
+          "description": "Úroveň zanorenia v stromovej štruktúre (1 = hlavná kategória)",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Obrázok",
+          "type": "relation",
+          "description": "Hlavný obrázok kategórie",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Slovenská Heureka kategória",
+          "type": "relation",
+          "description": "Priradená kategória z Heureka.sk pre exporty",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Česká Heureka kategória",
+          "type": "relation",
+          "description": "Priradená kategória z Heureka.cz pre exporty",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "SEO polia",
+          "type": "text",
+          "description": "Title, meta description - prekladateľné SEO údaje kategórie",
+          "values": [],
+          "verify": true
+        }
+      ]
+    },
+    {
+      "name": "Cena produktu",
+      "name_en": "Product Price",
+      "description": "Cenový záznam produktu pre konkrétnu cenovú hladinu. Obsahuje predajnú cenu, zľavnenú cenu, dodávateľskú cenu a informácie o zľave. Cena môže byť zadaná s DPH alebo bez DPH.",
+      "fields": [
+        {
+          "name": "Predajná cena s DPH",
+          "type": "number",
+          "description": "Základná predajná cena produktu vrátane dane",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Predajná cena bez DPH",
+          "type": "number",
+          "description": "Základná predajná cena produktu bez dane",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Dodávateľská cena",
+          "type": "number",
+          "description": "Nákupná cena od dodávateľa",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Zľavnená cena",
+          "type": "number",
+          "description": "Cena po aplikovaní zľavy",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Pôvodná zľavnená cena",
+          "type": "number",
+          "description": "Predchádzajúca zľavnená cena, uchováva sa pri zmene zľavy",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Percentuálna zľava",
+          "type": "number",
+          "description": "Výška zľavy v percentách",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Zľava platná od",
+          "type": "text",
+          "description": "Dátum a čas začiatku platnosti zľavnenej ceny. Ak nie je vyplnené, zľava platí hneď",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Zľava platná do",
+          "type": "text",
+          "description": "Dátum a čas konca platnosti zľavnenej ceny. Ak nie je vyplnené, zľava platí neobmedzene",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Uložená sadzba DPH",
+          "type": "number",
+          "description": "Sadzba DPH uložená pri vytvorení ceny, slúži na kontrolu",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Cena je s daňou",
+          "type": "boolean",
+          "description": "Určuje, či bola cena zadaná vrátane DPH alebo bez",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Zamknúť prepočet",
+          "type": "boolean",
+          "description": "Zamedzí automatickému prepočtu ceny pri zmene kurzov alebo hladín",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Vlastná marža",
+          "type": "number",
+          "description": "Individuálne nastavená marža v percentách pre daný produkt",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Cenová hladina",
+          "type": "relation",
+          "description": "Cenová hladina, ku ktorej cena patrí (napr. EUR maloobchod, CZK veľkoobchod)",
+          "values": [],
+          "verify": false
+        }
+      ]
+    },
+    {
+      "name": "Cenová hladina",
+      "name_en": "Price Level",
+      "description": "Definuje cenovú skupinu pre konkrétnu menu a typ zákazníkov. Umožňuje automatický prepočet cien z inej hladiny s nastavenou maržou.",
+      "fields": [
+        {
+          "name": "Názov",
+          "type": "text",
+          "description": "Interný názov cenovej hladiny",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Mena",
+          "type": "relation",
+          "description": "Mena používaná v tejto cenovej hladine",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Referenčná krajina",
+          "type": "relation",
+          "description": "Krajina, podľa ktorej sa určujú sadzby DPH pre túto hladinu",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Prepočítavaná z hladiny",
+          "type": "relation",
+          "description": "Iná cenová hladina, z ktorej sa automaticky prepočítavajú ceny. Ak je v inej mene, použije sa aktuálny kurz",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Percento marže",
+          "type": "number",
+          "description": "Marža pridaná pri prepočte z inej hladiny. Povinné ak je nastavená zdrojová hladina",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Ceny sú s DPH",
+          "type": "boolean",
+          "description": "Určuje, či sa v tejto hladine zadávajú ceny s DPH alebo bez. Zobrazuje sa len ak je e-shop platca DPH",
+          "values": [],
+          "verify": false
+        }
+      ]
+    },
+    {
+      "name": "Parameter",
+      "name_en": "Parameter",
+      "description": "Vlastnosť produktu (napr. farba, veľkosť, materiál). Parametre sa zobrazujú v detaile produktu a môžu slúžiť ako filtre v katalógu. Parameter môže mať obrázkové hodnoty.",
+      "fields": [
+        {
+          "name": "Názov",
+          "type": "text",
+          "description": "Názov parametra, prekladateľný do viacerých jazykov",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Označenie",
+          "type": "text",
+          "description": "Alternatívny názov, používa sa napríklad vo filtri na webe",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Hodnoty sú obrázky",
+          "type": "boolean",
+          "description": "Ak je zapnuté, hodnoty parametra sa zobrazujú ako obrázky (napr. vzorky farieb). Na produkte môže byť len jeden obrázkový parameter",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Zobrazuje sa v detaile",
+          "type": "boolean",
+          "description": "Určuje, či sa parameter zobrazí na stránke produktu",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Filtrovateľný",
+          "type": "boolean",
+          "description": "Umožňuje zákazníkom filtrovať produkty podľa tohto parametra v kategórii",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Zoradenie hodnôt v filtri",
+          "type": "enum",
+          "description": "Spôsob zoradenia hodnôt parametra vo filtri",
+          "values": [],
+          "verify": true
+        },
+        {
+          "name": "Kategória parametra",
+          "type": "relation",
+          "description": "Skupina, do ktorej parameter patrí. Zapína sa v nastaveniach",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Krátky popis",
+          "type": "text",
+          "description": "Stručný popis parametra. Zapína sa v nastaveniach",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Dlhý popis",
+          "type": "text",
+          "description": "Podrobný popis parametra s formátovaním. Zapína sa v nastaveniach",
+          "values": [],
+          "verify": false
+        }
+      ]
+    },
+    {
+      "name": "Hodnota parametra",
+      "name_en": "Parameter Value",
+      "description": "Konkrétna hodnota parametra (napr. červená, XL, bavlna). Ak je parameter obrázkový, hodnota obsahuje farbu a voliteľne obrázok.",
+      "fields": [
+        {
+          "name": "Názov",
+          "type": "text",
+          "description": "Názov hodnoty, prekladateľný do viacerých jazykov",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Označenie",
+          "type": "text",
+          "description": "Alternatívny názov hodnoty parametra",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Farba",
+          "type": "text",
+          "description": "Farba zobrazená pri obrázkovom parametri. Povinná ak je parameter obrázkový",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Obrázok",
+          "type": "relation",
+          "description": "Voliteľný obrázok zobrazený pri obrázkovom parametri",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Má orámovanie",
+          "type": "boolean",
+          "description": "Či sa okolo farebnej vzorky zobrazí rámček (užitočné pre svetlé farby)",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Filtrovať ako",
+          "type": "relation",
+          "description": "Umožňuje zlúčiť viacero hodnôt pod jednu vo filtri (napr. 'svetlo modrá' a 'tmavo modrá' sa filtrujú ako 'modrá')",
+          "values": [],
+          "verify": false
+        }
+      ]
+    },
+    {
+      "name": "Štítok",
+      "name_en": "Flag",
+      "description": "Vizuálny štítok zobrazený na produkte (napr. Novinka, Akcia, Výpredaj). Má nastaviteľný vzhľad a voliteľne vlastnú URL adresu.",
+      "fields": [
+        {
+          "name": "Názov",
+          "type": "text",
+          "description": "Text štítka, prekladateľný do viacerých jazykov",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Web",
+          "type": "relation",
+          "description": "Webová stránka, ku ktorej štítok patrí",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Viditeľný",
+          "type": "boolean",
+          "description": "Či sa štítok zobrazuje na produktoch",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Štýl",
+          "type": "enum",
+          "description": "Vizuálny štýl štítka, závislý od aktuálnej témy webu",
+          "values": [],
+          "verify": true
+        },
+        {
+          "name": "Farba pozadia",
+          "type": "text",
+          "description": "Vlastná farba pozadia štítka. Použije sa len ak nie je vybraný štýl",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Farba písma",
+          "type": "text",
+          "description": "Vlastná farba textu štítka. Použije sa len ak nie je vybraný štýl",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Obrázok",
+          "type": "relation",
+          "description": "Voliteľný obrázok namiesto textového štítka",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Kód",
+          "type": "text",
+          "description": "Interný kód štítka (max. 10 znakov). Špeciálny kód 'discount' sa automaticky pridáva/odstraňuje podľa zliav",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Vlastná URL",
+          "type": "boolean",
+          "description": "Ak je zapnuté, zákazníci sa môžu dostať na stránku so všetkými produktami s týmto štítkom",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "URL adresa (slug)",
+          "type": "text",
+          "description": "Webová adresa podstránky štítka",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Popis",
+          "type": "text",
+          "description": "Popis štítka s formátovaním, zobrazuje sa na podstránke štítka",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "SEO polia",
+          "type": "text",
+          "description": "Title, meta description, OG description pre SEO optimalizáciu podstránky štítka",
+          "values": [],
+          "verify": false
+        }
+      ]
+    },
+    {
+      "name": "Značka",
+      "name_en": "Brand",
+      "description": "Výrobca alebo značka produktu. Má vlastnú podstránku na e-shope a priradenie k webom.",
+      "fields": [
+        {
+          "name": "Názov",
+          "type": "text",
+          "description": "Plný názov značky",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Krátky názov",
+          "type": "text",
+          "description": "Skrátená verzia názvu. Zapína sa v nastaveniach",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "URL adresa (slug)",
+          "type": "text",
+          "description": "Webová adresa stránky značky, automaticky generovaná z názvu",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Obrázok",
+          "type": "relation",
+          "description": "Logo alebo obrázok značky. Zapína sa v nastaveniach",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Weby",
+          "type": "relation",
+          "description": "Na ktorých webových stránkach sa značka zobrazuje",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Popis",
+          "type": "text",
+          "description": "Popis značky s formátovaním, prekladateľný",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "SEO polia",
+          "type": "text",
+          "description": "Title, meta description pre SEO optimalizáciu stránky značky",
+          "values": [],
+          "verify": false
+        }
+      ]
+    },
+    {
+      "name": "Skladová varianta",
+      "name_en": "Stock Option",
+      "description": "Definuje stav dostupnosti produktu a jeho správanie pri pridávaní do košíka. Napríklad: 'Skladom', 'Na objednávku', 'Nedostupné'.",
+      "fields": [
+        {
+          "name": "Názov",
+          "type": "text",
+          "description": "Názov stavu dostupnosti, zobrazuje sa zákazníkovi. Prekladateľný",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Povoliť pridať do košíka",
+          "type": "boolean",
+          "description": "Či si zákazník môže produkt s touto skladovou variantou objednať",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Google dostupnosť",
+          "type": "enum",
+          "description": "Hodnota dostupnosti pre Google Merchant Center export",
+          "values": [],
+          "verify": true
+        },
+        {
+          "name": "Doba dodania v dňoch",
+          "type": "number",
+          "description": "Používa sa v exportoch pre porovnávače cien. 0 = okamžité odoslanie, prázdne = neobjednateľné",
+          "values": [],
+          "verify": false
+        }
+      ]
+    },
+    {
+      "name": "Sadzba DPH",
+      "name_en": "VAT Rate",
+      "description": "Konkrétna sadzba DPH platná pre danú krajinu. Sadzby patria do skupín a môžu mať obmedzenú platnosť.",
+      "fields": [
+        {
+          "name": "Krajina",
+          "type": "relation",
+          "description": "Krajina, pre ktorú sadzba platí",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Sadzba DPH",
+          "type": "number",
+          "description": "Percentuálna hodnota dane z pridanej hodnoty",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Platná od",
+          "type": "text",
+          "description": "Dátum, od ktorého sadzba platí. Ak nie je vyplnená, platí vždy",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Platná do",
+          "type": "text",
+          "description": "Dátum, do ktorého sadzba platí. Ak nie je vyplnená, platí neobmedzene",
+          "values": [],
+          "verify": false
+        }
+      ]
+    },
+    {
+      "name": "Tag",
+      "name_en": "Tag",
+      "description": "Interný štítok na produktoch, používaný na organizáciu a filtrovanie v katalógu. Na rozdiel od štítkov (flags) nemá vizuálny vzhľad.",
+      "fields": [
+        {
+          "name": "Interný názov",
+          "type": "text",
+          "description": "Názov tagu viditeľný v administrácii",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Názov",
+          "type": "text",
+          "description": "Názov tagu, prekladateľný do viacerých jazykov",
+          "values": [],
+          "verify": false
+        }
+      ]
+    },
+    {
+      "name": "USP (Výhoda produktu)",
+      "name_en": "USP (Unique Selling Point)",
+      "description": "Krátka výhoda alebo prednosť produktu zobrazená na detaile (napr. 'Doprava zadarmo', '2-ročná záruka').",
+      "fields": [
+        {
+          "name": "Názov",
+          "type": "text",
+          "description": "Text výhody, prekladateľný do viacerých jazykov",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Popis",
+          "type": "text",
+          "description": "Podrobnejší popis výhody. Zapína sa v nastaveniach",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Obrázok",
+          "type": "relation",
+          "description": "Ikonka alebo obrázok pri výhode. Zapína sa v nastaveniach",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Kód",
+          "type": "text",
+          "description": "Interný kód výhody",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Je neviditeľný",
+          "type": "boolean",
+          "description": "Skryje výhodu pred zákazníkmi bez jej zmazania",
+          "values": [],
+          "verify": false
+        }
+      ]
+    },
+    {
+      "name": "Otázka k produktu",
+      "name_en": "Product Question",
+      "description": "Otázka od zákazníka ku konkrétnemu produktu. Administrátor na ňu odpovedá z administrácie.",
+      "fields": [
+        {
+          "name": "Odpoveď",
+          "type": "text",
+          "description": "Odpoveď administrátora na otázku zákazníka",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Dátum odpovede",
+          "type": "text",
+          "description": "Kedy bola odpoveď napísaná, nastaví sa automaticky",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Administrátor",
+          "type": "relation",
+          "description": "Kto z administrátorov odpovedal na otázku",
+          "values": [],
+          "verify": false
+        }
+      ]
+    },
+    {
+      "name": "Hodnotenie produktu",
+      "name_en": "Product Rating",
+      "description": "Zákaznícke hodnotenie produktu. Obsahuje známku (1-5), textové zhrnutie a meno hodnotiaceho. Ostatní zákazníci môžu hodnotiť užitočnosť recenzie (hore/dole).",
+      "fields": [
+        {
+          "name": "Známka",
+          "type": "number",
+          "description": "Hodnotenie od 1 (najhoršie) do 5 (najlepšie)",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Meno",
+          "type": "text",
+          "description": "Meno osoby, ktorá hodnotenie napísala",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Zhrnutie",
+          "type": "text",
+          "description": "Text hodnotenia, editovateľný aj z administrácie",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Stav",
+          "type": "enum",
+          "description": "Schválenie hodnotenia - aktívne, neaktívne alebo zmazané",
+          "values": [
+            "Aktívny (enabled)",
+            "Neaktívny (disabled)",
+            "Zmazaný (deleted)"
+          ],
+          "verify": false
+        }
+      ]
+    },
+    {
+      "name": "Metadata produktu",
+      "name_en": "Product Metadata",
+      "description": "Doplnkové informačné bloky priradené k produktu. Každý blok má názov a prekladateľný obsah s formátovaním.",
+      "fields": [
+        {
+          "name": "Názov",
+          "type": "text",
+          "description": "Interný názov metadátového bloku",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Obsah",
+          "type": "text",
+          "description": "Formátovaný obsah bloku, prekladateľný do viacerých jazykov",
+          "values": [],
+          "verify": false
+        }
+      ]
+    },
+    {
+      "name": "Obrázok produktu",
+      "name_en": "Product Image",
+      "description": "Obrázok priradený k produktu. Jeden obrázok je hlavný (zobrazuje sa v zoznamoch), druhý môže byť náhľadový (zobrazí sa pri prechode myšou).",
+      "fields": [
+        {
+          "name": "Typ",
+          "type": "enum",
+          "description": "Účel obrázka v produkte",
+          "values": [
+            "Žiadny (0) - bežný obrázok v galérii",
+            "Hlavný (1) - zobrazuje sa v zoznamoch produktov",
+            "Náhľadový (2) - zobrazuje sa pri hover efekte"
+          ],
+          "verify": false
+        },
+        {
+          "name": "Poradie",
+          "type": "number",
+          "description": "Poradie obrázka v galérii produktu",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Spin",
+          "type": "boolean",
+          "description": "Či obrázok patrí do 360-stupňovej rotácie",
+          "values": [],
+          "verify": true
+        }
+      ]
+    }
+  ],
+  "features": [
+    {
+      "name": "Typy produktov",
+      "description": "Systém podporuje 6 typov produktov, z ktorých každý sa správa odlišne pri zobrazení a predaji.",
+      "behavior": [
+        "Jednoduchý produkt: základný produkt bez variantov",
+        "Variantový produkt: rodičovský produkt s viacerými variantami (napr. veľkosti). Na webe sa zobrazuje najnižšia cena spomedzi variantov",
+        "Variantový produkt bez aktívnych variantov sa nezobrazuje vo vyhľadávaní",
+        "Zoskupený produkt: skupina produktov predávaných spoločne",
+        "Zoskupený voliteľný produkt: zákazník si vyberá z produktov v skupine",
+        "Konfigurovateľný produkt: zákazník si skladá produkt z voliteľných komponentov",
+        "Darčeková poukážka: špeciálny typ produktu pre nákup poukážok",
+        "Typy sa zapínajú/vypínajú v nastaveniach: variantové, zoskupené, konfigurovateľné a darčekové poukážky"
+      ],
+      "settings": [
+        "Používať variantové produkty (useVariants)",
+        "Používať zoskupené produkty (useGroupedProducts)",
+        "Používať konfigurovateľné produkty (useConfigurableProducts)",
+        "Používať darčekové poukážky (useGiftCards)"
+      ],
+      "verify_items": []
+    },
+    {
+      "name": "Cenový systém",
+      "description": "Produkt môže mať rôzne ceny pre rôzne cenové hladiny (meny, typy zákazníkov). Systém podporuje zľavy s časovým obmedzením a automatický prepočet medzi hladinami.",
+      "behavior": [
+        "Cenu je možné zadať s DPH alebo bez DPH, systém dopočíta druhú hodnotu",
+        "Konkrétna sadzba DPH sa určí podľa krajiny zákazníka a skupiny DPH produktu",
+        "Pre krajiny mimo EÚ sa DPH neaplikuje (0%), ale zákazníkovi sa zobrazí cena vrátane pôvodnej DPH",
+        "Zľavnená cena môže mať dátum platnosti (od-do). Mimo platnosti sa použije štandardná cena",
+        "Pri variantovom produkte sa zákazníkovi zobrazuje najnižšia cena spomedzi aktívnych variantov",
+        "Systém podporuje výpočet ceny 'zhora' (od ceny s DPH) aj 'zdola' (od ceny bez DPH)",
+        "Cenová hladina môže automaticky prepočítavať ceny z inej hladiny s nastavenou maržou a kurzom",
+        "Ceny je možné hromadne zvýšiť alebo znížiť o zadané percento",
+        "Zákazníci s individuálnou zľavou dostanú zľavu aplikovanú na cenu produktu"
+      ],
+      "settings": [
+        "Výpočet z ceny bez DPH (vat.calculateFromUntaxed)",
+        "Cenové hladiny s prepočtom a maržou"
+      ],
+      "verify_items": [
+        "[VERIFY] Presné pravidlá aplikácie zákazníckej zľavy (discount, apply_to) - odkaz na PricesFacade::calculateCustomerDiscount"
+      ]
+    },
+    {
+      "name": "Automatický štítok Zľava",
+      "description": "Systém automaticky pridáva a odstraňuje štítok 'Zľava' (kód: discount) na produktoch podľa toho, či majú aktívnu zľavnenú cenu.",
+      "behavior": [
+        "Ak aspoň jedna cenová hladina produktu obsahuje zľavu (discount > 0), systém pridá štítok 'discount'",
+        "Ak sa zľava odstráni zo všetkých cenových hladín, systém štítok automaticky odoberie",
+        "Štítok musí existovať v systéme s kódom 'discount', inak sa nič nedeje"
+      ],
+      "settings": [],
+      "verify_items": []
+    },
+    {
+      "name": "Zaradenie produktov do kategórií",
+      "description": "Produkt môže patriť do viacerých kategórií. Jedna z nich je vždy označená ako predvolená a používa sa pri zobrazovaní breadcrumbov a v exportoch.",
+      "behavior": [
+        "Pri pridaní prvej kategórie sa automaticky nastaví ako predvolená",
+        "Pri odstránení predvolenej kategórie sa ako nová predvolená nastaví prvá zostávajúca",
+        "Produkty je možné hromadne presunúť z jednej kategórie do inej",
+        "Kategórie majú stromovú štruktúru - produkt zaradený v podkategórii je automaticky zahrnutý aj v rodičovských kategóriách pri vyhľadávaní"
+      ],
+      "settings": [],
+      "verify_items": []
+    },
+    {
+      "name": "Hodnotenia a recenzie produktov",
+      "description": "Zákazníci môžu hodnotiť produkty známkou 1-5 a napísať textovú recenziu. Hodnotenia je možné schvaľovať, zobrazuje sa histogram a priemer.",
+      "behavior": [
+        "Hodnotenie musí obsahovať meno aj text, inak sa nezobrazí na webe",
+        "Priemerné hodnotenie a počet hodnotení sa automaticky prepočítavajú pri každej zmene",
+        "U variantových produktov sa hodnotenia variantov spočítavajú do rodiča",
+        "U farebných variantov (podobné produkty typu COLOR) sa hodnotenia zdieľajú naprieč všetkými farebnými variantami",
+        "Ostatní zákazníci môžu hlasovať, či bolo hodnotenie užitočné (hore/dole)",
+        "Zákazník môže zmeniť svoj hlas, ale nemôže hlasovať viackrát",
+        "Hodnotenia je možné zoradiť podľa: najnovšie, najlepšie, najhoršie",
+        "Administrátor môže hodnotenie schváliť, zakázať, zmazať alebo editovať text",
+        "Histogram zobrazuje rozdelenie hodnotení po známkach (1-5)"
+      ],
+      "settings": [
+        "Hodnotenia zapnuté/vypnuté (ratings.enabled)"
+      ],
+      "verify_items": []
+    },
+    {
+      "name": "Vyhľadávanie a filtrovanie produktov",
+      "description": "Produkty sa indexujú do vyhľadávacieho systému, ktorý umožňuje fulltextové vyhľadávanie a filtrovanie podľa parametrov, ceny, značky, štítkov a tagov.",
+      "behavior": [
+        "Systém synchronizuje produkty do vyhľadávacieho indexu pri každej zmene",
+        "Indexujú sa: názov, popis, kód, kategórie, značka, ceny, parametre, štítky, tagy",
+        "Vypredané produkty a produkty s typom Variantový bez aktívnych variantov sa z indexu odstraňujú",
+        "Index obsahuje najnižšiu cenu pre každú cenovú hladinu (na zoradenie a filtrovanie)",
+        "Parametre sa indexujú pre filtrovanie s podporou zlúčených filtrovacích hodnôt",
+        "Pri zmene hodnoty parametra sa označia všetky dotknuté produkty na opätovnú synchronizáciu",
+        "U variantových produktov sa indexujú skladové veľkosti (stocked_sizes) pre filter dostupných veľkostí"
+      ],
+      "settings": [],
+      "verify_items": [
+        "[VERIFY] Presné pravidlá boost/score_multiplier vo vyhľadávaní"
+      ]
+    },
+    {
+      "name": "Viditeľnosť produktov podľa krajiny",
+      "description": "Produkty je možné skryť alebo zobraziť len pre zákazníkov z konkrétnych krajín.",
+      "behavior": [
+        "Ak je produkt nastavený na 'zobraziť' pre konkrétne krajiny, všetky ostatné krajiny ho nevidia",
+        "Ak je produkt nastavený na 'skryť' pre konkrétnu krajinu, len tá krajina ho nevidí",
+        "Skryté produkty sa nezobrazujú v katalógu ani vo vyhľadávaní pre danú krajinu"
+      ],
+      "settings": [],
+      "verify_items": [
+        "[VERIFY] Kde sa toto nastavuje v administrácii (product_country tabuľka)"
+      ]
+    },
+    {
+      "name": "Podobné produkty",
+      "description": "Systém umožňuje priradiť k produktu podobné produkty. Špeciálny typ 'farebná varianta' zdieľa hodnotenia medzi produktami.",
+      "behavior": [
+        "Podobné produkty sa zobrazujú na detaile produktu",
+        "Typ COLOR (farebná varianta) spôsobí zdieľanie hodnotení a recenzií medzi prepojenými produktami",
+        "Pri prepočte hodnotení sa zahrnú všetky farebné varianty"
+      ],
+      "settings": [
+        "Podobné produkty zapnuté/vypnuté (SimilarProductsSettings.enabled)"
+      ],
+      "verify_items": [
+        "[VERIFY] Aké ďalšie typy podobných produktov existujú okrem COLOR"
+      ]
+    },
+    {
+      "name": "Obrázky produktov",
+      "description": "Každý produkt môže mať galériu obrázkov s nastaveným poradím. Jeden obrázok je hlavný a voliteľne druhý náhľadový (hover).",
+      "behavior": [
+        "Hlavný obrázok sa zobrazuje v zoznamoch produktov a ako prvý v detaile",
+        "Náhľadový obrázok sa zobrazí pri prejdení myšou v zozname produktov",
+        "Poradie obrázkov sa automaticky prepočítava pri zmenách",
+        "Hlavný obrázok sa automaticky inicializuje ak nie je nastavený",
+        "Obrázky podporujú 360-stupňovú rotáciu (spin)",
+        "U variantov bez vlastného obrázka sa zobrazuje obrázok rodičovského produktu"
+      ],
+      "settings": [],
+      "verify_items": []
+    },
+    {
+      "name": "Zoznam produktov na stránke",
+      "description": "Obsahový prvok pre zobrazenie produktov na ľubovoľnej stránke e-shopu. Produkty je možné vybrať dvoma stratégiami.",
+      "behavior": [
+        "Stratégia Filter: produkty sa vyberú automaticky podľa nastaveného filtra",
+        "Stratégia Vybrané produkty: administrátor manuálne vyberie konkrétne produkty"
+      ],
+      "settings": [],
+      "verify_items": [
+        "[VERIFY] Aké parametre filtra sú dostupné v stratégii Filter"
+      ]
+    },
+    {
+      "name": "Preklady a viacjazyčnosť",
+      "description": "Všetky entity v katalógu (produkty, kategórie, parametre, značky, štítky...) podporujú preklady do viacerých jazykov.",
+      "behavior": [
+        "Každý preklad sa ukladá nezávisle pre každý jazyk",
+        "V predvolenom jazyku je názov povinný, v ostatných jazykoch voliteľný",
+        "URL adresa (slug) sa automaticky generuje z názvu v danom jazyku",
+        "Ak sa zmení názov variantového produktu, systém automaticky aktualizuje názvy a URL adresy všetkých jeho variantov",
+        "Systém umožňuje hromadne aktivovať preklady pre všetky jazyky, kde je vyplnený názov"
+      ],
+      "settings": [],
+      "verify_items": []
+    },
+    {
+      "name": "Export produktov",
+      "description": "Produkty sa exportujú do cenových porovnávačov (Heureka SK, Heureka CZ) a Google Merchant Center.",
+      "behavior": [
+        "Exportujú sa len aktívne produkty s povoleným pridaním do košíka a kladnou cenou",
+        "Produkty s príznakom 'vylúčiť z exportov' sa neexportujú",
+        "Produkty skryté pre maloobchodných zákazníkov sa neexportujú",
+        "Export obsahuje informácie o dostupnosti, dobe dodania a priradenej Heureka kategórii"
+      ],
+      "settings": [],
+      "verify_items": [
+        "[VERIFY] Presný zoznam podporovaných exportných formátov"
+      ]
+    },
+    {
+      "name": "Otázky k produktom",
+      "description": "Zákazníci môžu klásť otázky ku konkrétnym produktom. Administrátor na ne odpovedá z administrácie.",
+      "behavior": [
+        "Otázka sa priradí ku konkrétnemu produktu",
+        "Odpoveď píše administrátor, systém zaznamená kto a kedy odpovedal"
+      ],
+      "settings": [],
+      "verify_items": [
+        "[VERIFY] Či sa otázky zobrazujú verejne na stránke produktu"
+      ]
+    },
+    {
+      "name": "Obľúbené produkty",
+      "description": "Zákazníci si môžu uložiť produkty medzi obľúbené pre neskorší nákup.",
+      "behavior": [],
+      "settings": [
+        "Obľúbené produkty zapnuté/vypnuté (favoritedProducts)"
+      ],
+      "verify_items": [
+        "[VERIFY] Detailné správanie - či vyžaduje prihlásenie, kde sa obľúbené zobrazujú"
+      ]
+    },
+    {
+      "name": "Pridanie do košíka v zozname",
+      "description": "Umožňuje zákazníkom pridať produkt do košíka priamo zo zoznamu produktov bez nutnosti vstúpiť na detail.",
+      "behavior": [],
+      "settings": [
+        "Zapnuté/vypnuté (useAddToCartInProductLists)"
+      ],
+      "verify_items": [
+        "[VERIFY] Ako sa správa pri variantových produktoch v zozname"
+      ]
+    },
+    {
+      "name": "Súbory k produktom",
+      "description": "K produktom je možné pripojiť súbory na stiahnutie (napr. návody, certifikáty).",
+      "behavior": [],
+      "settings": [
+        "Súbory zapnuté/vypnuté (useFiles)"
+      ],
+      "verify_items": [
+        "[VERIFY] Aké typy súborov sú podporované a kde sa zobrazujú"
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "from": "Produkt",
+      "to": "Kategória",
+      "type": "many-to-many",
+      "description": "Produkt môže patriť do viacerých kategórií. Jedna je vždy predvolená"
+    },
+    {
+      "from": "Produkt",
+      "to": "Produkt (rodič)",
+      "type": "many-to-one",
+      "description": "Varianta patrí k rodičovskému produktu. Rodič nemá vlastnú cenu - zobrazuje najnižšiu cenu z variantov"
+    },
+    {
+      "from": "Produkt",
+      "to": "Cena produktu",
+      "type": "one-to-many",
+      "description": "Produkt má jednu cenu pre každú cenovú hladinu"
+    },
+    {
+      "from": "Produkt",
+      "to": "Značka",
+      "type": "many-to-one",
+      "description": "Produkt patrí k jednej značke"
+    },
+    {
+      "from": "Produkt",
+      "to": "Skladová varianta",
+      "type": "many-to-one",
+      "description": "Produkt má priradenú jednu skladovú variantu, ktorá určuje jeho dostupnosť"
+    },
+    {
+      "from": "Produkt",
+      "to": "Štítok",
+      "type": "many-to-many",
+      "description": "Produkt môže mať viacero vizuálnych štítkov"
+    },
+    {
+      "from": "Produkt",
+      "to": "Tag",
+      "type": "many-to-many",
+      "description": "Produkt môže mať viacero interných tagov"
+    },
+    {
+      "from": "Produkt",
+      "to": "Hodnota parametra",
+      "type": "many-to-many",
+      "description": "Produkt má priradené hodnoty parametrov (napr. farba: červená, veľkosť: XL)"
+    },
+    {
+      "from": "Produkt",
+      "to": "Obrázok produktu",
+      "type": "one-to-many",
+      "description": "Produkt má galériu obrázkov s definovaným poradím a typmi"
+    },
+    {
+      "from": "Produkt",
+      "to": "Web",
+      "type": "many-to-many",
+      "description": "Produkt sa zobrazuje len na priradených weboch (doménach)"
+    },
+    {
+      "from": "Produkt",
+      "to": "Hodnotenie produktu",
+      "type": "one-to-many",
+      "description": "Produkt má zákaznícke hodnotenia. U variantov sa spočítavajú do rodiča"
+    },
+    {
+      "from": "Produkt",
+      "to": "Otázka k produktu",
+      "type": "one-to-many",
+      "description": "K produktu sa viažu otázky od zákazníkov"
+    },
+    {
+      "from": "Produkt",
+      "to": "Metadata produktu",
+      "type": "one-to-many",
+      "description": "Produkt môže mať doplnkové obsahové bloky"
+    },
+    {
+      "from": "Produkt",
+      "to": "Podobný produkt",
+      "type": "many-to-many",
+      "description": "Produkty sú navzájom prepojené ako podobné, špeciálne farebné varianty zdieľajú hodnotenia"
+    },
+    {
+      "from": "Produkt",
+      "to": "Skupina DPH",
+      "type": "many-to-one",
+      "description": "Produkt patrí do skupiny DPH, z ktorej sa určí sadzba podľa krajiny zákazníka"
+    },
+    {
+      "from": "Cena produktu",
+      "to": "Cenová hladina",
+      "type": "many-to-one",
+      "description": "Každý cenový záznam patrí do jednej cenovej hladiny"
+    },
+    {
+      "from": "Cenová hladina",
+      "to": "Mena",
+      "type": "many-to-one",
+      "description": "Cenová hladina používa jednu menu"
+    },
+    {
+      "from": "Cenová hladina",
+      "to": "Cenová hladina (zdrojová)",
+      "type": "many-to-one",
+      "description": "Cenová hladina môže prepočítavať ceny z inej hladiny"
+    },
+    {
+      "from": "Sadzba DPH",
+      "to": "Krajina",
+      "type": "many-to-one",
+      "description": "Sadzba DPH platí pre konkrétnu krajinu"
+    },
+    {
+      "from": "Kategória",
+      "to": "Kategória (nadradená)",
+      "type": "many-to-one",
+      "description": "Kategórie tvoria stromovú štruktúru, podkategória patrí k rodičovskej kategórii"
+    },
+    {
+      "from": "Kategória",
+      "to": "Web",
+      "type": "many-to-many",
+      "description": "Kategória sa zobrazuje len na priradených weboch"
+    },
+    {
+      "from": "Parameter",
+      "to": "Hodnota parametra",
+      "type": "one-to-many",
+      "description": "Parameter má zoznam možných hodnôt"
+    },
+    {
+      "from": "Hodnota parametra",
+      "to": "Hodnota parametra (filtrovateľná)",
+      "type": "many-to-one",
+      "description": "Hodnoty sa dajú zlúčiť pod spoločnú filtrovateľnú hodnotu"
+    },
+    {
+      "from": "Značka",
+      "to": "Web",
+      "type": "many-to-many",
+      "description": "Značka sa zobrazuje len na priradených weboch"
+    },
+    {
+      "from": "Štítok",
+      "to": "Web",
+      "type": "many-to-one",
+      "description": "Štítok patrí k jednému webu"
+    },
+    {
+      "from": "Hodnotenie produktu",
+      "to": "Hlas k hodnoteniu",
+      "type": "one-to-many",
+      "description": "Zákazníci hlasujú o užitočnosti hodnotenia (hore/dole)"
+    },
+    {
+      "from": "Produkt",
+      "to": "Sklad predajne",
+      "type": "one-to-many",
+      "description": "Produkt môže mať rôzne stavy zásob na rôznych predajniach"
+    }
+  ],
+  "business_rules": [
+    {
+      "rule": "Ak sa produkt pridá do prvej kategórie, automaticky sa nastaví ako predvolená. Ak sa predvolená kategória odstráni, prvá zostávajúca sa stane predvolenou.",
+      "source": "app/Facades/ProductsFacade.php",
+      "verify": false
+    },
+    {
+      "rule": "Štítok s kódom 'discount' sa automaticky pridá na produkt ak má aspoň jednu cenovú hladinu so zľavou (discount > 0), a automaticky sa odstráni ak nemá žiadnu zľavu.",
+      "source": "app/Facades/ProductsFacade.php",
+      "verify": false
+    },
+    {
+      "rule": "Variantový produkt sa nezobrazí vo vyhľadávaní a na webe, ak nemá žiadne aktívne (enabled) varianty s platnou cenou.",
+      "source": "app/Model/Repositories/ProductsRepository.php",
+      "verify": false
+    },
+    {
+      "rule": "Vypredaný produkt (is_sold_out = true) sa odstraní z vyhľadávacieho indexu.",
+      "source": "app/Facades/ProductsFacade.php",
+      "verify": false
+    },
+    {
+      "rule": "Ak varianta alebo jednoduchý produkt príde na sklad (stock_option = IN_STOCK), systém automaticky zruší príznak vypredané na rodičovskom produkte.",
+      "source": "app/Model/Repositories/ProductsRepository.php",
+      "verify": false
+    },
+    {
+      "rule": "URL adresa produktu sa automaticky generuje z názvu. Ak existuje duplicitný slug, systém pridáva číslo na koniec (napr. produkt-1, produkt-2).",
+      "source": "app/Model/Repositories/ProductsRepository.php",
+      "verify": false
+    },
+    {
+      "rule": "Pri zmene názvu alebo URL rodičovského variantového produktu sa automaticky aktualizujú názvy a URL všetkých jeho variantov (názov rodiča + krátky názov varianty).",
+      "source": "app/Model/Repositories/ProductsRepository.php",
+      "verify": false
+    },
+    {
+      "rule": "Na jednom produkte môže byť len jeden obrázkový parameter. Ak sa pokúsite zmeniť parameter na obrázkový a produkty už majú iný obrázkový parameter, systém zmenu zamietne.",
+      "source": "app/BackendModule/CatalogModule/Forms/ParameterFormFactory.php",
+      "verify": false
+    },
+    {
+      "rule": "Hodnotenia sa zdieľajú naprieč farebnými variantami (podobné produkty typu COLOR). Priemerné hodnotenie a počet sa prepočítavajú zo všetkých farebných variantov dohromady.",
+      "source": "app/Facades/ProductRatingsFacade.php",
+      "verify": false
+    },
+    {
+      "rule": "Hodnotenie sa zobrazí na webe len ak má vyplnené meno aj text. Prázdne hodnotenia (len známka) sa nezobrazujú, ale počítajú sa do priemeru.",
+      "source": "app/Facades/ProductRatingsFacade.php",
+      "verify": false
+    },
+    {
+      "rule": "Zákazník môže zmeniť svoj hlas (hore/dole) pri hodnotení, ale nemôže pridať viacero hlasov. Nový hlas prepíše predchádzajúci.",
+      "source": "app/Facades/ProductRatingsFacade.php",
+      "verify": false
+    },
+    {
+      "rule": "Pre krajiny mimo EÚ (kde sa neaplikuje DPH) systém zobrazí cenu s DPH, ale uvedie sadzbu 0%. Je to legislatívne správne.",
+      "source": "app/Providers/ProductPricesProvider.php",
+      "verify": false
+    },
+    {
+      "rule": "Zľavnená cena sa aplikuje len ak: existuje, je väčšia ako 0, a aktuálny dátum je v rozsahu platnosti (discount_from - discount_to). Inak sa použije bežná predajná cena.",
+      "source": "app/Model/DTOs/ProductPriceDTO.php",
+      "verify": false
+    },
+    {
+      "rule": "Produkty s príznakom 'vylúčiť z exportov' alebo skryté pre maloobchodných zákazníkov sa neexportujú do cenových porovnávačov.",
+      "source": "app/Model/Repositories/ProductsRepository.php",
+      "verify": false
+    },
+    {
+      "rule": "Produkty neoznačené ako spracované pri importe (is_processed = false) sa automaticky nastavia na stav 'dočasne vypredané' a označia sa na synchronizáciu.",
+      "source": "app/Model/Repositories/ProductsRepository.php",
+      "verify": false
+    },
+    {
+      "rule": "Na webe sa zobrazia len produkty, ktoré majú vyplnený názov a URL adresu v danom jazyku.",
+      "source": "app/Model/Repositories/ProductsRepository.php",
+      "verify": false
+    },
+    {
+      "rule": "Cenová hladina prepočítaná z inej hladiny vyžaduje zadanú maržu. Ak je zdrojová hladina v inej mene, systém použije aktuálny kurz v deň prepočtu.",
+      "source": "app/BackendModule/CatalogModule/Forms/PriceLevelFormFactory.php",
+      "verify": false
+    }
+  ]
+}

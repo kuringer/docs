@@ -1,0 +1,163 @@
+---
+title: "Ceny a zľavy produktov"
+description: "Cenový systém Venalio - cenové hladiny, DPH podľa krajiny zákazníka, zľavnené ceny a automatický štítok Zľava."
+---
+
+{/* Generated from: app/Model/DTOs/ProductPriceDTO.php, app/Model/Entities/ProductPrice.php, app/Providers/ProductPricesProvider.php, app/BackendModule/CatalogModule/Forms/PriceLevelFormFactory.php, app/BackendModule/CatalogModule/Forms/VatRateFormFactory.php, app/Facades/ProductsFacade.php | 2026-03-19T12:00:00Z */}
+
+Cenový systém Venalio umožňuje mať pre každý produkt rôzne ceny pre rôznych zákazníkov, rôzne meny a rôzne krajiny - všetko na jednom mieste. Systém sám vypočíta DPH, prepočíta ceny pri zmene kurzu a pridá štítok Zľava tam, kde treba.
+
+---
+
+## Ako fungujú ceny
+
+Každý produkt má jednu cenu pre každú **cenovú hladinu**. Cenová hladina je cenová skupina - napríklad "EUR maloobchod" alebo "CZK veľkoobchod". Zákazník vidí cenu z tej cenovej hladiny, ktorá mu patrí.
+
+Cenu môžete zadať **s DPH alebo bez DPH** - systém automaticky dopočíta druhú hodnotu na základe sadzby DPH produktu.
+
+<Frame>
+  <img src="/images/placeholder.png" />
+  <caption>[SCREENSHOT: Cenová tabuľka produktu v administrácii - prehľad cien pre jednotlivé cenové hladiny]</caption>
+</Frame>
+
+---
+
+## Cenové hladiny
+
+Cenová hladina definuje cenovú skupinu pre konkrétnu menu a typ zákazníka. Vytvoríte ju raz a potom sa používa pre všetky produkty.
+
+| Pole | Popis |
+|------|-------|
+| **Názov** | Interný názov cenovej hladiny (napríklad "EUR maloobchod", "CZK veľkoobchod") |
+| **Mena** | Mena, v ktorej sú ceny tejto hladiny |
+| **Referenčná krajina** | Krajina, podľa ktorej sa určujú sadzby DPH pre túto cenovú hladinu |
+| **Ceny sú s DPH** | Či zadávate ceny vrátane DPH alebo bez - zobrazuje sa len ak ste platca DPH |
+
+### Automatický prepočet z inej hladiny
+
+Cenovú hladinu môžete nastaviť tak, aby automaticky prepočítavala ceny z inej hladiny. Napríklad hladina "CZK maloobchod" môže automaticky prepočítavať z hladiny "EUR maloobchod" podľa aktuálneho kurzu.
+
+| Pole | Popis |
+|------|-------|
+| **Prepočítavaná z hladiny** | Zdrojová cenová hladina, z ktorej sa ceny preberajú |
+| **Percento marže** | Marža pridaná pri prepočte (povinná ak je nastavená zdrojová hladina) |
+
+Ak je zdrojová hladina v inej mene, systém použije aktuálny kurz v deň prepočtu.
+
+<Note>Prepočet ovplyvní len produkty, ktoré nemajú zamknutý prepočet. Zamknuté ceny systém pri prepočte preskočí.</Note>
+
+---
+
+## DPH a sadzby
+
+### DPH podľa krajiny zákazníka
+
+Sadzba DPH sa určuje podľa **krajiny zákazníka**, nie podľa krajiny e-shopu. Každá sadzba patrí do skupiny DPH, ktorú nastavíte na produkte.
+
+Príklad: Produkt má skupinu DPH "Základná sadzba". Pre slovenského zákazníka systém použije 20%, pre českého 21%, pre nemeckého 19%.
+
+<Frame>
+  <img src="/images/placeholder.png" />
+  <caption>[SCREENSHOT: Nastavenia sadzieb DPH - prehľad sadzieb podľa krajín s dátumovou platnosťou]</caption>
+</Frame>
+
+### Časová platnosť sadzieb
+
+Každá sadzba DPH môže mať dátum platnosti od-do. Systém automaticky použije správnu sadzbu platná v danom čase - napríklad ak sa zmení sadzba DPH, stačí pridať novú s dátumom platnosti a starú nechať ako históriu.
+
+### DPH pre krajiny mimo EÚ
+
+Pre zákazníkov z krajín mimo EÚ systém uplatní 0% DPH. Na faktúre aj pri zobrazení ceny sa však zákazníkovi zobrazí cena vrátane pôvodnej DPH - toto je legislatívne správne správanie.
+
+---
+
+## Zľavnená cena
+
+Každý produkt môže mať zľavnenú cenu s presne stanovenou dobou platnosti.
+
+| Pole | Popis |
+|------|-------|
+| **Zľavnená cena** | Cena po zľave (nižšia ako predajná cena) |
+| **Percentuálna zľava** | Výška zľavy v percentách - vypočíta sa automaticky |
+| **Zľava platná od** | Dátum a čas začiatku platnosti zľavy. Ak nevyplníte, zľava platí ihneď |
+| **Zľava platná do** | Dátum a čas konca platnosti zľavy. Ak nevyplníte, zľava platí neobmedzene |
+
+**Ako systém aplikuje zľavnenú cenu:**
+
+Zľavnená cena sa zobrazí zákazníkovi len ak:
+1. Je zadaná a väčšia ako 0
+2. Aktuálny dátum a čas je v rozsahu platnosti (zľava platná od - do)
+
+Mimo platnosti systém automaticky zobrazí štandardnú predajnú cenu - nemusíte nič robiť ručne.
+
+<Tip>Zľavnené ceny môžete pripraviť vopred s nastaveným dátumom začiatku. Systém ich aktivuje automaticky v správny čas.</Tip>
+
+---
+
+## Automatický štítok Zľava
+
+Systém automaticky spravuje [Štítok](/produkty/prehlad) s kódom `discount` na produktoch:
+
+- Ak má produkt aspoň v jednej cenovej hladine aktívnu zľavu, systém štítok **automaticky pridá**
+- Ak zľava skončí alebo je zrušená zo všetkých cenových hladín, systém štítok **automaticky odoberie**
+
+Toto sa deje bez akéhokoľvek zásahu z vašej strany.
+
+<Note>Aby automatika fungovala, musí v systéme existovať štítok s kódom `discount`. Ak tento štítok neexistuje, systém ho nevytvorí - musíte ho vytvoriť ručne.</Note>
+
+<Frame>
+  <img src="/images/placeholder.png" />
+  <caption>[SCREENSHOT: Produkt v zozname so štítkom Zľava a preškrtnutou pôvodnou cenou]</caption>
+</Frame>
+
+---
+
+## Zamknutie prepočtu ceny
+
+Ak nechcete, aby systém automaticky prepočítal cenu produktu pri zmene kurzu alebo zmene cenovej hladiny, môžete prepočet **zamknúť**.
+
+| Stav | Čo sa stane pri zmene kurzu |
+|------|-----------------------------|
+| Prepočet odomknutý | Systém automaticky aktualizuje cenu podľa kurzu a nastavení hladiny |
+| Prepočet zamknutý | Cena zostane presne taká, akú ste zadali - systém ju neprepočíta |
+
+Zamknutie je užitočné napríklad pri špeciálnych akciových cenách, ktoré chcete udržať presné bez ohľadu na pohyb kurzu.
+
+---
+
+## Cena u variantových produktov
+
+Pri variantovom produkte zákazník na webe vidí **najnižšiu cenu** spomedzi aktívnych variantov. Po výbere konkrétneho variantu sa zobrazí jeho presná cena.
+
+<Note>Rodičovský variantový produkt nemá vlastnú cenu. Cena sa vždy berie z variantov.</Note>
+
+---
+
+## Zákaznícke zľavy
+
+<Warning>Táto informácia vyžaduje overenie. [VERIFY] - Presné pravidlá aplikácie individuálnej zákazníckej zľavy (ako sa vypočítava, na akú cenu sa aplikuje, či kombinuje so zľavnenou cenou) sa zatiaľ nepodarilo potvrdiť. Overte s vývojovým tímom.</Warning>
+
+Zákazníkom s individuálne nastavenou zľavou systém aplikuje túto zľavu na cenu produktu.
+
+---
+
+## Prehľad všetkých cenových polí
+
+<Accordion title="Polia ceny produktu - kompletný zoznam">
+
+| Pole | Popis |
+|------|-------|
+| **Predajná cena s DPH** | Základná predajná cena vrátane dane |
+| **Predajná cena bez DPH** | Základná predajná cena bez dane |
+| **Dodávateľská cena** | Nákupná cena od dodávateľa (interné, zákazník nevidí) |
+| **Zľavnená cena** | Cena po aplikovaní zľavy |
+| **Pôvodná zľavnená cena** | Predchádzajúca zľavnená cena, uchováva sa ako história |
+| **Percentuálna zľava** | Výška zľavy v percentách |
+| **Zľava platná od** | Začiatok platnosti zľavnenej ceny |
+| **Zľava platná do** | Koniec platnosti zľavnenej ceny |
+| **Cena je s daňou** | Technická informácia o spôsobe zadania ceny |
+| **Zamknúť prepočet** | Zabraňuje automatickému prepočtu pri zmene kurzu |
+| **Vlastná marža** | Individuálna marža v percentách nastavená pre konkrétny produkt |
+| **Cenová hladina** | Ku ktorej cenovej hladine cena patrí |
+
+</Accordion>

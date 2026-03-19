@@ -1,0 +1,299 @@
+---
+title: "Spracovanie objednávok"
+description: "Ako spracovať objednávku v administrácii – úprava položiek, skladové rezervácie, Zásielky, fakturácia, kompletizácia a rozdeľovanie."
+---
+
+{/* Generated from: app/BackendModule/StoreModule/Presenters/OrderPresenter.php, app/BackendModule/StoreModule/Presenters/OrdersPresenter.php, app/BackendModule/StoreModule/Forms/OrderShipmentFormFactory.php, app/Facades/OrderFacade.php, app/Model/Settings/OrdersSettings.php | 2026-03-19T00:00:00Z */}
+
+Táto stránka popisuje, ako pracovať s Objednávkou v administrácii po jej prijatí – od úpravy položiek cez vytvorenie Zásielky až po uzavretie Objednávky.
+
+---
+
+## Správa položiek objednávky
+
+### Pridanie produktu z katalógu
+
+<Steps>
+  <Step title="Otvorte Objednávku">
+    Prejdite do zoznamu Objednávok a kliknite na konkrétnu Objednávku.
+  </Step>
+  <Step title="Pridajte produkt">
+    V sekcii Položky kliknite na **Pridať produkt**. Vyhľadajte produkt podľa názvu alebo kódu.
+  </Step>
+  <Step title="Zadajte množstvo a cenu">
+    Zadajte požadované množstvo. Ak chcete použiť inú ako aktuálnu predajnú cenu, zadajte ju manuálne. Systém inak automaticky doplní aktuálnu cenu z Cenovej hladiny Zákazníka.
+  </Step>
+  <Step title="Potvrďte">
+    Systém pridá produkt, vytvorí skladovú rezerváciu a prepočíta celkovú sumu Objednávky.
+  </Step>
+</Steps>
+
+<Note>
+  Variantové produkty nie je možné pridať do existujúcej Objednávky. Ak potrebujete variantu, vytvorte novú Objednávku.
+</Note>
+
+### Pridanie vlastnej položky
+
+Vlastná položka je ľubovoľná položka bez väzby na katalóg – napríklad servisný poplatok, balné alebo špeciálna cena dohodnutá so Zákazníkom.
+
+<Steps>
+  <Step title="Kliknite na Pridať vlastnú položku">
+    V sekcii Položky vyberte možnosť pre vlastnú položku.
+  </Step>
+  <Step title="Vyplňte údaje">
+    Zadajte ľubovoľný názov, cenu a množstvo.
+  </Step>
+  <Step title="Potvrďte">
+    Systém pridá položku a prepočíta celkovú sumu. Vlastná položka nemá vplyv na Sklad.
+  </Step>
+</Steps>
+
+### Úprava existujúcich položiek
+
+| Akcia | Čo sa stane |
+|---|---|
+| Zmena ceny alebo množstva | Systém prepočíta ceny bez DPH aj celkovú sumu Objednávky |
+| Zľava na položku (v %) | Systém prepočíta cenu z pôvodnej ceny – funkcia musí byť zapnutá v nastaveniach |
+| Vymazanie položky | Systém uvoľní skladovú rezerváciu a prepočíta dostupnosť produktu na Sklade |
+
+<Frame>
+  <img src="/images/placeholder.png" />
+  <caption>Detail Objednávky – sekcia Položiek s možnosťami úpravy ceny, množstva a zľavy</caption>
+</Frame>
+
+---
+
+## Správa skladových rezervácií
+
+Skladová rezervácia zabezpečuje, že tovar v Objednávke je "odložený" a nepredá sa inému Zákazníkovi.
+
+### Hromadné operácie
+
+| Akcia | Čo sa stane |
+|---|---|
+| **Zarezervovať všetko** | Systém zarezervuje maximálne dostupné množstvo pre všetky položky Objednávky |
+| **Zrušiť všetky rezervácie** | Systém uvoľní rezervácie a prepočíta dostupnosť produktov na Sklade |
+
+### Úprava po jednom kuse
+
+Pre každú položku môžete ručne zvýšiť alebo znížiť počet rezervovaných kusov o jeden kus naraz.
+
+<Warning>
+  Na zamknutej Objednávke (stav **Vybavená**) nie je možné meniť rezervácie. Ak potrebujete zmenu, [vráťte Objednávku do spracovania](#vrátenie-do-spracovania).
+</Warning>
+
+<Note>
+  Objednávku nie je možné presunúť do stavu **Vybavená**, kým nie sú všetky položky plne rezervované. Výnimkou sú Objednávky s digitálnou Dopravou.
+</Note>
+
+---
+
+## Vytváranie zásielok
+
+Zásielka prepája Objednávku s konkrétnym Prepravcom – generuje trackovacie číslo a štítok na balík.
+
+<Steps>
+  <Step title="Otvorte sekciu Zásielky">
+    V detaile Objednávky nájdite sekciu Zásielky.
+  </Step>
+  <Step title="Vytvorte novú Zásielku">
+    Kliknite na **Nová Zásielka**. Zadajte hmotnosť balíka. Systém automaticky určí, či je Zásielka na dobierku – dobierka sa nastaví vtedy, ak Zákazník zvolil hotovostnú Platbu.
+  </Step>
+  <Step title="Odošlite Prepravcovi">
+    Systém odošle informácie Prepravcovi. Po úspešnom odoslaní sa zobrazí trackovacie číslo a odkaz na sledovanie Zásielky.
+  </Step>
+  <Step title="Vytlačte štítok">
+    Stiahnite štítok pre tlač. Štítky môžete sťahovať jednotlivo alebo hromadne pre všetky dosiaľ nestiahnuté Zásielky daného Prepravcu.
+  </Step>
+</Steps>
+
+<Note>
+  Jedna Objednávka môže mať viacero Zásielok – napríklad ak je tovar rozdelený do viacerých balíkov. Zásielku môžete aj zmazať – systém ju zruší aj u Prepravcu.
+</Note>
+
+<Frame>
+  <img src="/images/placeholder.png" />
+  <caption>Sekcia Zásielky v detaile Objednávky – trackovacie čísla a tlač štítkov</caption>
+</Frame>
+
+---
+
+## Fakturácia
+
+Systém vystavuje niekoľko typov daňových dokladov:
+
+<Tabs>
+  <Tab title="Faktúra">
+    Bežná (ostrá) Faktúra obsahuje všetky položky Objednávky vrátane Dopravy, Platby a Zliav rozpočítaných podľa sadzieb DPH.
+
+    Systém ju vystaví automaticky pri:
+    - Prechode do stavu **Spracováva sa** (ak je zapnutá kompletizácia)
+    - Prechode do stavu **Vybavená**
+    - Zmene stavu úhrady na **Uhradená** (ak je nastavenie zapnuté)
+
+    Faktúra sa automaticky prikladá ako príloha k e-mailovým notifikáciám pri stavoch **Odoslaná** a **Vybavená**.
+  </Tab>
+  <Tab title="Zálohová faktúra">
+    Vystavuje sa vtedy, ak Zákazník zaplatil, ale Objednávka ešte nie je plne rezervovaná na Sklade. Administrátor môže zadať percentuálnu výšku zálohy.
+
+    Spolu so zálohovou Faktúrou systém automaticky vystaví aj **daňový doklad k prijatej platbe**.
+  </Tab>
+  <Tab title="Dobropis">
+    Vystavuje sa k existujúcej Faktúre – môže byť:
+    - **Celý** – na celú sumu Faktúry
+    - **Čiastočný** – len na vybrané položky
+
+    Dobropis sa vystavuje napríklad pri vrátení tovaru alebo stave **Neprevzatá**.
+  </Tab>
+</Tabs>
+
+<Note>
+  Pre Objednávky mimo EÚ systém automaticky doplní na Faktúru text o oslobodení od DPH. Číslovanie Faktúr sa riadi nastavenými číselnými radmi podľa typu dokladu, krajiny a webu.
+</Note>
+
+---
+
+## Kompletizácia (skenovanie EAN)
+
+Kompletizácia umožňuje fyzicky overovať správnosť balenia skenovaním čiarových kódov produktov pred odoslaním.
+
+<Steps>
+  <Step title="Spustite kompletizáciu">
+    Otvorte Objednávku a označte sa ako spracovávateľ. Systém automaticky prepne Objednávku do stavu **Spracováva sa** a vystaví Faktúru.
+  </Step>
+  <Step title="Skenujte produkty">
+    Postupne skenujte EAN kód každého produktu. Systém zvýši počet skompletizovaných kusov pri každom naskenovaní.
+  </Step>
+  <Step title="Dokončenie">
+    Keď sú všetky produkty naskenované, systém automaticky presunie Objednávku do stavu **Odoslaná** a odošle informácie Prepravcovi.
+  </Step>
+</Steps>
+
+<Warning>
+  Ak naskenujete nesprávny EAN kód, systém vás na to okamžite upozorní.
+</Warning>
+
+<Note>
+  Kompletizácia musí byť zapnutá v nastaveniach Objednávok (nastavenie **Používať kompletizáciu** a **Používať spracovanie**). Ak tieto nastavenia nevidíte, funkcia nie je aktivovaná.
+</Note>
+
+---
+
+## Rozdelenie objednávky
+
+Administrátor môže rozdeliť Objednávku na viacero alebo presunúť položky medzi Objednávkami toho istého Zákazníka.
+
+<Tabs>
+  <Tab title="Kopírovanie do novej objednávky">
+    <Steps>
+      <Step title="Vyberte položky">
+        Označte položky, ktoré chcete presunúť alebo skopírovať.
+      </Step>
+      <Step title="Zvoľte možnosti">
+        Vyberte, či chcete položky **presunúť** (odstránia sa z pôvodnej Objednávky) alebo **skopírovať** (zostanú v pôvodnej). Zvoľte tiež, či zachovať cenu Dopravy v novej Objednávke.
+      </Step>
+      <Step title="Potvrďte">
+        Systém vytvorí novú Objednávku s odkazom na pôvodnú. Prepočítajú sa súčty oboch Objednávok.
+      </Step>
+    </Steps>
+  </Tab>
+  <Tab title="Presun do existujúcej objednávky">
+    <Steps>
+      <Step title="Vyberte položky">
+        Označte položky, ktoré chcete presunúť.
+      </Step>
+      <Step title="Vyberte cieľovú objednávku">
+        Systém zobrazí zoznam existujúcich Objednávok toho istého Zákazníka. Vyberte, do ktorej Objednávky chcete položky presunúť.
+      </Step>
+      <Step title="Potvrďte">
+        Systém presunie položky a prepočíta súčty oboch Objednávok.
+      </Step>
+    </Steps>
+  </Tab>
+</Tabs>
+
+---
+
+## Vrátenie do spracovania
+
+Ak potrebujete upraviť uzatvorenú (zamknutú) Objednávku, môžete ju vrátiť do stavu **Spracováva sa**.
+
+<Steps>
+  <Step title="Otvorte uzatvorenú Objednávku">
+    Nájdite Objednávku v stave **Vybavená** a otvorte jej detail.
+  </Step>
+  <Step title="Spustite vrátenie">
+    Použite funkciu **Vrátiť do spracovania**. Systém vykoná nasledovné:
+    - Vytvorí prijímku – tovar sa virtuálne vráti na Sklad
+    - Odomkne Objednávku
+    - Nastaví stav na **Spracováva sa** – Zákazníkovi sa nepošle žiadna notifikácia
+  </Step>
+  <Step title="Vykonajte úpravy">
+    Objednávka je teraz editovateľná – môžete upravovať položky, rezervácie a ďalšie informácie.
+  </Step>
+  <Step title="Opätovne uzatvorte">
+    Po dokončení úprav nastavte Objednávku späť do stavu **Vybavená**. Systém opäť overí, že všetky položky sú plne rezervované.
+  </Step>
+</Steps>
+
+---
+
+## Zoznam objednávok a export
+
+### Filtrovanie
+
+V zozname Objednávok môžete filtrovať podľa mnohých kritérií:
+
+<Accordion title="Dostupné filtre">
+  - Kód Objednávky, Zákazník, e-mail
+  - Stav Objednávky, stav úhrady
+  - Krajina, spôsob Platby, spôsob Dopravy
+  - Dátum vytvorenia, celková suma, mena
+  - Produkt, Kupón, interná poznámka
+  - Trackovacie číslo, číslo Faktúry
+  - Dostupnosť, stav rezervácií
+  - A ďalšie
+</Accordion>
+
+<Tip>
+  Obľúbené kombinácie filtrov si môžete uložiť pre rýchly prístup – napríklad "Neuhradené objednávky čakajúce na platbu" alebo "Dnešné objednávky na odoslanie".
+</Tip>
+
+### Export
+
+| Typ exportu | Obsah |
+|---|---|
+| **Export do XLSX** | Detailné informácie o Objednávkach a položkách vrátane kategórií produktov |
+| **Export Dopráv do CSV** | Informácie o Dopravách a trackingových číslach |
+
+### Štatistiky a prehľady
+
+V zozname Objednávok máte k dispozícii prehľady:
+
+- Graf obratov a počtov Objednávok podľa dní / týždňov / mesiacov / rokov
+- Filtrovanie grafu podľa krajiny, Platby a stavu Objednávky
+- Suma za aktuálnu stránku a za celý filter (zobrazuje sa per mena)
+
+<Frame>
+  <img src="/images/placeholder.png" />
+  <caption>Graf štatistík Objednávok v zozname – obrat a počty podľa dní</caption>
+</Frame>
+
+---
+
+## Súvisiace témy
+
+<Cards>
+  <Card title="Prehľad objednávok" href="/objednavky/prehlad">
+    Štruktúra Objednávky, životný cyklus a typy.
+  </Card>
+  <Card title="Stavy objednávky" href="/objednavky/stavy">
+    Čo sa deje automaticky pri každom stave a ako fungujú notifikácie.
+  </Card>
+  <Card title="Sklad a rezervácie" href="/sklad/prehlad">
+    Ako funguje správa Skladu a skladových rezervácií.
+  </Card>
+  <Card title="Faktúry" href="/faktury/prehlad">
+    Typy Faktúr, číselné rady a nastavenia fakturácie.
+  </Card>
+</Cards>

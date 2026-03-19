@@ -1,0 +1,128 @@
+---
+title: "Stavy objednávok"
+description: "Prehľad stavov objednávky, automatické prechody a čo sa deje pri každej zmene stavu."
+---
+
+{/* Generated from: app/Model/Enums/OrderStatesEnum.php, app/Model/Repositories/OrderStatesRepository.php, app/Model/Repositories/OrderStateItemsRepository.php, app/Commands/ProcessOrderStatesCommand.php, app/Facades/OrderFacade.php | 2026-03-19 */}
+
+Stav objednávky určuje, v akej fáze spracovania sa objednávka nachádza. Pri každej zmene stavu systém automaticky spúšťa procesy - odoslanie e-mailu, vystavenie faktúry, úprava skladu a ďalšie.
+
+---
+
+## Základné stavy
+
+Systém obsahuje tieto preddefinované stavy:
+
+| Stav | Čo znamená | Automaticky sa deje |
+|---|---|---|
+| **Nová** | Objednávka bola práve vytvorená | Potvrdenie e-mailom, skladová rezervácia |
+| **Zaplatená** | Platba bola prijatá | Notifikácia administrátorovi |
+| **Vybavená** | Objednávka bola odoslaná zákazníkovi | E-mail zákazníkovi, pripísanie vernostných bodov |
+| **Zrušená** | Objednávka bola zrušená | Uvoľnenie skladu, vrátenie vernostných bodov |
+| **Storno** | Objednávka bola stornovaná (po odoslaní) | Vystavenie dobropisu |
+| **Neprevzatá** | Zákazník neprevzal zásielku | Vystavenie dobropisu |
+
+<Warning>
+  Objednávku je možné označiť ako "Neprevzatá" iba ak je na dobierku a nebola uhradená. Navyše musí mať existujúcu zásielku od prepravcu. [VERIFY]
+</Warning>
+
+---
+
+## Vlastné stavy
+
+Okrem preddefinovaných stavov si môžete vytvoriť vlastné stavy podľa potrieb vášho e-shopu. Každý stav má:
+
+- **Názov** - zobrazí sa v administrácii aj zákazníkovi
+- **Farba** - pre rýchlu orientáciu v zozname objednávok
+- **Poradie** - určuje logickú postupnosť stavov
+- **E-mailová šablóna** - automatický e-mail zákazníkovi pri zmene na tento stav
+
+<Tip>
+  Poradie stavov je dôležité - určuje, v akom poradí sa stavy zobrazujú v administrácii a zákazníkovi v jeho účte.
+</Tip>
+
+---
+
+## Čo sa deje pri zmene stavu
+
+### Notifikácie
+
+Pri zmene stavu systém automaticky posiela e-mail zákazníkovi podľa nastavenej šablóny. Šablóny e-mailov pre jednotlivé stavy nastavíte v sekcii Šablóny objednávok.
+
+### Sklad
+
+- **Nová objednávka**: Systém rezervuje tovar na sklade
+- **Zrušenie/Storno**: Systém uvoľní rezerváciu a vráti tovar na sklad
+- **Vybavená**: Skutočné vyskladnenie tovaru
+
+<Note>
+  Pri zrušení objednávky sa uvoľnené zásoby automaticky prerozdeľujú medzi čakajúce objednávky v poradí, v akom boli vytvorené (FIFO).
+</Note>
+
+### Fakturácia
+
+| Zmena stavu | Doklad |
+|---|---|
+| Zaplatená (záloha) | Zálohová faktúra |
+| Vybavená | Riadna faktúra |
+| Zrušená / Storno / Neprevzatá | Dobropis |
+
+<Warning>
+  Presný typ dokladu (daňový doklad vs. faktúra) závisí od nastavenia fakturácie a krajiny. [VERIFY]
+</Warning>
+
+### Vernostné body
+
+- **Vybavená**: Zákazníkovi sa pripíšu vernostné body
+- **Zrušená**: Ak zákazník použil vernostné body, vrátia sa mu s novým dátumom expirácie
+
+---
+
+## Stav úhrady
+
+Okrem stavu objednávky systém sleduje aj **stav úhrady** - či je objednávka zaplatená alebo nie.
+
+Zmena stavu úhrady na "Zaplatená" automaticky:
+- Zmení stav objednávky (ak je to nastavené)
+- Zaznamená dátum úhrady
+
+<Note>
+  Stav úhrady sa mení automaticky pri online platbách (cez platobnú bránu) alebo manuálne administrátorom.
+</Note>
+
+---
+
+## Automatické spracovanie
+
+Systém automaticky spracováva niektoré zmeny stavov na pozadí:
+
+### Automatické zrušenie neuhradených objednávok
+
+Objednávky, ktoré neboli uhradené do stanovenej doby, systém automaticky zruší. Predvolená doba je 24 hodín.
+
+### Pripomienka platby
+
+Zákazníkom, ktorí nezaplatili do 1 hodiny od vytvorenia objednávky, systém odošle pripomienku s odkazom na platbu.
+
+<Warning>
+  Presné časové intervaly (24h pre zrušenie, 1h pre pripomienku) môžu byť konfigurovateľné v nastaveniach. [VERIFY]
+</Warning>
+
+---
+
+## Vrátenie do spracovania
+
+Administrátor môže vrátiť už uzatvorenú objednávku (vybavená alebo zamknutá) späť do spracovania. Toto je užitočné napríklad pri reklamáciách alebo keď je potrebné objednávku dodatočne upraviť.
+
+---
+
+## Súvisiace sekcie
+
+<Columns cols={2}>
+  <Card title="Spracovanie objednávok" icon="clipboard-check" href="/objednavky/spracovanie">
+    Praktický návod na spracovanie objednávky krok za krokom.
+  </Card>
+  <Card title="Prehľad objednávok" icon="receipt" href="/objednavky/prehlad">
+    Základný prehľad objednávkového systému.
+  </Card>
+</Columns>

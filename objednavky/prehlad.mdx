@@ -1,0 +1,134 @@
+---
+title: "Objednávky - prehľad"
+description: "Ako fungujú objednávky v systéme Venalio - od košíka po vybavenie."
+---
+
+{/* Generated from: app/Facades/OrderFacade.php, app/FrontendModule/Facades/CartFacade.php, app/Model/Repositories/OrdersRepository.php, app/Model/Enums/OrderTypesEnum.php, app/Model/Enums/OrderStatesEnum.php | 2026-03-19 */}
+
+Objednávka je nákup zákazníka od momentu dokončenia Pokladne až po doručenie. Systém Venalio spravuje celý životný cyklus objednávky vrátane automatických notifikácií, fakturácie a prepojenia na prepravcov.
+
+---
+
+## Životný cyklus objednávky
+
+Každá objednávka prechádza týmito fázami:
+
+<Steps>
+  <Step title="Košík">
+    Zákazník pridáva produkty do Košíka. Systém automaticky prepočítava ceny, aplikuje Kupóny a overuje dostupnosť.
+  </Step>
+  <Step title="Pokladňa">
+    Zákazník vyplní kontaktné údaje, vyberie Dopravu a Platbu, potvrdí objednávku.
+  </Step>
+  <Step title="Nová objednávka">
+    Systém vytvorí objednávku, vygeneruje unikátny kód, priradí počiatočný stav a pošle potvrdenie e-mailom.
+  </Step>
+  <Step title="Spracovanie">
+    Administrátor spracuje objednávku - vyskladní produkty, vytvorí Zásielku a vystaví Faktúru.
+  </Step>
+  <Step title="Vybavenie">
+    Objednávka je odoslaná a označená ako vybavená. Zákazníkovi sa pripíšu vernostné body.
+  </Step>
+</Steps>
+
+---
+
+## Čo obsahuje objednávka
+
+Každá objednávka sa skladá z:
+
+| Časť | Popis |
+|---|---|
+| **Položky** | Produkty s cenami, množstvom a sadzbou DPH |
+| **Zákazník** | Fakturačné a doručovacie údaje |
+| **Doprava** | Zvolený spôsob doručenia a jeho cena |
+| **Platba** | Zvolený spôsob platby a jeho cena |
+| **Stav** | Aktuálna fáza spracovania objednávky |
+| **Stav úhrady** | Či je objednávka uhradená alebo nie |
+| **Kód objednávky** | Unikátny identifikátor (napr. 202603-00001) |
+
+<Note>
+  Objednávka si pamätá ceny z momentu vytvorenia. Ak sa ceny v katalógu zmenia, existujúce objednávky sa nezmenia.
+</Note>
+
+---
+
+## Typy objednávok
+
+<Tabs>
+  <Tab title="Bežná">
+    **Bežná objednávka** vzniká, keď zákazník dokončí nákup cez Pokladňu na webe. Toto je najčastejší typ.
+  </Tab>
+  <Tab title="Manuálna">
+    **Manuálna objednávka** vytvorí administrátor priamo v administrácii. Používa sa napríklad pri telefonických objednávkach alebo pri špeciálnych požiadavkách zákazníka.
+  </Tab>
+  <Tab title="Veľkoobchodná">
+    **Veľkoobchodná objednávka** je určená pre B2B zákazníkov. Má špeciálne pravidlá - napríklad B2B zákazníci nemôžu objednať produkty pod minimálnym skladovým počtom.
+  </Tab>
+</Tabs>
+
+---
+
+## Košík
+
+Košík je dočasný zoznam produktov, z ktorého sa po dokončení Pokladne vytvorí objednávka.
+
+### Ako funguje Košík
+
+- Zákazník pridáva produkty z produktovej stránky alebo priamo zo zoznamu produktov
+- Ak produkt už v Košíku je, jeho množstvo sa zvýši
+- Systém automaticky prepočíta celkovú cenu po každej zmene
+- Pri variantových produktoch systém overí, či je v skladovom limite
+
+### Čo systém robí automaticky
+
+- **Zľavové akcie**: Ak zákazník pridá dostatočný počet produktov, systém automaticky aplikuje zľavu (napr. "3 za cenu 2")
+- **Kupóny**: Zákazník môže zadať zľavový kód. Systém overí jeho platnosť a aplikuje zľavu.
+- **Vernostné body**: Prihlásený zákazník môže uplatniť nazbierané body na zľavu
+- **Kontrola dostupnosti**: Pred vytvorením objednávky systém overí, že všetky produkty sú stále na sklade
+
+<Tip>
+  Ak sa ceny produktov zmenia kým má zákazník otvorený Košík, systém môže ceny aktualizovať pri ďalšej návšteve. Toto správanie sa dá zapnúť v nastaveniach.
+</Tip>
+
+---
+
+## Kód objednávky
+
+Systém automaticky generuje unikátny kód pre každú objednávku. Kód obsahuje rok, mesiac a poradové číslo.
+
+<Note>
+  Ak by pri generovaní kódu došlo ku kolízii (rovnaký kód už existuje), systém automaticky vygeneruje nový. Toto sa stáva len veľmi zriedka.
+</Note>
+
+---
+
+## Zaokrúhľovanie
+
+Od 1.7.2022 platí na Slovensku povinnosť zaokrúhľovať hotovostné platby na najbližších 5 centov EUR. Systém toto robí automaticky pre objednávky platené hotovosťou.
+
+<Warning>
+  Pre maďarský forint (HUF) sa zaokrúhľuje na najbližší násobok 5. [VERIFY]
+</Warning>
+
+---
+
+## Darčekové poukážky
+
+Ak objednávka obsahuje darčekové poukážky, systém ich vygeneruje a odošle pri zmene stavu na "Odoslaná". Každá poukážka dostane unikátny kód, ktorý zákazník použije ako Kupón pri ďalšom nákupe.
+
+---
+
+## Súvisiace sekcie
+
+<Columns cols={3}>
+  <Card title="Stavy objednávok" icon="arrows-spin" href="/objednavky/stavy">
+    Čo znamenajú jednotlivé stavy a ako sa menia.
+  </Card>
+  <Card title="Spracovanie objednávok" icon="clipboard-check" href="/objednavky/spracovanie">
+    Ako spracovať objednávku v administrácii.
+  </Card>
+  <Card title="Pokladňa" icon="cart-shopping" href="/pokladna/checkout-flow">
+    Ako prebieha proces objednávania.
+  </Card>
+</Columns>
