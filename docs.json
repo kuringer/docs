@@ -53,6 +53,27 @@
             "pages": [
               "kupony/prehlad"
             ]
+          },
+          {
+            "group": "Fakturácia",
+            "pages": [
+              "fakturacie/prehlad",
+              "fakturacie/ciselne-rady"
+            ]
+          },
+          {
+            "group": "Zákazníci",
+            "pages": [
+              "zakaznici/prehlad",
+              "zakaznici/vernostny-program"
+            ]
+          },
+          {
+            "group": "Obsah a CMS",
+            "pages": [
+              "obsah/stranky-a-elementy",
+              "obsah/media-a-seo"
+            ]
           }
         ]
       }

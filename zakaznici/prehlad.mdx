@@ -1,0 +1,269 @@
+---
+title: "Zákazníci"
+description: "Registrácia, prihlásenie, správa zákazníkov, kategórie, adresy, B2B nastavenia a sekcie Môjho účtu."
+---
+
+{/* Generated from: Customer.php, CustomersSettings.php, B2bSettings.php, CustomerFacade.php, CustomersRepository.php, CustomerAddressesRepository.php, CustomerCategoriesRepository.php, CustomersPresenter.php, CustomerCategoriesPresenter.php, CustomerPresenter.php, AddressesPresenter.php, OrdersPresenter.php, HomepagePresenter.php, WholesaleOrderPresenter.php, IVatIdValidator.php, ViesVatIdValidator.php, CustomerAuthenticator.php, CustomerSubscriber.php | 2026-03-19T00:00:00Z */}
+
+Zákazník je osoba, ktorá nakupuje na vašom e-shope. Môže byť registrovaná (s prihlasovacím e-mailom a heslom) alebo neregistrovaná (vytvorená automaticky pri objednávke). Zákazník môže nakupovať ako súkromná osoba alebo ako firma.
+
+## Registrácia a prihlásenie
+
+Zákazníci sa môžu zaregistrovať niekoľkými spôsobmi:
+
+- **Registračný formulár** na e-shope
+- **Počas objednávky** - ak zákazník ešte nemá účet
+- **Z administrácie** - administrátor vytvorí účet manuálne
+- **Cez sociálne siete** - prihlásenie cez Google alebo Facebook (ak je zapnuté v nastaveniach)
+
+<Warning>Presný proces registrácie cez formulár nie je plne zdokumentovaný. [VERIFY]</Warning>
+
+Prihlasovací e-mail musí byť unikátny - dvaja aktívni zákazníci nemôžu mať rovnaký e-mail.
+
+### Prihlásenie
+
+Zákazník sa prihlasuje e-mailom a heslom. Po prihlásení zostáva prihlásený 14 dní.
+
+Po prihlásení sa automaticky:
+
+- zlúčia obľúbené položky, ktoré zákazník pridával pred prihlásením
+- nastaví krajina podľa fakturačnej adresy zákazníka
+- aktualizuje preferovaný jazyk podľa aktuálnej jazykovej mutácie
+
+Ak je účet deaktivovaný alebo vymazaný, prihlásenie nie je povolené.
+
+### Sociálne prihlásenie
+
+Systém podporuje prihlásenie cez Google a Facebook. Túto možnosť zapnete v nastaveniach zákazníkov.
+
+### Obnova hesla
+
+Zákazník, ktorý zabudol heslo, si môže vyžiadať odkaz na obnovu hesla. Systém odošle e-mail s odkazom, cez ktorý si zákazník nastaví nové heslo.
+
+[SCREENSHOT: Prihlasovací formulár na e-shope s možnosťou sociálneho prihlásenia]
+
+<Frame><img src="/images/placeholder.png" /><caption>Prihlasovací formulár s možnosťou prihlásenia cez Google a Facebook</caption></Frame>
+
+## Správa zákazníkov v administrácii
+
+V sekcii administrácie nájdete kompletný zoznam zákazníkov. Zoznam zobrazuje ku každému zákazníkovi aj počet jeho objednávok a je zoradený od najnovšie zaregistrovaných.
+
+### Vytvorenie zákazníka
+
+Pri vytvorení nového zákazníka v administrácii sa automaticky:
+
+- vytvorí predvolená dodacia adresa z fakturačných údajov
+- zákazník zaradí do predvolenej kategórie zákazníka
+- nastaví ako registrovaný, ak mu zadáte heslo
+
+### Úprava zákazníka
+
+Pri zmene kategórie zákazníka systém automaticky aktualizuje veľkoobchodný príznak podľa toho, či je nová kategória veľkoobchodná.
+
+Pri schválení veľkoobchodu sa zaznamenáva dátum schválenia a kto ho schválil.
+
+### Prihlásenie za zákazníka
+
+Administrátor sa môže prihlásiť do e-shopu ako konkrétny zákazník. Využijete to pri riešení problémov alebo kontrole toho, čo zákazník vidí. Táto funkcia funguje len pre registrovaných zákazníkov.
+
+[SCREENSHOT: Detail zákazníka v administrácii s tlačidlom prihlásenia za zákazníka]
+
+<Frame><img src="/images/placeholder.png" /><caption>Detail zákazníka v administrácii</caption></Frame>
+
+### Filtrovanie zákazníkov
+
+Zákazníkov môžete filtrovať podľa:
+
+- meno, priezvisko, názov firmy
+- kontaktný e-mail, telefón
+- mesto, krajina (viacnásobný výber)
+- IČO
+- typ: súkromná osoba alebo firma
+- cenová hladina
+- kategória zákazníka
+- registrovaný: áno/nie
+
+Ak máte zapnutý B2B modul, pribudnú filtre: veľkoobchodný zákazník, záujem o veľkoobchod, schválené veľkoobchodné ceny.
+
+### Export zákazníkov
+
+Dáta zákazníkov môžete exportovať v niekoľkých formátoch:
+
+- **CSV zoznam** - obsahuje všetkých zákazníkov vrátane ich predvolených dodacích adries. Súbor je v kódovaní Windows-1250 s oddeľovačom bodkočiarka.
+- **JSON jedného zákazníka** - kompletné údaje vrátane adries, košíkov, objednávok a položiek.
+- **CSV s objednávkami** - len dokončené objednávky maloobchodných zákazníkov vrátane produktov.
+
+CSV exporty majú časový limit 2 minúty.
+
+### Zlúčenie zákazníkov
+
+Ak má zákazník viacero účtov, môžete ich zlúčiť do jedného. Vyberte minimálne 2 zákazníkov, ktorých chcete zlúčiť.
+
+Systém zachová zákazníka, ktorý sa zaregistroval najneskôr. K nemu presunie:
+
+- košíky a objednávky
+- kupóny a vernostné body
+- dodacie adresy
+- obľúbené produkty
+- hodnotenia a otázky k produktom
+- notifikácie o produktoch
+
+Ostatné účty sa označia ako vymazané. Po zlúčení sa automaticky prepočítajú vernostné body.
+
+### Vytvorenie partnera zo zákazníka
+
+Z údajov existujúceho zákazníka môžete jedným kliknutím vytvoriť partnera. Skopírujú sa osobné údaje, firemné údaje, adresa a kontakty.
+
+<Warning>Presná definícia pojmu "partner" v tomto kontexte vyžaduje overenie - pravdepodobne ide o B2B obchodného partnera. [VERIFY]</Warning>
+
+## Kategórie zákazníkov
+
+Kategórie zákazníkov umožňujú rozdeliť zákazníkov do skupín s osobitnými podmienkami. Každá kategória môže mať:
+
+- **Percentuálnu zľavu** (0-100 %)
+- **Pravidlo uplatnenia zľavy**: na všetky produkty, len na nezlacnené, alebo len na zlacnené produkty
+- **Veľkoobchodný príznak** - ak je zapnutý, zákazníci v kategórii sa automaticky stanú veľkoobchodnými
+
+Vždy existuje jedna predvolená kategória. Každý nový zákazník sa automaticky zaradí do nej. Predvolenú kategóriu nastavíte v sekcii Nastavenia zákazníkov.
+
+<Note>Ak zmeníte veľkoobchodný príznak na kategórii, systém automaticky aktualizuje príznak u všetkých zákazníkov v danej kategórii.</Note>
+
+[SCREENSHOT: Zoznam kategórií zákazníkov v administrácii]
+
+<Frame><img src="/images/placeholder.png" /><caption>Kategórie zákazníkov s percentuálnou zľavou</caption></Frame>
+
+## Dodacie adresy
+
+Zákazník môže mať viacero dodacích adries. Jedna z nich je vždy predvolená - tá sa nedá vymazať. Ak chcete predvolenú adresu odstrániť, najprv označte inú adresu ako predvolenú.
+
+Prvá pridaná adresa sa automaticky stáva predvolenou.
+
+Pri dodacích adresách platí:
+
+- Pre maloobchodných zákazníkov je povinné meno a priezvisko
+- Pre veľkoobchodných zákazníkov je povinný názov firmy
+- Krajiny sú obmedzené na krajiny povolené pre aktuálnu jazykovú mutáciu
+- Región sa zobrazuje len ak zvolená krajina používa regióny
+
+Zákazník pridáva a upravuje adresy cez modálne okno v sekcii Môj účet.
+
+## Validácia IČ DPH
+
+Systém overuje platnosť IČ DPH cez európsky systém VIES (VAT Information Exchange System). Validácia prebieha automaticky pri každej zmene IČ DPH v sekcii Môj účet.
+
+IČ DPH musí začínať 2 písmenami (kód krajiny) a obsahovať minimálne 5 číslic.
+
+Výsledky overenia sa ukladajú na 24 hodín, aby systém nemusel opakovane overovať rovnaké číslo.
+
+<Note>Ak služba VIES nie je dostupná, zákazník nemôže zmeniť IČ DPH - systém zobrazí oznam o nedostupnosti služby.</Note>
+
+## B2B (veľkoobchod)
+
+Veľkoobchodný modul umožňuje zákazníkom nakupovať vo väčších množstvách za špeciálnych podmienok. Zákazník sa stáva veľkoobchodným na základe svojej kategórie zákazníka.
+
+Aby mohol zákazník nakupovať ako veľkoobchodník, musia byť splnené 3 podmienky:
+
+1. B2B modul je zapnutý v nastaveniach
+2. Zákazník je v kategórii označenej ako veľkoobchodná
+3. Administrátor schválil zákazníkovi veľkoobchodné ceny
+
+### Veľkoobchodný objednávkový formulár
+
+Veľkoobchodní zákazníci majú prístup k špeciálnemu objednávaciemu formuláru, kde vyberajú produkty z celého katalógu naraz. Produkty sú zoskupené podľa kategórií s možnosťou rozbaľovania.
+
+Zákazník v tomto formulári:
+
+- vyberá dodaciu adresu z uložených adries (musí mať aspoň jednu)
+- vidí dostupný sklad pri každom produkte
+- môže vyhľadávať produkty podľa názvu alebo EAN kódu
+- môže si rozpracovanú objednávku uložiť a pokračovať neskôr
+
+Veľkoobchodná objednávka musí dosiahnuť minimálnu hodnotu nastavenú pre danú cenovú hladinu, inak ju nie je možné odoslať.
+
+### B2B nastavenia
+
+- **Zapnutie/vypnutie B2B modulu**
+- **Povoliť objednanie viac ako je na sklade** - či zákazník môže objednať väčšie množstvo, ako je dostupné
+- **Povoliť objednanie vypredaných produktov**
+- **Zakázať klasický košík** - veľkoobchodný zákazník používa len veľkoobchodný formulár
+
+<Warning>Presné správanie nastavenia "Zakázať klasický košík" vyžaduje overenie - nie je jasné, či veľkoobchodník úplne stráca prístup k bežnému košíku. [VERIFY]</Warning>
+
+<Warning>Presné správanie nastavenia "Vynútiť jazyk zákazníka" vyžaduje overenie - nie je jasné, ako sa zákazníkovi zamkne jazyková mutácia. [VERIFY]</Warning>
+
+- **Vynútiť jazyk zákazníka**
+- **Povoliť osobitný e-mail na faktúry** - veľkoobchodní zákazníci môžu zadať samostatný e-mail, na ktorý sa posielajú faktúry
+
+## Môj účet
+
+Po prihlásení má zákazník prístup k sekcii Môj účet, kde spravuje svoje údaje a sleduje objednávky.
+
+### Prehľad
+
+Hlavná stránka Môjho účtu zobrazuje posledných 5 objednávok zákazníka. Pri objednávkach vidíte, či boli platené online, a pri objednávkach z reklamácie alebo výmeny aj kód pôvodnej objednávky.
+
+### Osobné údaje
+
+Zákazník si môže upraviť:
+
+- **Kontaktné údaje** - e-mail a telefón (ukladajú sa samostatne)
+- **Osobné údaje** - meno, priezvisko, adresa
+- **Firemné údaje** - ak je povolené nastavenie "Povoliť firmy"
+
+Veľkoobchodní zákazníci vidia navyše pole pre webovú stránku a e-mail na faktúry (ak je povolený v B2B nastaveniach).
+
+Región sa zobrazuje len ak zvolená krajina používa regióny.
+
+### Zmena hesla
+
+Zákazník musí zadať aktuálne heslo a nové heslo dvakrát. Nové heslo musí mať minimálne 4 znaky.
+
+### Dodacie adresy
+
+Zákazník môže pridávať, upravovať a mazať dodacie adresy. Predvolená adresa sa nedá vymazať - najprv treba označiť inú ako predvolenú.
+
+### Objednávky
+
+Objednávky sú rozdelené na aktívne (v procese) a dokončené alebo zrušené. Aktívne objednávky sa zobrazujú všetky naraz, dokončené sú stránkované po 5.
+
+V detaile objednávky zákazník vidí: položky, ceny, dopravu, platbu, stavy, dodacie a fakturačné údaje a sledovacie čísla zásielok.
+
+Zákazník si môže stiahnuť:
+
+- faktúru, proformu faktúru a dobropis ako PDF
+- veľkoobchodní zákazníci navyše export objednávky v PDF alebo XLS
+
+### Uložené platobné karty
+
+Zákazník si môže zobraziť uložené platobné karty.
+
+<Warning>Presná funkcionalita správy platobných kariet vyžaduje overenie. [VERIFY]</Warning>
+
+## Stavy zákazníckeho účtu
+
+Zákaznícky účet môže byť v jednom z troch stavov:
+
+- **Aktívny** - zákazník sa môže prihlásiť a nakupovať
+- **Deaktivovaný** - prihlásenie nie je povolené
+- **Vymazaný** - účet je neaktívny (vymazanie je mäkké - zákazník sa nezobrazuje v zozname, ale dáta zostávajú v systéme)
+
+## Údaje zákazníka
+
+Každý zákazník má tieto základné údaje:
+
+- **Osobné údaje**: meno, priezvisko, pohlavie, dátum narodenia
+- **Kontaktné údaje**: kontaktný e-mail, prihlasovací e-mail, telefón
+- **Fakturačná adresa**: ulica, číslo domu, PSČ, mesto, krajina, región
+- **Firemné údaje** (voliteľné): názov firmy, IČO, DIČ, IČ DPH
+- **Interné**: zákaznícke číslo, číslo karty, interná poznámka, externé ID
+- **Zaradenie**: kategória zákazníka, cenová hladina, fakturačný profil, jazyk komunikácie, web vytvorenia
+- **Vernostné body**: aktuálny zostatok aktívnych bodov
+
+<Note>PSČ sa automaticky normalizuje - pri fakturačnej adrese sa odstraňujú medzery a text sa prevádza na veľké písmená.</Note>
+
+## Súvisiace funkcie
+
+- [Vernostný program a program odporúčaní](/zakaznici/vernostny-program)
+- [Objednávky](/objednavky/prehlad)
+- [Kupóny](/kupony/prehlad)
+- [Cenové hladiny](/cenove-hladiny/prehlad)

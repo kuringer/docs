@@ -1,0 +1,930 @@
+{
+  "domain": "Zákazníci",
+  "source_files": [
+    "app/Model/Entities/Customer.php",
+    "app/Model/Settings/CustomersSettings.php",
+    "app/Model/Settings/LoyaltyProgramSettings.php",
+    "app/Model/Settings/ReferralProgramSettings.php",
+    "app/Model/Settings/B2bSettings.php",
+    "app/FrontendModule/Facades/CustomerFacade.php",
+    "app/Facades/LoyaltyProgramFacade.php",
+    "app/Model/Repositories/CustomersRepository.php",
+    "app/Model/Repositories/CustomerAddressesRepository.php",
+    "app/Model/Repositories/CustomerCategoriesRepository.php",
+    "app/Model/Repositories/LoyaltyPointsRepository.php",
+    "app/BackendModule/StoreModule/Presenters/CustomersPresenter.php",
+    "app/BackendModule/StoreModule/Presenters/CustomerCategoriesPresenter.php",
+    "app/BackendModule/MarketingModule/Presenters/ReferralProgramPresenter.php",
+    "app/FrontendModule/MyAccountModule/Presenters/HomepagePresenter.php",
+    "app/FrontendModule/MyAccountModule/Presenters/CustomerPresenter.php",
+    "app/FrontendModule/MyAccountModule/Presenters/AddressesPresenter.php",
+    "app/FrontendModule/MyAccountModule/Presenters/OrdersPresenter.php",
+    "app/FrontendModule/MyAccountModule/Presenters/LoyaltyProgramPresenter.php",
+    "app/FrontendModule/MyAccountModule/Presenters/ReferralPresenter.php",
+    "app/FrontendModule/MyAccountModule/Presenters/WholesaleOrderPresenter.php",
+    "app/Domain/Customers/IVatIdValidator.php",
+    "app/Infrastructure/Customers/ViesVatIdValidator.php",
+    "app/Security/Authenticators/CustomerAuthenticator.php",
+    "app/Subscribers/CustomerSubscriber.php",
+    "app/Commands/Eshop/LoyaltyProcessCommand.php",
+    "app/Model/Enums/ApplyDiscountTypesEnum.php",
+    "app/Model/Enums/RegistrationSourcesEnum.php"
+  ],
+  "generated_at": "2026-03-19T00:00:00Z",
+  "entities": [
+    {
+      "name": "Zákazník",
+      "name_en": "Customer",
+      "description": "Osoba, ktorá nakupuje na e-shope. Môže byť registrovaná (s prihlasovacím e-mailom a heslom) alebo neregistrovaná (vytvorená len pri objednávke). Zákazník môže byť súkromná osoba alebo firma.",
+      "fields": [
+        {
+          "name": "Meno",
+          "type": "text",
+          "description": "Krstné meno zákazníka",
+          "verify": false
+        },
+        {
+          "name": "Priezvisko",
+          "type": "text",
+          "description": "Priezvisko zákazníka",
+          "verify": false
+        },
+        {
+          "name": "Kontaktný e-mail",
+          "type": "text",
+          "description": "E-mail na komunikáciu so zákazníkom",
+          "verify": false
+        },
+        {
+          "name": "Prihlasovací e-mail",
+          "type": "text",
+          "description": "E-mail, ktorým sa zákazník prihlasuje. Ak je vyplnený a zákazník má heslo, je registrovaný. Musí byť unikátny medzi aktívnymi zákazníkmi.",
+          "verify": false
+        },
+        {
+          "name": "Heslo",
+          "type": "text",
+          "description": "Prihlasovacie heslo zákazníka (uložené zašifrované). Minimálna dĺžka podľa nastavenia MIN_PASSWORD_LENGTH.",
+          "verify": false
+        },
+        {
+          "name": "Telefón",
+          "type": "text",
+          "description": "Telefónne číslo zákazníka. Ukladá sa aj formátovaná verzia s predvoľbou krajiny.",
+          "verify": false
+        },
+        {
+          "name": "Pohlavie",
+          "type": "enum",
+          "description": "Pohlavie zákazníka",
+          "values": ["[VERIFY] - presné hodnoty nie sú viditeľné z kódu"],
+          "verify": true
+        },
+        {
+          "name": "Dátum narodenia",
+          "type": "text",
+          "description": "Dátum narodenia zákazníka",
+          "verify": false
+        },
+        {
+          "name": "Stav",
+          "type": "enum",
+          "description": "Aktuálny stav zákazníckeho účtu",
+          "values": ["Aktívny (enabled)", "Deaktivovaný (disabled)", "Vymazaný (deleted)"],
+          "verify": false
+        },
+        {
+          "name": "Dátum registrácie",
+          "type": "text",
+          "description": "Dátum a čas registrácie. Ak je vyplnený, zákazník je považovaný za registrovaného.",
+          "verify": false
+        },
+        {
+          "name": "Zdroj registrácie",
+          "type": "enum",
+          "description": "Odkiaľ sa zákazník zaregistroval",
+          "values": ["Administrácia (backend)", "Registrácia (register)", "Objednávka (order)", "Google (google_login)", "Facebook (fb_login)"],
+          "verify": false
+        },
+        {
+          "name": "Facebook ID",
+          "type": "text",
+          "description": "ID Facebook účtu pripojeného pre sociálne prihlásenie",
+          "verify": false
+        },
+        {
+          "name": "Google ID",
+          "type": "text",
+          "description": "ID Google účtu pripojeného pre sociálne prihlásenie",
+          "verify": false
+        },
+        {
+          "name": "Zákaznícke číslo",
+          "type": "text",
+          "description": "Voliteľné interné číslo zákazníka",
+          "verify": false
+        },
+        {
+          "name": "Číslo karty",
+          "type": "text",
+          "description": "Číslo vernostnej alebo zákazníckej karty",
+          "verify": false
+        },
+        {
+          "name": "Je firma",
+          "type": "boolean",
+          "description": "Určuje, či zákazník nakupuje ako firma",
+          "verify": false
+        },
+        {
+          "name": "Názov firmy",
+          "type": "text",
+          "description": "Obchodný názov firmy. Povinný, ak je zákazník označený ako firma.",
+          "verify": false
+        },
+        {
+          "name": "IČO",
+          "type": "text",
+          "description": "Identifikačné číslo organizácie",
+          "verify": false
+        },
+        {
+          "name": "DIČ",
+          "type": "text",
+          "description": "Daňové identifikačné číslo",
+          "verify": false
+        },
+        {
+          "name": "IČ DPH",
+          "type": "text",
+          "description": "Identifikačné číslo pre DPH. Validuje sa cez európsky systém VIES.",
+          "verify": false
+        },
+        {
+          "name": "Fakturačná ulica",
+          "type": "text",
+          "description": "Ulica fakturačnej adresy",
+          "verify": false
+        },
+        {
+          "name": "Fakturačné číslo domu",
+          "type": "text",
+          "description": "Číslo domu fakturačnej adresy",
+          "verify": false
+        },
+        {
+          "name": "Fakturačné PSČ",
+          "type": "text",
+          "description": "PSČ fakturačnej adresy. Medzery sa automaticky odstraňujú a text sa prevádza na veľké písmená.",
+          "verify": false
+        },
+        {
+          "name": "Fakturačné mesto",
+          "type": "text",
+          "description": "Mesto fakturačnej adresy",
+          "verify": false
+        },
+        {
+          "name": "Fakturačná krajina",
+          "type": "relation",
+          "description": "Krajina fakturačnej adresy",
+          "verify": false
+        },
+        {
+          "name": "Fakturačný región",
+          "type": "relation",
+          "description": "Región fakturačnej adresy. Zobrazuje sa len ak krajina používa regióny.",
+          "verify": false
+        },
+        {
+          "name": "Web zákazníka",
+          "type": "text",
+          "description": "Webová stránka zákazníka (zobrazuje sa len pri zapnutom B2B)",
+          "verify": false
+        },
+        {
+          "name": "Kategória zákazníka",
+          "type": "relation",
+          "description": "Zaradenie zákazníka do kategórie, ktorá určuje zľavy a prípadne veľkoobchodný prístup",
+          "verify": false
+        },
+        {
+          "name": "Cenová hladina",
+          "type": "relation",
+          "description": "Cenová hladina priradená zákazníkovi. Ak nie je nastavená, používa sa základná.",
+          "verify": false
+        },
+        {
+          "name": "Fakturačný profil",
+          "type": "relation",
+          "description": "Profil pre generovanie faktúr. Zobrazuje sa len ak existuje viac ako jeden profil.",
+          "verify": false
+        },
+        {
+          "name": "Jazyk komunikácie",
+          "type": "relation",
+          "description": "Preferovaný jazyk zákazníka. Automaticky sa aktualizuje pri návšteve jazykovej mutácie.",
+          "verify": false
+        },
+        {
+          "name": "Web vytvorenia",
+          "type": "relation",
+          "description": "Na ktorej webovej stránke (doméne) bol zákazník vytvorený",
+          "verify": false
+        },
+        {
+          "name": "Vernostné body",
+          "type": "number",
+          "description": "Aktuálny zostatok aktívnych (neexpirovaných) vernostných bodov",
+          "verify": false
+        },
+        {
+          "name": "Je veľkoobchodný",
+          "type": "boolean",
+          "description": "Automaticky sa nastaví podľa kategórie zákazníka (či je kategória veľkoobchodná)",
+          "verify": false
+        },
+        {
+          "name": "Chce veľkoobchod",
+          "type": "boolean",
+          "description": "Zákazník prejavil záujem o veľkoobchodné ceny",
+          "verify": false
+        },
+        {
+          "name": "Schválený veľkoobchod",
+          "type": "boolean",
+          "description": "Administrátor schválil zákazníkovi veľkoobchodné ceny",
+          "verify": false
+        },
+        {
+          "name": "Dátum schválenia veľkoobchodu",
+          "type": "text",
+          "description": "Kedy bol veľkoobchodný prístup schválený",
+          "verify": false
+        },
+        {
+          "name": "Interná poznámka",
+          "type": "text",
+          "description": "Poznámka pre administrátorov, zákazník ju nevidí",
+          "verify": false
+        },
+        {
+          "name": "E-mail pre faktúry",
+          "type": "text",
+          "description": "Samostatný e-mail na zasielanie faktúr. Zobrazuje sa len pre veľkoobchodných zákazníkov a len ak je nastavenie povolené v B2B.",
+          "verify": false
+        },
+        {
+          "name": "Externé ID",
+          "type": "text",
+          "description": "ID zákazníka v externom systéme (napr. ERP)",
+          "verify": false
+        }
+      ]
+    },
+    {
+      "name": "Dodacia adresa",
+      "name_en": "Customer Address",
+      "description": "Adresa, na ktorú sa zákazníkovi doručujú objednávky. Zákazník môže mať viacero dodacích adries, ale presne jedna je predvolená.",
+      "fields": [
+        {
+          "name": "Meno",
+          "type": "text",
+          "description": "Krstné meno príjemcu. Povinné pre maloobchodných zákazníkov.",
+          "verify": false
+        },
+        {
+          "name": "Priezvisko",
+          "type": "text",
+          "description": "Priezvisko príjemcu. Povinné pre maloobchodných zákazníkov.",
+          "verify": false
+        },
+        {
+          "name": "Názov firmy",
+          "type": "text",
+          "description": "Názov firmy príjemcu. Povinný pre veľkoobchodných zákazníkov.",
+          "verify": false
+        },
+        {
+          "name": "Ulica",
+          "type": "text",
+          "description": "Ulica dodacej adresy",
+          "verify": false
+        },
+        {
+          "name": "Číslo domu",
+          "type": "text",
+          "description": "Číslo domu dodacej adresy",
+          "verify": false
+        },
+        {
+          "name": "PSČ",
+          "type": "text",
+          "description": "PSČ dodacej adresy. Medzery sa automaticky odstraňujú.",
+          "verify": false
+        },
+        {
+          "name": "Mesto",
+          "type": "text",
+          "description": "Mesto dodacej adresy",
+          "verify": false
+        },
+        {
+          "name": "Krajina",
+          "type": "relation",
+          "description": "Krajina dodacej adresy",
+          "verify": false
+        },
+        {
+          "name": "Región",
+          "type": "relation",
+          "description": "Región dodacej adresy (zobrazuje sa len ak krajina používa regióny)",
+          "verify": false
+        },
+        {
+          "name": "Telefón",
+          "type": "text",
+          "description": "Telefónne číslo príjemcu s predvoľbou krajiny",
+          "verify": false
+        },
+        {
+          "name": "Je predvolená",
+          "type": "boolean",
+          "description": "Či je toto predvolená dodacia adresa. Vždy existuje práve jedna predvolená.",
+          "verify": false
+        }
+      ]
+    },
+    {
+      "name": "Kategória zákazníka",
+      "name_en": "Customer Category",
+      "description": "Skupina zákazníkov s osobitnými podmienkami - najmä percentuálna zľava a prípadne veľkoobchodný prístup. Každý nový zákazník sa zaradí do predvolenej kategórie.",
+      "fields": [
+        {
+          "name": "Názov",
+          "type": "text",
+          "description": "Plný názov kategórie (max. 100 znakov)",
+          "verify": false
+        },
+        {
+          "name": "Krátky názov",
+          "type": "text",
+          "description": "Skrátený názov kategórie (max. 100 znakov)",
+          "verify": false
+        },
+        {
+          "name": "Je veľkoobchodná",
+          "type": "boolean",
+          "description": "Ak je zapnuté, zákazníci v tejto kategórii sa automaticky stanú veľkoobchodnými",
+          "verify": false
+        },
+        {
+          "name": "Výška zľavy",
+          "type": "number",
+          "description": "Percentuálna zľava pre zákazníkov v tejto kategórii (0-100%)",
+          "verify": false
+        },
+        {
+          "name": "Uplatniť na",
+          "type": "enum",
+          "description": "Na aké produkty sa zľava kategórie uplatňuje",
+          "values": ["Všetky (A)", "Len nezlacnené (N)", "Len zlacnené (D)"],
+          "verify": false
+        },
+        {
+          "name": "Je predvolená",
+          "type": "boolean",
+          "description": "Či je toto predvolená kategória pre nových zákazníkov. Vždy existuje práve jedna predvolená.",
+          "verify": false
+        },
+        {
+          "name": "Stav",
+          "type": "enum",
+          "description": "Stav kategórie",
+          "values": ["Aktívna (enabled)", "Deaktivovaná (disabled)", "Vymazaná (deleted)"],
+          "verify": false
+        }
+      ]
+    },
+    {
+      "name": "Vernostný bod",
+      "name_en": "Loyalty Point",
+      "description": "Záznam o pripísaní alebo čerpaní vernostných bodov. Body sú viazané na objednávku a majú dátum expirácie.",
+      "fields": [
+        {
+          "name": "Zákazník",
+          "type": "relation",
+          "description": "Zákazník, ktorému body patria",
+          "verify": false
+        },
+        {
+          "name": "Objednávka",
+          "type": "relation",
+          "description": "Objednávka, z ktorej body vznikli. Zobrazuje sa kód objednávky.",
+          "verify": false
+        },
+        {
+          "name": "Mena",
+          "type": "relation",
+          "description": "Mena, v ktorej boli body získané",
+          "verify": false
+        },
+        {
+          "name": "Body",
+          "type": "number",
+          "description": "Počet pripísaných bodov",
+          "verify": false
+        },
+        {
+          "name": "Použité",
+          "type": "number",
+          "description": "Koľko bodov z tohto záznamu už bolo použitých",
+          "verify": true
+        },
+        {
+          "name": "Expirácia",
+          "type": "text",
+          "description": "Dátum, kedy body expirujú a prestanú byť dostupné",
+          "verify": false
+        },
+        {
+          "name": "Stav",
+          "type": "enum",
+          "description": "Stav záznamu",
+          "values": ["Aktívny (enabled)", "Deaktivovaný (disabled)"],
+          "verify": false
+        }
+      ]
+    }
+  ],
+  "features": [
+    {
+      "name": "Registrácia a prihlásenie zákazníkov",
+      "description": "Zákazníci sa môžu zaregistrovať a prihlasovať do e-shopu. Registrácia môže prebehnúť cez registračný formulár, počas objednávky, cez administráciu, alebo cez sociálne siete (Google, Facebook).",
+      "behavior": [
+        "Prihlásenie funguje cez e-mail a heslo. Relácia trvá 14 dní.",
+        "Prihlasovací e-mail musí byť unikátny medzi aktívnymi zákazníkmi.",
+        "Systém podporuje migráciu starých hesiel - ak zákazník má staré heslo (MD5), pri prvom prihlásení sa automaticky prekonvertuje na nový formát.",
+        "Po prihlásení sa zlúčia obľúbené položky z anonymnej relácie s účtom zákazníka.",
+        "Po prihlásení sa nastaví krajina návštevníka podľa fakturačnej adresy zákazníka.",
+        "Jazyk zákazníka sa automaticky aktualizuje podľa jazykovej mutácie, ktorú práve navštevuje.",
+        "Zákazník môže požiadať o obnovenie zabudnutého hesla cez hash odkaz.",
+        "Ak je účet deaktivovaný (stav != enabled), prihlásenie nie je povolené.",
+        "Systém sleduje udalosti prihlásenia, odhlásenia a registrácie (pre analytiku)."
+      ],
+      "settings": [
+        "Sociálne prihlásenie (Google, Facebook) - možno zapnúť/vypnúť (CustomersSettings.socialLogin)",
+        "Povolenie firemných údajov - určuje, či zákazníci môžu vyplniť firemné údaje (CustomersSettings.allowCompanies)"
+      ],
+      "verify_items": [
+        "[VERIFY] Presný proces registrácie cez formulár nie je v analyzovaných súboroch - registračný presenter chýba"
+      ]
+    },
+    {
+      "name": "Prihlásenie za zákazníka z administrácie",
+      "description": "Administrátor sa môže prihlásiť do e-shopu ako konkrétny zákazník. Užitočné pre riešenie problémov alebo kontrolu zákazníckeho pohľadu.",
+      "behavior": [
+        "Funguje len pre registrovaných zákazníkov (okrem administrátorov s vývojárskym prístupom).",
+        "Systém nájde web a jazyk zákazníka a presmeruje na príslušnú doménu.",
+        "Ak web zákazníka alebo jeho krajina už neexistujú, prihlásenie sa odmietne s chybovou hláškou."
+      ],
+      "settings": [],
+      "verify_items": []
+    },
+    {
+      "name": "Správa zákazníkov v administrácii",
+      "description": "Kompletná správa zákazníkov vrátane vytvárania, editácie, filtrovania a exportu.",
+      "behavior": [
+        "Zoznam zákazníkov zobrazuje počet objednávok ku každému zákazníkovi.",
+        "Vymazaní zákazníci sa nezobrazujú v zozname (soft delete).",
+        "Zoznam je zoradený podľa dátumu vytvorenia (najnovší prvý).",
+        "Pri vytvorení zákazníka sa automaticky vytvorí aj predvolená dodacia adresa z fakturačných údajov.",
+        "Ak sa zákazníkovi nastaví heslo v administrácii, automaticky sa stane registrovaným (zapíše sa dátum registrácie a zdroj 'backend').",
+        "Pri zmene kategórie zákazníka sa automaticky nastaví príznak veľkoobchodníka podľa toho, či je kategória veľkoobchodná.",
+        "Pri schválení veľkoobchodu sa zaznamenáva dátum a administrátor, ktorý schválil."
+      ],
+      "settings": [],
+      "verify_items": []
+    },
+    {
+      "name": "Filtrovanie zákazníkov",
+      "description": "Administrátor môže filtrovať zákazníkov podľa viacerých kritérií.",
+      "behavior": [
+        "Filtrovať sa dá podľa: meno, priezvisko, názov firmy, kontaktný e-mail, telefón, mesto, krajina (viacnásobný výber), IČO, typ (súkromná osoba / firma), cenová hladina, kategória zákazníka, registrovaný (áno/nie).",
+        "Ak je zapnutý B2B, pribudnú filtre: veľkoobchodný zákazník, záujem o veľkoobchod, schválené veľkoobchodné ceny."
+      ],
+      "settings": [],
+      "verify_items": []
+    },
+    {
+      "name": "Export zákazníkov",
+      "description": "Možnosť exportovať dáta zákazníkov v rôznych formátoch.",
+      "behavior": [
+        "Export zoznamu zákazníkov do CSV (s oddzobraním v kódovaní Windows-1250, oddeľovač bodkočiarka). Obsahuje aj predvolenú dodaciu adresu.",
+        "Export jedného zákazníka do JSON - obsahuje kompletné údaje vrátane adries, košíkov, objednávok a položiek.",
+        "Export zákazníkov s objednávkami do CSV - len dokončené objednávky maloobchodných zákazníkov s produktmi.",
+        "CSV exporty majú 2-minútový časový limit."
+      ],
+      "settings": [],
+      "verify_items": []
+    },
+    {
+      "name": "Zlúčenie zákazníkov",
+      "description": "Administrátor môže zlúčiť viacero zákazníckych účtov do jedného.",
+      "behavior": [
+        "Vyžaduje minimálne 2 zákazníkov.",
+        "Zachová sa zákazník, ktorý sa registroval najneskôr (alebo má najvyššie ID).",
+        "Presúvajú sa: košíky, kupóny, dodacie adresy, obľúbené, vernostné body, objednávky, notifikácie o produktoch, hodnotenia, hlasy za hodnotenia, otázky k produktom, výsledky vyhľadávania.",
+        "Zlúčení zákazníci sa oznacia ako vymazaní (soft delete).",
+        "Po zlúčení sa prepočítajú vernostné body zachovaného zákazníka."
+      ],
+      "settings": [],
+      "verify_items": []
+    },
+    {
+      "name": "Vytvorenie partnera zo zákazníka",
+      "description": "Administrátor môže jedným kliknutím vytvoriť záznam partnera z údajov existujúceho zákazníka.",
+      "behavior": [
+        "Skopírujú sa osobné údaje, firemné údaje, adresa a kontakty.",
+        "Partner sa vytvorí v aktívnom stave."
+      ],
+      "settings": [],
+      "verify_items": [
+        "[VERIFY] Čo presne je 'partner' v kontexte systému - zrejme B2B obchodný partner"
+      ]
+    },
+    {
+      "name": "Kategórie zákazníkov",
+      "description": "Systém umožňuje rozdeliť zákazníkov do kategórií, pričom každá kategória môže mať vlastnú percentuálnu zľavu a určuje veľkoobchodný prístup.",
+      "behavior": [
+        "Každá kategória má percentuálnu zľavu (0-100%).",
+        "Zľava kategórie sa dá uplatniť na: všetky produkty, len nezlacnené produkty, alebo len zlacnené produkty.",
+        "Vždy existuje jedna predvolená kategória - nový zákazník sa automaticky zaradí do nej.",
+        "Ak sa kategória označí ako veľkoobchodná, všetci zákazníci v nej automaticky získajú veľkoobchodný príznak.",
+        "Pri zmene príznaku 'je veľkoobchodná' na kategórii sa hromadne aktualizuje príznak u všetkých zákazníkov v kategórii.",
+        "Nastavenie predvolenej kategórie sa robí v sekcii 'Nastavenia zákazníkov'."
+      ],
+      "settings": [
+        "Predvolená kategória zákazníka - do ktorej sa zaradí každý nový zákazník"
+      ],
+      "verify_items": []
+    },
+    {
+      "name": "Môj účet - prehľad",
+      "description": "Hlavná stránka zákazníckeho účtu po prihlásení.",
+      "behavior": [
+        "Zobrazuje posledných 5 objednávok zákazníka.",
+        "Zobrazuje, či objednávka bola platená online.",
+        "Pre objednávky z reklamácie/výmeny zobrazuje aj kód pôvodnej objednávky."
+      ],
+      "settings": [],
+      "verify_items": []
+    },
+    {
+      "name": "Môj účet - osobné údaje",
+      "description": "Zákazník si môže upraviť svoje osobné údaje, kontaktné údaje a firemné údaje. Formulár je rozdelený na nezávislé sekcie s vlastnými tlačidlami uloženia.",
+      "behavior": [
+        "Kontaktné údaje (e-mail, telefón) sa ukladajú samostatne od osobných údajov (meno, adresa).",
+        "Firemné údaje sa dajú meniť len ak je povolené nastavenie 'Povoliť firmy'.",
+        "IČ DPH sa validuje cez európsky systém VIES pri každej zmene. Ak VIES nie je dostupný, zmena nie je povolená.",
+        "Región sa zobrazuje dynamicky - len ak zvolená krajina používa regióny.",
+        "Veľkoobchodní zákazníci vidia aj pole 'Webová stránka' a pole pre 'E-mail na faktúry' (ak je povolené v B2B nastaveniach).",
+        "Zákazník vidí zoznam svojich dodacích adries a môže ich spravovať priamo z tejto stránky.",
+        "Stránka podporuje AJAX aktualizáciu (adresná sekcia sa prekreslí bez načítania celej stránky)."
+      ],
+      "settings": [],
+      "verify_items": []
+    },
+    {
+      "name": "Môj účet - zmena hesla",
+      "description": "Zákazník si môže zmeniť prihlasovacie heslo.",
+      "behavior": [
+        "Vyžaduje zadanie terajšieho hesla pre overenie.",
+        "Nové heslo musí mať minimálne 4 znaky.",
+        "Nové heslo musí byť zadané dvakrát (kontrola zhody)."
+      ],
+      "settings": [],
+      "verify_items": []
+    },
+    {
+      "name": "Môj účet - dodacie adresy",
+      "description": "Zákazník môže spravovať viacero dodacích adries.",
+      "behavior": [
+        "Zákazník môže pridávať, upravovať a mazať dodacie adresy.",
+        "Jedna adresa je vždy predvolená - nedá sa vymazať.",
+        "Pri nastavení novej predvolenej adresy sa pôvodná predvolená odoznačí.",
+        "Ak zákazník ešte nemá predvolenú adresu, prvá pridaná sa automaticky stane predvolenou.",
+        "Pre veľkoobchodných zákazníkov je povinný názov firmy; pre maloobchodných meno a priezvisko.",
+        "Pridanie a editácia adresy funguje cez modálne okno (AJAX).",
+        "Krajiny sú obmedzené na krajiny povolené pre aktuálnu jazykovú mutáciu."
+      ],
+      "settings": [],
+      "verify_items": []
+    },
+    {
+      "name": "Môj účet - objednávky",
+      "description": "Prehľad všetkých objednávok zákazníka s detailom.",
+      "behavior": [
+        "Objednávky sú rozdelené na aktívne (v procese) a dokončené/zrušené.",
+        "Aktívne objednávky sa zobrazujú všetky naraz, dokončené sú stránkované (5 na stránku).",
+        "V detaile objednávky sa zobrazujú: položky, ceny, doprava, platba, stavy, dodacie a fakturačné údaje.",
+        "Zákazník si môže stiahnuť faktúru, proformu faktúru a dobropis ako PDF.",
+        "Veľkoobchodní zákazníci si môžu stiahnuť export objednávky v PDF alebo XLS formáte.",
+        "Stránkovanie objednávok podporuje AJAX (len sekcia objednávok sa prekreslí).",
+        "Zobrazujú sa aj sledovacie čísla zásielok."
+      ],
+      "settings": [],
+      "verify_items": []
+    },
+    {
+      "name": "Môj účet - uložené platobné karty",
+      "description": "Zákazník si môže zobraziť uložené platobné karty.",
+      "behavior": [
+        "Stránka existuje a je prístupná z Môjho účtu."
+      ],
+      "settings": [],
+      "verify_items": [
+        "[VERIFY] Presná funkcionalita správy kariet nie je viditeľná - stránka nemá žiadnu logiku okrem titulku"
+      ]
+    },
+    {
+      "name": "Vernostný program",
+      "description": "Bodový systém, kde zákazníci získavajú body za objednávky a môžu ich uplatniť na zľavy.",
+      "behavior": [
+        "Body sa pripisujú automaticky po uplynutí nastaveného počtu dní od odoslania objednávky.",
+        "Body sa počítajú len z ceny produktov (bez dopravy a platby).",
+        "Výpočet bodov: cena * applyRate / conversionRate (konfigurovateľné per mena).",
+        "Body majú dátum expirácie (predvolene 100 dní).",
+        "Systém odosiela e-mailové upozornenia pred expiráciou bodov (konfigurovateľné dni).",
+        "Expirované body sa automaticky odpočítajú pri prepočte.",
+        "Vernostný program funguje len pre registrovaných maloobchodných zákazníkov.",
+        "Externé objednávky (s external_id) negenerujú vernostné body.",
+        "Existuje maximálny percentuálny limit, koľko z objednávky sa dá uhradiť bodmi (predvolene 50%).",
+        "Zákazník vidí históriu pripísaných bodov vrátane kódu objednávky a stavu v sekcii Môj účet.",
+        "Spracovanie bodov beží ako naplánovaný príkaz (cron) s ochranou proti súbežnému spusteniu."
+      ],
+      "settings": [
+        "Zapnutie/vypnutie vernostného programu (LoyaltyProgramSettings.enabled)",
+        "Konverzný kurz bodov per mena (LoyaltyProgramSettings.conversionRate)",
+        "Sadzba pripísania bodov per mena (LoyaltyProgramSettings.applyRate)",
+        "Dátum expirácie bodov (LoyaltyProgramSettings.expiration, predvolene '+ 100 days')",
+        "Počet dní po odoslaní objednávky, kedy sa body pripíšu (LoyaltyProgramSettings.addAfter, predvolene 30)",
+        "Maximálne percento objednávky platiteľné bodmi (LoyaltyProgramSettings.maxAllowedPercent, predvolene 50%)",
+        "Dni pred expiráciou, kedy sa odosiela upozornenie (LoyaltyProgramSettings.reminders)"
+      ],
+      "verify_items": [
+        "[VERIFY] Presný mechanizmus uplatnenia bodov pri objednávke nie je v analyzovaných súboroch"
+      ]
+    },
+    {
+      "name": "Referral program (Program odporúčaní)",
+      "description": "Zákazníci odporúčajú e-shop ďalším ľuďom. Za dokončené objednávky odporúčaných zákazníkov získajú kredit, ktorý si môžu premeniť na zľavový kupón.",
+      "behavior": [
+        "Referral program sa konfiguruje nezávisle pre každú kategóriu zákazníkov.",
+        "Sledovanie odporúčaní funguje cez cookie (konfigurovateľná platnosť v dňoch, predvolene 30).",
+        "Odmena za odporúčanie môže byť fixná alebo percentuálna, nastaviteľná per mena.",
+        "Je možné nastaviť minimálnu hodnotu objednávky pre získanie odmeny.",
+        "Kredit z odporúčaní je dostupný až po 2 týždňoch od dokončenia objednávky.",
+        "Zákazník si môže z nazbieraného kreditu vygenerovať zľavový kupón s ľubovoľnou hodnotou (do výšky dostupného kreditu).",
+        "Vygenerovaný kupón je jednorazový, naviazaný na menu a zákazníka.",
+        "V sekcii Môj účet zákazník vidí: výšku odmeny, zoznam odporúčaných objednávok, vygenerované kupóny a dostupný kredit.",
+        "Jednotlivé meny sa dajú zapnúť/vypnúť nezávisle."
+      ],
+      "settings": [
+        "Zapnutie/vypnutie referral programu globálne (ReferralProgramSettings.enabled)",
+        "Zapnutie/vypnutie per kategória zákazníka",
+        "Platnosť cookie v dňoch",
+        "Typ odmeny per mena: fixná alebo percentuálna",
+        "Výška odmeny per mena",
+        "Minimálna hodnota objednávky per mena",
+        "Povolenie/zakázanie per mena"
+      ],
+      "verify_items": [
+        "[VERIFY] Ako presne sa cookie nastaví (odkiaľ pochádza referral link) - nie je v analyzovaných súboroch",
+        "[VERIFY] Ako sa referral_customer_id napáruje na objednávku"
+      ]
+    },
+    {
+      "name": "B2B (Veľkoobchod)",
+      "description": "Veľkoobchodný modul pre zákazníkov nakupujúcich vo väčších množstvách. Zákazník sa stáva veľkoobchodným na základe kategórie zákazníka.",
+      "behavior": [
+        "Veľkoobchodný zákazník musí mať zapnutý príznak is_wholesale a schválenie wholesale_approved.",
+        "Príznak is_wholesale sa nastavuje automaticky podľa kategórie zákazníka.",
+        "Schválenie veľkoobchodu robí administrátor manuálne.",
+        "Veľkoobchodní zákazníci majú prístup k špeciálnemu objednávaciemu formuláru, kde vyberajú produkty z celého katalógu naraz.",
+        "Formulár zobrazuje produkty zoskupené podľa kategórií s možnosťou rozbaľovania.",
+        "Zákazník vyberá dodaciu adresu z uložených adries (musí mať aspoň jednu).",
+        "Pre veľkoobchodné objednávky sa dá nastaviť minimálna hodnota objednávky per cenová hladina.",
+        "Overordering (objednanie viac ako je na sklade) sa dá povoliť/zakázať.",
+        "Objednávanie vypredaných produktov sa dá povoliť/zakázať.",
+        "Veľkoobchodná objednávka sa vytvára s preddefinovanou dopravou a platbou.",
+        "Zákazník si môže uložiť rozpracovanú objednávku a pokračovať neskôr.",
+        "Veľkoobchodný formulár podporuje vyhľadávanie produktov podľa názvu alebo EAN kódu.",
+        "Zobrazuje sa dostupný sklad (stock_count mínus minimal_stock_count)."
+      ],
+      "settings": [
+        "Zapnutie/vypnutie B2B modulu (B2bSettings.enabled)",
+        "Povoliť objednanie viac ako je na sklade (B2bSettings.allowOverordering)",
+        "Povoliť objednanie vypredaných produktov (B2bSettings.allowOutOfStock)",
+        "Vynútiť jazyk zákazníka (B2bSettings.forceCustomerLanguage)",
+        "Zakázať klasický B2C košík (B2bSettings.disableB2cCart)",
+        "Povoliť osobitný e-mail na faktúry (B2bSettings.allowInvoicesEmail)"
+      ],
+      "verify_items": [
+        "[VERIFY] Ako presne funguje disableB2cCart - či veľkoobchodník úplne stráca prístup k bežnému košíku",
+        "[VERIFY] Ako funguje forceCustomerLanguage - či sa zákazníkovi zamkne jazyková mutácia"
+      ]
+    },
+    {
+      "name": "Validácia IČ DPH cez VIES",
+      "description": "Systém overuje platnosť IČ DPH zákazníkov cez európsky systém VIES (VAT Information Exchange System).",
+      "behavior": [
+        "IČ DPH musí začínať 2 písmenami (kód krajiny) a obsahovať minimálne 5 číslic.",
+        "Validácia prebieha pri zmene IČ DPH v sekcii Môj účet.",
+        "Výsledky sa cachujú v Redis na 24 hodín (aby sa nevolala služba opakovane).",
+        "Ak je IP adresa servera blokovaná VIESom, validácia sa považuje za úspešnú (bezpečný fallback).",
+        "Ak VIES nie je dostupný (iná chyba), zmena IČ DPH nie je povolená a zákazník vidí oznam."
+      ],
+      "settings": [],
+      "verify_items": []
+    },
+    {
+      "name": "Autentifikácia zákazníkov",
+      "description": "Overenie identity zákazníka pri prihlásení.",
+      "behavior": [
+        "Zákazníci sa prihlasujú cez e-mail a heslo.",
+        "Vymazaní zákazníci sa nemôžu prihlásiť.",
+        "Deaktivovaní zákazníci sa nemôžu prihlásiť (chyba 'Account is disabled').",
+        "Systém podporuje migráciu starých MD5 hesiel - pri prvom úspešnom prihlásení sa heslo automaticky prekonvertuje na nový bezpečný hash.",
+        "Po úspešnom prihlásení sa automaticky vymaže hash pre zabudnuté heslo (ak existoval)."
+      ],
+      "settings": [],
+      "verify_items": []
+    }
+  ],
+  "relationships": [
+    {
+      "from": "Zákazník",
+      "to": "Kategória zákazníka",
+      "type": "many-to-one",
+      "description": "Zákazník patrí do jednej kategórie, ktorá určuje jeho zľavu a prípadne veľkoobchodný prístup"
+    },
+    {
+      "from": "Zákazník",
+      "to": "Dodacia adresa",
+      "type": "one-to-many",
+      "description": "Zákazník môže mať viacero dodacích adries, presne jedna je predvolená"
+    },
+    {
+      "from": "Zákazník",
+      "to": "Cenová hladina",
+      "type": "many-to-one",
+      "description": "Zákazníkovi sa dá priradiť cenová hladina, ktorá určuje ceny produktov"
+    },
+    {
+      "from": "Zákazník",
+      "to": "Vernostný bod",
+      "type": "one-to-many",
+      "description": "Zákazník zbiera vernostné body z objednávok, body majú expiráciu"
+    },
+    {
+      "from": "Vernostný bod",
+      "to": "Objednávka",
+      "type": "many-to-one",
+      "description": "Body sú naviazané na konkrétnu objednávku, z ktorej vznikli"
+    },
+    {
+      "from": "Zákazník",
+      "to": "Objednávka",
+      "type": "one-to-many",
+      "description": "Zákazník vytvára objednávky; v referral programe môže byť aj odporúčateľom objednávky iného zákazníka"
+    },
+    {
+      "from": "Zákazník",
+      "to": "Faktúra (profil)",
+      "type": "many-to-one",
+      "description": "Zákazníkovi sa dá priradiť fakturačný profil, ak existuje viac ako jeden"
+    },
+    {
+      "from": "Zákazník",
+      "to": "Kupón",
+      "type": "one-to-many",
+      "description": "Zákazník môže vygenerovať kupóny z referral kreditu"
+    },
+    {
+      "from": "Zákazník",
+      "to": "Web (Website)",
+      "type": "many-to-one",
+      "description": "Zákazník je vytvorený na konkrétnom webe (doméne)"
+    },
+    {
+      "from": "Zákazník",
+      "to": "Jazyková mutácia",
+      "type": "many-to-one",
+      "description": "Zákazník má preferovaný jazyk komunikácie"
+    },
+    {
+      "from": "Dodacia adresa",
+      "to": "Krajina",
+      "type": "many-to-one",
+      "description": "Dodacia adresa je viazaná na krajinu (a voliteľne región)"
+    }
+  ],
+  "business_rules": [
+    {
+      "rule": "Prihlasovací e-mail musí byť unikátny medzi aktívnymi (nevymazanými) zákazníkmi",
+      "source": "app/BackendModule/StoreModule/Presenters/CustomersPresenter.php",
+      "verify": false
+    },
+    {
+      "rule": "PSČ sa automaticky normalizuje - odstraňujú sa medzery a text sa prevádza na veľké písmená (fakturačná adresa) resp. sa len odstraňujú medzery (dodacia adresa)",
+      "source": "app/Model/Repositories/CustomersRepository.php, app/Model/Repositories/CustomerAddressesRepository.php",
+      "verify": false
+    },
+    {
+      "rule": "Predvolená dodacia adresa sa nedá vymazať. Najprv treba označiť inú adresu ako predvolenú.",
+      "source": "app/FrontendModule/MyAccountModule/Presenters/AddressesPresenter.php",
+      "verify": false
+    },
+    {
+      "rule": "Ak zákazník ešte nemá žiadnu predvolenú adresu, prvá pridaná sa automaticky stane predvolenou",
+      "source": "app/FrontendModule/MyAccountModule/Presenters/AddressesPresenter.php",
+      "verify": false
+    },
+    {
+      "rule": "Zmena príznaku 'je veľkoobchodná' na kategórii zákazníkov hromadne aktualizuje príznak is_wholesale u všetkých zákazníkov v danej kategórii",
+      "source": "app/BackendModule/StoreModule/Presenters/CustomerCategoriesPresenter.php",
+      "verify": false
+    },
+    {
+      "rule": "Zákazník je považovaný za veľkoobchodného len ak je B2B modul zapnutý, zákazník má príznak is_wholesale a schválenie wholesale_approved",
+      "source": "app/FrontendModule/Facades/CustomerFacade.php",
+      "verify": false
+    },
+    {
+      "rule": "Pre veľkoobchodných zákazníkov je v adresách povinný názov firmy namiesto mena a priezviska",
+      "source": "app/FrontendModule/MyAccountModule/Presenters/AddressesPresenter.php",
+      "verify": false
+    },
+    {
+      "rule": "Vernostné body sa pripisujú len registrovaným maloobchodným zákazníkom (nie veľkoobchodným)",
+      "source": "app/Commands/Eshop/LoyaltyProcessCommand.php",
+      "verify": false
+    },
+    {
+      "rule": "Vernostné body sa pripisujú len za objednávky bez externého ID",
+      "source": "app/Commands/Eshop/LoyaltyProcessCommand.php",
+      "verify": false
+    },
+    {
+      "rule": "Body sa počítajú z ceny produktov (total_price - shipping_price - payment_price), nie z celkovej ceny objednávky",
+      "source": "app/Commands/Eshop/LoyaltyProcessCommand.php",
+      "verify": false
+    },
+    {
+      "rule": "Referral kredit je dostupný až 2 týždne po dokončení odporúčanej objednávky",
+      "source": "app/FrontendModule/MyAccountModule/Presenters/ReferralPresenter.php",
+      "verify": false
+    },
+    {
+      "rule": "Pri zlúčení zákazníkov sa zachová zákazník s najnovšou registráciou (alebo najvyšším ID). Ostatní sa označia ako vymazaní.",
+      "source": "app/BackendModule/StoreModule/Presenters/CustomersPresenter.php",
+      "verify": false
+    },
+    {
+      "rule": "IČ DPH sa validuje cez VIES s cachovaním výsledku na 24 hodín. Ak je IP blokovaná, validácia sa považuje za úspešnú.",
+      "source": "app/Infrastructure/Customers/ViesVatIdValidator.php",
+      "verify": false
+    },
+    {
+      "rule": "Staré MD5 heslá sa automaticky migrujú na nový bezpečný hash pri prvom úspešnom prihlásení",
+      "source": "app/Security/Authenticators/CustomerAuthenticator.php",
+      "verify": false
+    },
+    {
+      "rule": "Veľkoobchodná objednávka vyžaduje minimálne jednu dodaciu adresu. Bez nej zákazník nemôže objednávať.",
+      "source": "app/FrontendModule/MyAccountModule/Presenters/WholesaleOrderPresenter.php",
+      "verify": false
+    },
+    {
+      "rule": "Veľkoobchodná objednávka musí dosiahnuť minimálnu hodnotu nastavenú per cenová hladina, inak sa neodošle",
+      "source": "app/FrontendModule/MyAccountModule/Presenters/WholesaleOrderPresenter.php",
+      "verify": false
+    },
+    {
+      "rule": "Export objednávky v PDF/XLS je dostupný len pre veľkoobchodných zákazníkov",
+      "source": "app/FrontendModule/MyAccountModule/Presenters/OrdersPresenter.php",
+      "verify": false
+    },
+    {
+      "rule": "Dostupný sklad pre veľkoobchod sa počíta ako stock_count mínus minimal_stock_count (min. 0)",
+      "source": "app/FrontendModule/MyAccountModule/Presenters/WholesaleOrderPresenter.php",
+      "verify": false
+    },
+    {
+      "rule": "Zákazník nemôže nakúpiť prázdnu veľkoobchodnú objednávku (ale môže si prázdnu objednávku uložiť)",
+      "source": "app/FrontendModule/MyAccountModule/Presenters/WholesaleOrderPresenter.php",
+      "verify": false
+    }
+  ]
+}

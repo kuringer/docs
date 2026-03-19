@@ -1,0 +1,177 @@
+---
+title: "Médiá a SEO"
+description: "Knižnica obrázkov a súborov, automatické miniatúry a WebP konverzia, SEO adresy, presmerovania a sledovanie chýb 404."
+---
+
+{/* Generated from: MediaFacade.php, MediumFormFactory.php, MediaPresenter.php, MediaSettings.php, MediaTypesEnum.php, ResizeTypesEnum.php, SeoFormFactory.php, SeoPresenter.php, RedirectFormFactory.php, RedirectsPresenter.php | 2026-03-19T00:00:00Z */}
+
+## Knižnica médií
+
+Knižnica médií je centrálne úložisko všetkých obrázkov, videí a súborov na vašom e-shope. Každý obrázok, ktorý nahráte - či už k produktu, banneru alebo článku - sa uloží do tejto knižnice.
+
+### Nahrávanie súborov
+
+Súbory nahráte cez formulár alebo hromadným ťahaním (drag & drop). Systém pri nahrávaní automaticky:
+
+- **Normalizuje názov súboru** - prevedie na malé písmená
+- **Rieši kolízie názvov** - ak súbor s rovnakým názvom už existuje, pridá číslo na koniec (foto-1, foto-2, ...)
+- **Detekuje duplikáty** - ak nahráte rovnaký súbor, ktorý už v knižnici existuje, systém použije existujúci záznam namiesto vytvorenia nového. Porovnáva sa obsah súboru, veľkosť, typ aj rozmery obrázka.
+
+<Note>
+Ak bol duplikovaný súbor predtým vymazaný, systém ho automaticky obnoví.
+</Note>
+
+### Vlastnosti média
+
+Každé médium má:
+
+- **Názov** - vlastný názov, ktorý vidíte v administrácii (prekladaný pre každý jazyk)
+- **Popis** - alternatívny text obrázka (alt text), dôležitý pre SEO a prístupnosť (prekladaný)
+- **Typ** - obrázok alebo súbor (dokument, PDF, ...)
+- **Rozmery** - šírka a výška v pixeloch (pri obrázkoch)
+- **Stav** - aktívne alebo vymazané (vymazanie je mäkké - súbor sa fyzicky neodstráni ihneď)
+
+### Fokálny bod
+
+Fokálny bod určuje najdôležitejšiu časť obrázka. Keď systém vytvára miniatúru a potrebuje obrázok orezať, fokálny bod zaistí, že dôležitá časť obrázka zostane vždy viditeľná.
+
+Nastavíte ho priamo na obrázku v administrácii zadaním horizontálnej a vertikálnej pozície (v percentách).
+
+[SCREENSHOT: Nastavenie fokálneho bodu na obrázku - krížik označujúci stred záujmu]
+
+<Tip>
+Nastavte fokálny bod na obrázkoch, kde je dôležitý konkrétny detail - napríklad tvár na fotografii alebo logo na bannerovom obrázku. Pri bežných produktových fotografiách to väčšinou nie je nutné.
+</Tip>
+
+### Automatické miniatúry
+
+Systém generuje miniatúry obrázkov automaticky. Miniatúra sa nevytvára hneď pri nahraní, ale až keď ju niečo potrebuje - napríklad keď sa obrázok prvýkrát zobrazí na stránke v konkrétnej veľkosti.
+
+Tri režimy vytvárania miniatúr:
+
+- **Proporčné zmenšenie** - obrázok sa zmenší tak, aby sa celý zmestil do zadaných rozmerov. Pomer strán zostáva zachovaný.
+- **Presný rozmer s doplnením plochy** - obrázok sa zmenší a prázdna plocha sa vyplní farbou pozadia. Fokálny bod určuje, kde v rámiku sa obrázok umiestni.
+- **Presný rozmer s orezaním** - obrázok sa zmenší a prebytok sa oreže. Fokálny bod určuje, ktorá časť zostane viditeľná.
+
+Ak má médium nastavený vlastný orez, ten má prednosť pred fokálnym bodom.
+
+<Warning>Táto informácia vyžaduje overenie. [VERIFY] Nie je jasné, kde presne sa definujú jednotlivé veľkosti obrázkov (miniatúr) - pravdepodobne v databáze.</Warning>
+
+### WebP konverzia
+
+Ak prehliadač zákazníka podporuje formát WebP, systém automaticky vygeneruje miniatúry vo WebP namiesto klasického JPEG. WebP súbory sú menšie, čo zrýchľuje načítanie stránok.
+
+Systém pritom správne rozpoznáva priehľadné obrázky (PNG, GIF, WebP s priehľadnosťou) a zachováva ich priehľadnosť aj po konverzii.
+
+Formáty SVG, MP4 a WEBM sa nezmensujú - vracajú sa vždy v pôvodnej veľkosti.
+
+### CDN podpora
+
+Ak máte nastavenú vlastnú CDN doménu, všetky obrázky a súbory sa zákazníkom servujú cez túto doménu. CDN zrýchľuje načítanie obrázkov tým, že ich doručuje zo serverov bližšie k zákazníkovi.
+
+### Vodoznaky
+
+Na miniatúry obrázkov sa dá automaticky pridať vodoznak (napríklad logo vášho e-shopu). Vodoznak sa umiestni na zadanú pozíciu v obrázku.
+
+### Filtrovanie a správa
+
+Médiá v knižnici môžete filtrovať podľa názvu súboru. Vymazanie média je mäkké - záznam sa označí ako vymazaný, ale fyzicky zostáva na disku.
+
+<Note>
+Ak obrázok z nejakého dôvodu chýba na disku, systém automaticky vygeneruje jednofarebný náhradný obrázok v správnej veľkosti, aby stránka neostala bez obrázka.
+</Note>
+
+---
+
+## SEO adresy
+
+SEO adresy umožňujú nastaviť, ako sa jednotlivé stránky vášho e-shopu zobrazia vo vyhľadávačoch. Pre každú URL adresu môžete definovať:
+
+- **Titulok** - text, ktorý sa zobrazí v záložke prehliadača a vo výsledkoch vyhľadávania (povinný v hlavnom jazyku)
+- **URL adresa** - adresa stránky za doménou. Ak ju nevyplníte, vygeneruje sa z názvu. Nesmie začínať lomkou.
+- **Nadpis H1** - hlavný nadpis na stránke. Ak ho nevyplníte, použije sa titulok.
+- **Text v drobčekovej navigácii** - text zobrazený v navigačnej ceste (breadcrumbs). Ak ho nevyplníte, použije sa titulok.
+- **Popis** - textový obsah zobrazený na stránke
+- **META description** - popis stránky pre vyhľadávače (zobrazuje sa pod odkazom vo výsledkoch vyhľadávania)
+- **META keywords** - kľúčové slová pre vyhľadávače
+
+Všetky tieto polia sú prekladané - pre každý jazyk vášho e-shopu môžete nastaviť iné hodnoty.
+
+### Hierarchia SEO adries
+
+SEO adresy sa dajú usporiadať do hierarchie. Každá adresa môže mať nadradenú adresu, čo vytvára stromovú štruktúru. To ovplyvňuje napríklad zobrazenie drobčekovej navigácie.
+
+### Prepojenie s kategóriami
+
+SEO adresy môžu byť prepojené na kategórie produktov. Ak zmeníte URL adresu kategórie, systém automaticky synchronizuje aj príslušnú SEO adresu.
+
+<Warning>Táto informácia vyžaduje overenie. [VERIFY] Nie je presne jasné, či nastavenie "Je viditeľná" na SEO adrese ovplyvňuje indexovanie vyhľadávačmi alebo zobrazenie v navigácii.</Warning>
+
+[SCREENSHOT: Zoznam SEO adries v administrácii s možnosťou prepnúť viditeľnosť]
+
+---
+
+## Presmerovania
+
+Presmerovania slúžia na presmerovanie starých alebo nefunkčných URL adries na nové. Keď zákazník (alebo vyhľadávač) navštívi starú adresu, systém ho automaticky presmeruje na novú.
+
+### Vytvorenie presmerovania
+
+Pri vytváraní presmerovania zadáte:
+
+- **Stará URL** - pôvodná adresa, ktorá už nefunguje
+- **Nová URL** - cieľová adresa, kam sa má zákazník presmerovať
+
+URL adresy sa zadávajú bez protokolu (http:// alebo https://) - systém ho automaticky odstráni. Stará a nová adresa sa nesmú zhodovať.
+
+<Warning>Táto informácia vyžaduje overenie. [VERIFY] Nie je jednoznačné, či presmerovania používajú typ 301 (trvalé) alebo 302 (dočasné).</Warning>
+
+### Štatistiky presmerovaní
+
+Systém pri každom presmerovaní sleduje:
+
+- **Počet prístupov** - koľkokrát bolo presmerovanie použité
+- **Posledný prístup** - kedy bolo presmerovanie naposledy využité
+
+Tieto údaje vám pomôžu posúdiť, ktoré presmerovania sú stále dôležité a ktoré môžete prípadne odstrániť.
+
+### Hromadná správa
+
+Presmerovania môžete filtrovať podľa starej URL, novej URL a rozsahu počtu prístupov. Podporované je aj hromadné mazanie - vyberiete viacero presmerovaní a zmažete ich naraz.
+
+---
+
+## Sledovanie chýb 404
+
+Systém automaticky zaznamenáva URL adresy, na ktorých sa zákazníkom zobrazila chyba 404 (stránka nenájdená). Tieto záznamy vám pomôžu identifikovať rozbité odkazy.
+
+### Prepojenie s presmerovaniami
+
+Keď vytvoríte presmerovanie pre adresu, ktorá sa vyskytla v záznamoch 404, systém automaticky:
+
+1. Nájde všetky záznamy 404 s rovnakou URL adresou
+2. Označí ich ako vyriešené
+3. Prepojí ich na nové presmerovanie
+
+Presmerovanie sa dá vytvoriť priamo zo záznamu 404 - URL adresa sa automaticky predvyplní.
+
+<Tip>
+Pravidelne kontrolujte záznamy 404. Ak vidíte adresu s veľkým počtom prístupov, vytvorte pre ňu presmerovanie - nielen kvôli zákazníkom, ale aj kvôli SEO skóre vášho e-shopu.
+</Tip>
+
+[SCREENSHOT: Zoznam 404 záznamov s tlačidlom na vytvorenie presmerovania]
+
+---
+
+## Dôležité vedieť
+
+- Knižnica médií je zdieľaná - obrázok nahraný k produktu je dostupný aj pre stránky, bannery a články
+- Zmeny v SEO adresách prepojených na kategórie sa automaticky synchronizujú obojsmerne
+- Uloženie stránky alebo článku automaticky aktualizuje vyhľadávanie na e-shope
+- Vymazanie média alebo presmerovania je mäkké - záznamy sa dajú prípadne obnoviť
+
+## Súvisiace funkcie
+
+<Card title="Stránky a obsahové prvky" href="/obsah/stranky-a-elementy">
+  Page builder a všetky typy obsahových prvkov pre stránky a články.
+</Card>
