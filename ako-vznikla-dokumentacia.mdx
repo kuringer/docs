@@ -1,0 +1,154 @@
+---
+title: "Ako vznikla táto dokumentácia"
+description: "Pravidlá, persona a proces generovania dokumentácie z kódu platformy Venalio."
+---
+
+{/* Meta page | 2026-03-19 */}
+
+# Ako vznikla táto dokumentácia
+
+Táto dokumentácia je generovaná z kódu platformy Venalio pomocou AI agentov. Nie je písaná ručne - agenty analyzujú zdrojový kód, extrahujú obchodné pravidlá a generujú text určený pre prevádzkovateľov e-shopov.
+
+Nižšie sú pravidlá, ktoré agenty dodržiavajú pri každom generovaní.
+
+---
+
+## Persona: Kto je čitateľ
+
+Každý dokument je písaný pre **majiteľa alebo prevádzkovateľa e-shopu** postaveného na platforme Venalio.
+
+- Nie je vývojár - nerozumie kódu, databáze, ani technickej architektúre
+- Potrebuje vedieť: čo systém robí, ako to nastaviť, čo ovplyvňuje správanie
+- Jazyk: slovenčina, formálne oslovenie ("vy")
+- Tón: vecný, stručný, priateľský - žiadne marketingové frázy
+- Aktívny slovesný rod: "Systém prepočíta cenu" nie "Cena je prepočítaná systémom"
+
+**Čo čitateľa zaujíma:**
+- Ako nastaviť konkrétnu vec v administrácii
+- Čo sa stane keď niečo zmení
+- Aké sú limity a obmedzenia
+- Čo robiť keď niečo nefunguje
+
+**Čo čitateľa NEZAUJÍMA:**
+- Ako je to implementované v kóde
+- Aké technológie sa používajú
+- Názvy PHP tried, databázových tabuliek, metód
+
+---
+
+## 10 pravidiel generovania
+
+### 1. Oddeľuj typy dokumentácie
+
+Agent musí vedieť, aký typ dokumentu generuje. Tri typy:
+
+- **Prehľad funkcie** - čo to je, ako to funguje (správanie), dôležité vedieť, súvisiace funkcie
+- **Návod (How-to)** - krok za krokom ako dosiahnuť cieľ, kde kliknúť, čo vyplniť
+- **Referencia** - kompletný prehľad nastavení, polí, možností s popismi a predvolenými hodnotami
+
+Rôzny typ = rôzny prompt = rôzny výstup z toho istého kódu.
+
+### 2. Audience-first, nie code-first
+
+Agent neopisuje čo kód robí. Prekladá technickú implementáciu do jazyka čitateľa.
+
+- Zle: "metóda `calculateShipping()` iteruje cez `ShippingRule[]` a aplikuje first-match strategy"
+- Dobre: "Doprava sa vypočíta podľa prvého pravidla, ktoré sedí na objednávku - poradie pravidiel preto záleží"
+
+### 3. Popisuj správanie, nie implementáciu
+
+Kód sa mení. Dokumentácia popisujúca správanie prežije refaktor.
+
+- Zle: "funkcia volá `OrderService->recalculate()` po každej zmene v košíku"
+- Dobre: "Po každej zmene v košíku sa automaticky prepočíta cena objednávky"
+
+Výnimka: API referencia, kde je implementačný detail relevantný.
+
+### 4. Neinventuj - ak si nie si istý, označ
+
+Ak agent nedokáže niečo odvodiť priamo z kódu, musí to explicitne označiť tagom **[VERIFY]**. Falošná dokumentácia je horšia než žiadna.
+
+Na stránkach sa to zobrazuje ako varovanie:
+
+<Warning>
+  Táto informácia vyžaduje overenie. [VERIFY]
+</Warning>
+
+### 5. Jeden koncept = jeden dokument
+
+Každý výstup pokrýva jeden atomický koncept alebo jednu úlohu. Ak agent narazí na to, že musí vysvetliť prerekvizitu, generuje odkaz, nie inline odbočku.
+
+### 6. Konzistentná terminológia
+
+Agent má prístup k slovníku pojmov a striktne ho dodržiava. Žiadne miešanie:
+
+| Správne | Nesprávne |
+|---|---|
+| Objednávka | order, nákup |
+| Kupón | coupon, zľavový kód |
+| Košík | cart, nákupný košík |
+| Doprava | shipping, doručenie |
+| Štítok | flag, badge |
+| DPH | VAT, daň |
+
+Kompletný slovník: [Slovník pojmov](/slovnik)
+
+### 7. Generuj s maintenance na mysli
+
+Každý dokument má metadata - z akých súborov bol generovaný a kedy. Keď sa kód zmení, vieme identifikovať, ktoré dokumenty sú potenciálne zastarané.
+
+Metadata sú v HTML komentári na začiatku každej stránky.
+
+### 8. Screenshoty sú separate concern
+
+Agent z kódu nevie generovať screenshoty UI. Preto generuje text + placeholder s popisom, čo by screenshot mal ukazovať. Vizuály sa doplnia v druhom kroku.
+
+### 9. Output musí byť reviewable
+
+Agent nikdy nepublikuje dokumentáciu priamo. Výstup ide vždy cez review - buď ľudský, alebo druhý AI agent kontrolujúci accuracy, terminológiu a úplnosť.
+
+### 10. Menej je viac
+
+Agent dokumentuje len to, čo je user-facing alebo čo mení správanie systému z pohľadu klienta. Interné helpery, utility funkcie, implementation details - skip.
+
+---
+
+## Proces generovania
+
+Dokumentácia vzniká v 3 fázach:
+
+### Fáza 1: Discovery
+
+Paralelné AI agenty čítajú zdrojový kód per doména (Produkty, Objednávky, Pokladňa, Kupóny). Z kódu extrahujú:
+
+- **Entity** - čo systém spravuje (Produkt, Objednávka, Kupón...)
+- **Funkcie** - čo systém robí z pohľadu používateľa
+- **Obchodné pravidlá** - podmienky, validácie, automatické procesy
+- **Vzťahy** - ako spolu entity súvisia
+- **[VERIFY] položky** - čo sa nedá s istotou potvrdiť z kódu
+
+Výstup: štruktúrované JSON súbory v `.venalio/discovery/`.
+
+### Fáza 2: Generovanie
+
+Ďalšia skupina agentov berie discovery dáta + slovník + personu a generuje MDX stránky. Každý agent dostáva:
+
+- Typ dokumentu (prehľad / návod / referencia)
+- Personu čitateľa
+- Slovník terminológie
+- Discovery dáta pre svoju doménu
+
+### Fáza 3: Review
+
+Vygenerovaná dokumentácia prechádza review:
+
+- **Fakticka správnosť** - sú tvrdenia podložené kódom?
+- **Konzistencia terminológie** - dodržiava sa slovník?
+- **Vhodnosť komunikácie** - je to napísané pre správnu persónu?
+- **Chýbajúce [VERIFY] tagy** - nie je niečo tvrdené s falošnou istotou?
+
+---
+
+## Aktualizácia
+
+Pri zmene kódu platformy sa proces opakuje. Metadata v dokumentoch (zdrojové súbory, dátum) umožňujú identifikovať stránky, ktoré môžu byť zastarané.

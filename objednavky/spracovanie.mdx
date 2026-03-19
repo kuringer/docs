@@ -122,30 +122,11 @@ Zásielka prepája Objednávku s konkrétnym Prepravcom – generuje trackovacie
 
 Systém vystavuje niekoľko typov daňových dokladov:
 
-<Tabs>
-  <Tab title="Faktúra">
-    Bežná (ostrá) Faktúra obsahuje všetky položky Objednávky vrátane Dopravy, Platby a Zliav rozpočítaných podľa sadzieb DPH.
+**Faktúra** - bežná faktúra obsahuje všetky položky Objednávky vrátane Dopravy, Platby a Zliav rozpočítaných podľa sadzieb DPH. Systém ju vystaví automaticky pri prechode do stavu Spracováva sa (ak je zapnutá kompletizácia), pri stave Vybavená alebo pri zmene stavu úhrady na Uhradená. Faktúra sa automaticky prikladá k e-mailovým notifikáciám.
 
-    Systém ju vystaví automaticky pri:
-    - Prechode do stavu **Spracováva sa** (ak je zapnutá kompletizácia)
-    - Prechode do stavu **Vybavená**
-    - Zmene stavu úhrady na **Uhradená** (ak je nastavenie zapnuté)
+**Zálohová faktúra** - vystavuje sa, ak Zákazník zaplatil, ale Objednávka ešte nie je plne rezervovaná na Sklade. Administrátor môže zadať percentuálnu výšku zálohy. Spolu so zálohovou Faktúrou systém automaticky vystaví aj daňový doklad k prijatej platbe.
 
-    Faktúra sa automaticky prikladá ako príloha k e-mailovým notifikáciám pri stavoch **Odoslaná** a **Vybavená**.
-  </Tab>
-  <Tab title="Zálohová faktúra">
-    Vystavuje sa vtedy, ak Zákazník zaplatil, ale Objednávka ešte nie je plne rezervovaná na Sklade. Administrátor môže zadať percentuálnu výšku zálohy.
-
-    Spolu so zálohovou Faktúrou systém automaticky vystaví aj **daňový doklad k prijatej platbe**.
-  </Tab>
-  <Tab title="Dobropis">
-    Vystavuje sa k existujúcej Faktúre – môže byť:
-    - **Celý** – na celú sumu Faktúry
-    - **Čiastočný** – len na vybrané položky
-
-    Dobropis sa vystavuje napríklad pri vrátení tovaru alebo stave **Neprevzatá**.
-  </Tab>
-</Tabs>
+**Dobropis** - vystavuje sa k existujúcej Faktúre. Môže byť celý (na celú sumu) alebo čiastočný (len na vybrané položky). Vystavuje sa napríklad pri vrátení tovaru alebo stave Neprevzatá.
 
 <Note>
   Pre Objednávky mimo EÚ systém automaticky doplní na Faktúru text o oslobodení od DPH. Číslovanie Faktúr sa riadi nastavenými číselnými radmi podľa typu dokladu, krajiny a webu.
@@ -183,34 +164,17 @@ Kompletizácia umožňuje fyzicky overovať správnosť balenia skenovaním čia
 
 Administrátor môže rozdeliť Objednávku na viacero alebo presunúť položky medzi Objednávkami toho istého Zákazníka.
 
-<Tabs>
-  <Tab title="Kopírovanie do novej objednávky">
-    <Steps>
-      <Step title="Vyberte položky">
-        Označte položky, ktoré chcete presunúť alebo skopírovať.
-      </Step>
-      <Step title="Zvoľte možnosti">
-        Vyberte, či chcete položky **presunúť** (odstránia sa z pôvodnej Objednávky) alebo **skopírovať** (zostanú v pôvodnej). Zvoľte tiež, či zachovať cenu Dopravy v novej Objednávke.
-      </Step>
-      <Step title="Potvrďte">
-        Systém vytvorí novú Objednávku s odkazom na pôvodnú. Prepočítajú sa súčty oboch Objednávok.
-      </Step>
-    </Steps>
-  </Tab>
-  <Tab title="Presun do existujúcej objednávky">
-    <Steps>
-      <Step title="Vyberte položky">
-        Označte položky, ktoré chcete presunúť.
-      </Step>
-      <Step title="Vyberte cieľovú objednávku">
-        Systém zobrazí zoznam existujúcich Objednávok toho istého Zákazníka. Vyberte, do ktorej Objednávky chcete položky presunúť.
-      </Step>
-      <Step title="Potvrďte">
-        Systém presunie položky a prepočíta súčty oboch Objednávok.
-      </Step>
-    </Steps>
-  </Tab>
-</Tabs>
+### Kopírovanie do novej objednávky
+
+1. Označte položky, ktoré chcete presunúť alebo skopírovať
+2. Vyberte, či chcete položky **presunúť** (odstránia sa z pôvodnej) alebo **skopírovať** (zostanú v pôvodnej). Zvoľte tiež, či zachovať cenu Dopravy.
+3. Systém vytvorí novú Objednávku s odkazom na pôvodnú. Prepočítajú sa súčty oboch Objednávok.
+
+### Presun do existujúcej objednávky
+
+1. Označte položky, ktoré chcete presunúť
+2. Systém zobrazí zoznam existujúcich Objednávok toho istého Zákazníka. Vyberte cieľovú Objednávku.
+3. Systém presunie položky a prepočíta súčty oboch Objednávok.
 
 ---
 
