@@ -1,0 +1,714 @@
+{
+  "domain": "Integrations",
+  "source_files": [
+    "libs/Integrations/Superfaktura/Superfaktura.php",
+    "libs/Integrations/Superfaktura/SuperfakturaActions.php",
+    "libs/Integrations/Superfaktura/SuperfakturaConfig.php",
+    "libs/Integrations/Superfaktura/Subscriber.php",
+    "libs/Integrations/Superfaktura/Enums/InvoiceLanguage.php",
+    "libs/Integrations/Superfaktura/Enums/InvoiceType.php",
+    "libs/Integrations/Superfaktura/Enums/PaymentType.php",
+    "libs/Integrations/Superfaktura/Commands/PaymentsCheckCommand.php",
+    "libs/Integrations/Ecomail/Ecomail.php",
+    "libs/Integrations/Ecomail/EcomailConfig.php",
+    "libs/Integrations/Ecomail/Entities/SubscriberDataEntity.php",
+    "libs/Integrations/Ecomail/Entities/SubscriptionEntity.php",
+    "libs/Integrations/Ecomail/Subscriber.php",
+    "libs/Integrations/Retino/Retino.php",
+    "libs/Integrations/Retino/RetinoConfig.php",
+    "libs/Integrations/Retino/RetinoFeedPresenter.php",
+    "libs/Integrations/CJ/CjPresenterIntegration.php",
+    "libs/Integrations/CJ/WebsiteConfig.php",
+    "libs/Integrations/CJ/SitePage.php",
+    "libs/Integrations/CJ/PageType.php",
+    "libs/Integrations/CJ/Types/Homepage.php",
+    "libs/Integrations/CJ/Types/ProductDetail.php",
+    "libs/Integrations/CJ/Types/Cart.php",
+    "libs/Integrations/Crowdin/Crowdin.php",
+    "libs/Integrations/Crowdin/CrowdinConfig.php"
+  ],
+  "generated_at": "2026-03-19T00:00:00Z",
+  "entities": [
+    {
+      "name": "Nastavenia Superfaktury",
+      "name_en": "Superfaktura Configuration",
+      "description": "Konfigurácia prepojenia s fakturacnym systemom Superfaktura. Urcuje, ako sa faktury synchronizuju s externym systemom.",
+      "fields": [
+        {
+          "name": "E-mail",
+          "type": "text",
+          "description": "Prihlasovaci e-mail do Superfaktury",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "API kluc",
+          "type": "text",
+          "description": "Pristupovy kluc pre komunikaciu so Superfakturou",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "ID firmy",
+          "type": "text",
+          "description": "Identifikator firmy v Superfakture (ak mate viacero firiem pod jednym uctom)",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Modul",
+          "type": "text",
+          "description": "Nazov modulu posielany do Superfaktury. Predvolena hodnota: Venalio",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Sandbox rezim",
+          "type": "boolean",
+          "description": "Zapne testovacie prostredie Superfaktury (faktury sa nevytvoria naozaj)",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Debug rezim",
+          "type": "boolean",
+          "description": "Zapne ladenie - faktury sa neodosielaju, len sa zobrazuju diagnosticke spravy",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Automaticka synchronizacia",
+          "type": "boolean",
+          "description": "Automaticky odosiela faktury do Superfaktury pri ich vytvoreni alebo uprave",
+          "values": [],
+          "verify": false
+        }
+      ]
+    },
+    {
+      "name": "Typ faktury (Superfaktura)",
+      "name_en": "Invoice Type (Superfaktura)",
+      "description": "Typy dokladov podporovane Superfakturou, na ktore sa mapuju interne typy faktur.",
+      "fields": [
+        {
+          "name": "Typ",
+          "type": "enum",
+          "description": "Typ dokladu v Superfakture",
+          "values": [
+            "regular - Ostra faktura",
+            "proforma - Zalohova faktura",
+            "cancel - Dobropis",
+            "delivery - Dodaci list",
+            "draft - Koncept",
+            "estimate - Cenova ponuka",
+            "order - Prijata objednavka",
+            "reverse_order - Objednavka"
+          ],
+          "verify": false
+        }
+      ]
+    },
+    {
+      "name": "Jazyk faktury (Superfaktura)",
+      "name_en": "Invoice Language (Superfaktura)",
+      "description": "Jazyky, v ktorych moze byt faktura vystavena v Superfakture. Jazyk sa automaticky urci podla jazykovej mutacie objednavky.",
+      "fields": [
+        {
+          "name": "Jazyk",
+          "type": "enum",
+          "description": "Podporovane jazyky faktur",
+          "values": [
+            "slo - Slovencina",
+            "cze - Cestina",
+            "eng - Anglictina",
+            "deu - Nemcina",
+            "hun - Madarcina",
+            "pol - Polstina",
+            "rom - Rumuncina",
+            "rus - Rustina",
+            "hrv - Chorvatchina",
+            "ita - Italcina",
+            "nld - Holandcina",
+            "slv - Slovincina",
+            "spa - Spanielcina",
+            "ukr - Ukrajincina"
+          ],
+          "verify": false
+        }
+      ]
+    },
+    {
+      "name": "Typ platby (Superfaktura)",
+      "name_en": "Payment Type (Superfaktura)",
+      "description": "Typy platby podporovane Superfakturou.",
+      "fields": [
+        {
+          "name": "Typ platby",
+          "type": "enum",
+          "description": "Sposob uhrady na fakture",
+          "values": [
+            "cash - Hotovost",
+            "transfer - Bankovy prevod",
+            "card - Karta",
+            "cod - Dobierka",
+            "credit - Kreditna karta",
+            "debit - Debetna karta",
+            "paypal - PayPal",
+            "gopay - GoPay",
+            "besteron - Besteron",
+            "trustpay - TrustPay",
+            "viamo - Viamo",
+            "barion - Barion",
+            "inkaso - Inkaso",
+            "accreditation - Vzajomny zapocet",
+            "other - Iny sposob"
+          ],
+          "verify": false
+        }
+      ]
+    },
+    {
+      "name": "Nastavenia Ecomail",
+      "name_en": "Ecomail Configuration",
+      "description": "Konfigurácia prepojenia s e-mailovym marketingovym nastrojom Ecomail. Umoznuje automaticke prihlasovanie odberatelov do zoznamov.",
+      "fields": [
+        {
+          "name": "API kluc",
+          "type": "text",
+          "description": "Pristupovy kluc pre komunikaciu s Ecomail",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Zapnute",
+          "type": "boolean",
+          "description": "Zapne alebo vypne celu integraciu s Ecomail",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Debug rezim",
+          "type": "boolean",
+          "description": "Zapne ladenie - data sa neodosielaju do Ecomail, len sa zobrazuju diagnosticke spravy",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Mapovanie jazykov na zoznamy",
+          "type": "relation",
+          "description": "Priradenie kazdeho jazyka e-shopu k specifickemu zoznamu odberatelov v Ecomail. Ak jazyk nema priradeny zoznam, pouzije sa predvoleny.",
+          "values": [],
+          "verify": false
+        }
+      ]
+    },
+    {
+      "name": "Odberatel (Ecomail)",
+      "name_en": "Subscriber (Ecomail)",
+      "description": "Data o odberatelovi posielane do Ecomail pri prihlaseni k odberu.",
+      "fields": [
+        {
+          "name": "E-mail",
+          "type": "text",
+          "description": "E-mailova adresa odberatela",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Meno",
+          "type": "text",
+          "description": "Krstne meno odberatela",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Priezvisko",
+          "type": "text",
+          "description": "Priezvisko odberatela",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Preskocit potvrdenie",
+          "type": "boolean",
+          "description": "Preskoci potvrdenie odberu cez e-mail (double opt-in). Predvolene: nie",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Spustit automatizacie",
+          "type": "boolean",
+          "description": "Spusti automaticke e-mailove scenare po prihlaseni. Predvolene: ano",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Aktualizovat existujuceho",
+          "type": "boolean",
+          "description": "Ak odberatel uz existuje, aktualizuje jeho udaje. Predvolene: ano",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Znova prihlasit",
+          "type": "boolean",
+          "description": "Ak sa odberatel predtym odhlasil, znovu ho prihlasi. Predvolene: ano",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Vlastne polia",
+          "type": "text",
+          "description": "Doplnkove udaje posielane s prihlasenim (napr. zdroj prihlasenia)",
+          "values": [],
+          "verify": true
+        }
+      ]
+    },
+    {
+      "name": "Nastavenia Retino",
+      "name_en": "Retino Configuration",
+      "description": "Konfigurácia prepojenia s Retino - sluzbou na spravovanie recenzii a vrateni tovaru. System generuje XML feed objednavok, ktory si Retino pravidelne stiahne.",
+      "fields": [
+        {
+          "name": "Tajny kluc",
+          "type": "text",
+          "description": "Heslo na overenie pristupu k feedu objednavok",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Casove obmedzenie",
+          "type": "text",
+          "description": "Ako daleko do minulosti sa objednavky zahrnaju do feedu. Predvolene: 7 dni",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Kompresia feedu",
+          "type": "boolean",
+          "description": "Zapne gzip kompresiu XML feedu pre rychlejsi prenos",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Debug rezim",
+          "type": "boolean",
+          "description": "Namiesto suboru na stiahnutie zobrazi XML priamo v prehliadaci",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Priorita v routeri",
+          "type": "number",
+          "description": "Priorita URL adresy feedu v systeme smerovania. Predvolene: 20",
+          "values": [],
+          "verify": true
+        }
+      ]
+    },
+    {
+      "name": "Nastavenia CJ (Commission Junction)",
+      "name_en": "CJ (Commission Junction) Configuration",
+      "description": "Konfigurácia affiliate sledovania cez CJ. Kazdy web moze mat vlastne nastavenia pre sledovanie navstevnikov a konverzii.",
+      "fields": [
+        {
+          "name": "Enterprise ID",
+          "type": "text",
+          "description": "Identifikator firmy v systeme CJ",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Action ID",
+          "type": "text",
+          "description": "Identifikator akcie (konverzie) v systeme CJ",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Tag ID",
+          "type": "text",
+          "description": "Identifikator sledovacieho skriptu v systeme CJ",
+          "values": [],
+          "verify": false
+        }
+      ]
+    },
+    {
+      "name": "Typ stranky (CJ)",
+      "name_en": "Page Type (CJ)",
+      "description": "Typy stranok sledovanych cez CJ affiliate tracking. Kazdy typ stranky odosiela do CJ iny typ udalosti.",
+      "fields": [
+        {
+          "name": "Typ stranky",
+          "type": "enum",
+          "description": "Typ stranky na ktoru zakaznik vstupil",
+          "values": [
+            "homepage - Hlavna stranka",
+            "department - Oddelenie",
+            "category - Kategoria",
+            "subCategory - Podkategoria",
+            "productDetail - Detail produktu",
+            "cart - Kosik",
+            "searchResults - Vysledky hladania",
+            "storeLocator - Vyhladavac predajni",
+            "accountSignup - Registracia",
+            "accountCenter - Ucet zakaznika",
+            "conversionConfirmation - Potvrdenie konverzie"
+          ],
+          "verify": false
+        }
+      ]
+    },
+    {
+      "name": "Nastavenia Crowdin",
+      "name_en": "Crowdin Configuration",
+      "description": "Konfigurácia prepojenia s Crowdin - nastrojom na spravu prekladov. Umoznuje synchronizovat prekladove subory medzi e-shopom a Crowdin projektami.",
+      "fields": [
+        {
+          "name": "Pristupovy token",
+          "type": "text",
+          "description": "Autorizacny token pre pristup k Crowdin API",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Organizacia",
+          "type": "text",
+          "description": "Nazov organizacie v Crowdin. Ak je vyplneny, pouzije sa Enterprise verzia Crowdin",
+          "values": [],
+          "verify": false
+        },
+        {
+          "name": "Debug rezim",
+          "type": "boolean",
+          "description": "Zapne ladenie integracie",
+          "values": [],
+          "verify": false
+        }
+      ]
+    }
+  ],
+  "features": [
+    {
+      "name": "Synchronizacia faktur do Superfaktury",
+      "description": "Automaticky odosiela faktury z e-shopu do fakturacneho systemu Superfaktura. Faktury sa synchronizuju pri ich vytvoreni aj uprave. Okrem automatickej synchronizacie je mozne faktury exportovat hromadne z administracie.",
+      "behavior": [
+        "Ked sa v e-shope vytvori nova faktura, system ju automaticky odosle do Superfaktury",
+        "Ked sa existujuca faktura upravi, system ju aktualizuje aj v Superfakture",
+        "Ak faktura este nebola odoslana do Superfaktury, vytvori sa nova. Ak uz bola odoslana, upravi sa existujuca",
+        "Jazyk faktury sa automaticky urci podla jazykovej mutacie objednavky (podporovanych 14 jazykov)",
+        "Na fakture sa nastavuju udaje odberatela: nazov firmy alebo meno, e-mail, telefon, ICO, DIC, IC DPH, fakturacna a dodacia adresa",
+        "Polozky faktury sa synchronizuju vratane nazvu, mnozstva, kodu produktu, jednotky, ceny bez dane a percenta dane",
+        "Neaktivne polozky faktury sa preskakuju",
+        "Ak v Superfakture existuju polozky navyse (ktore nie su v e-shope), system ich automaticky zmaze",
+        "System mapuje interne typy faktur na typy Superfaktury: Ostra faktura, Zalohova faktura, Dobropis",
+        "Danovy doklad z prijatej platby sa automaticky previaze so zalohovou fakturou",
+        "Ostra faktura sa moze prevazat na zalohovu fakturu aj danovy doklad sucasne",
+        "Hromadny export faktur je dostupny cez batch akciu v zozname faktur v administracii",
+        "Chybove spravy zo Superfaktury sa zobrazuju priamo v administracii"
+      ],
+      "settings": [
+        "E-mail a API kluc pre pristup k Superfakture",
+        "ID firmy (pre viac-firmove ucty)",
+        "Sandbox rezim na testovanie",
+        "Debug rezim - faktury sa neodosielaju, len sa zobrazuju spravy",
+        "Zapnutie/vypnutie automatickej synchronizacie"
+      ],
+      "verify_items": []
+    },
+    {
+      "name": "OSS (One Stop Shop) rezim na fakturach",
+      "description": "Automaticky nastavuje priznak OSS na fakturach pre spravne zdanovanie v ramci EU.",
+      "behavior": [
+        "OSS sa zapne ak: odberatel je z EU krajiny, nema IC DPH a jeho krajina je ina nez krajina dodavatela",
+        "OSS sa vypne vo vsetkych ostatnych pripadoch"
+      ],
+      "settings": [],
+      "verify_items": []
+    },
+    {
+      "name": "Kontrola platieb cez Superfakturu",
+      "description": "Pravidelne kontroluje, ci boli B2B faktury uhradene v Superfakture, a podla vysledku aktualizuje stav platby objednavky v e-shope.",
+      "behavior": [
+        "Kontroluju sa len objednavky, ktore su neuhradene a maju fakturu odoslanu do Superfaktury",
+        "Kontroluju sa len B2B objednavky (objednavky firemnych zakaznikov)",
+        "Ak je faktura v Superfakture plne uhradena a suma sa zhoduje s celkovou cenou objednavky, objednavka sa oznaci ako uhradena",
+        "Ak je faktura uhradena ale suma je nizsia nez celkova cena objednavky, objednavka sa oznaci ako ciastocne uhradena",
+        "Kontrola sa spusta ako planovany prikaz (napr. cez cron)"
+      ],
+      "settings": [],
+      "verify_items": [
+        "[VERIFY] Presna frekvencia spustania kontroly platieb (zavisi od nastavenia cron-u)"
+      ]
+    },
+    {
+      "name": "Automaticke prihlasovanie do Ecomail",
+      "description": "Automaticky prihlasuje e-mailove adresy do zoznamov v Ecomail pri urcitych udalostiach na e-shope.",
+      "behavior": [
+        "Ked sa zakaznik prihlasi na odber newslettera, jeho e-mail sa automaticky posle do Ecomail",
+        "Ked zakaznik polozi otazku k produktu, jeho e-mail sa tiez prida do Ecomail zoznamu",
+        "Kazda jazykova mutacia e-shopu moze mat priradeny iny zoznam v Ecomail",
+        "Ak pre jazyk nie je nastaveny specificky zoznam, pouzije sa predvoleny",
+        "Ak odberatel uz existuje v Ecomail, jeho udaje sa aktualizuju",
+        "Ak sa odberatel predtym odhlasil, system ho znova prihlasi",
+        "Po prihlaseni sa spustia automaticke e-mailove scenare nastavene v Ecomail",
+        "S prihlasenim sa posielaju aj meno, priezvisko a pripadne vlastne polia",
+        "Bez platneho API kluca sa data neodosielaju"
+      ],
+      "settings": [
+        "API kluc pre Ecomail",
+        "Zapnutie/vypnutie integracie",
+        "Mapovanie jazykov e-shopu na zoznamy v Ecomail",
+        "Debug rezim"
+      ],
+      "verify_items": [
+        "[VERIFY] Ci sa double opt-in potvrdenie v produkcii preskakuje alebo nie (v kode je predvolene vypnute)"
+      ]
+    },
+    {
+      "name": "Feed objednavok pre Retino",
+      "description": "Generuje XML feed objednavok, ktory si sluuzba Retino pravidelne stiahne. Retino na zaklade objednavok odosiela zakaznikom ziadosti o recenzie a spravuje vratenia tovaru.",
+      "behavior": [
+        "Feed je dostupny na specialnej URL adrese chranenej tajnym klucom",
+        "Bez spravneho tajneho kluca sa feed nezobrazi",
+        "Feed obsahuje objednavky za poslednych 7 dni (alebo iny nastaveny casovy rozsah)",
+        "Casovy rozsah je mozne zmenit aj parametrom v URL pri konkretnom dotaze",
+        "Kazda objednavka vo feede obsahuje: cislo objednavky, kod faktury, datum, menu, sledovacie cislo zasielky",
+        "K objednavke sa posielaju udaje zakaznika: e-mail, telefon, fakturacna adresa, dodacia adresa",
+        "Polozky objednavky obsahuju: nazov produktu, kod, nazov varianty, vyrobcu, mnozstvo, vahu, ceny s DPH aj bez DPH",
+        "Osobitne polozky sa vytvaraju pre dopravu, platbu a zlavu",
+        "Doprava a platba sa zahrnaju len ak maju nenulovu cenu",
+        "Feed obsahuje aj odkaz do administracie na detail objednavky",
+        "Kod objednavky pouziva bud vlastny kod alebo ID podla nastavenia e-shopu",
+        "Feed sa moze volitelne komprimovat gzipom",
+        "XML sa generuje postupne po 25 objednavkach kvoli setreniu pamati"
+      ],
+      "settings": [
+        "Tajny kluc pre overenie pristupu",
+        "Casove obmedzenie (kolko dni dozadu)",
+        "Kompresia feedu (gzip)",
+        "Debug rezim (zobrazi XML v prehliadaci)"
+      ],
+      "verify_items": []
+    },
+    {
+      "name": "CJ Affiliate sledovanie",
+      "description": "Integruje sledovaci skript Commission Junction (CJ) do e-shopu. Sleduje navstevy zakaznikov na roznych typoch stranok a umoznuje priradenie konverzii k affiliate partnerom.",
+      "behavior": [
+        "Na kazdu stranku e-shopu sa vlozi sledovaci skript CJ s identifikatorom typu stranky",
+        "Parameter cjdata sa automaticky prenasa medzi strankami pri navigacii zakaznika",
+        "Na stranke kosika sa navyse posielaju detaily poloziek: ID produktu, jednotkova cena, mnozstvo, zlava a medzisucet kosika",
+        "Kazdy web (domena / jazykova mutacia) moze mat vlastnu CJ konfiguraciu s roznymi identifikatormi",
+        "System rozlisuje 11 typov stranok: hlavna stranka, oddelenie, kategoria, podkategoria, detail produktu, kosik, vysledky hladania, vyhladavac predajni, registracia, ucet zakaznika, potvrdenie konverzie"
+      ],
+      "settings": [
+        "Enterprise ID pre kazdy web",
+        "Action ID pre kazdy web",
+        "Tag ID pre kazdy web"
+      ],
+      "verify_items": [
+        "[VERIFY] Kde presne sa nastavuju CJ identifikatory (pravdepodobne v konfiguraci webu v administracii)",
+        "[VERIFY] Ci existuju implementacie pre vsetky typy stranok okrem Homepage, ProductDetail a Cart"
+      ]
+    },
+    {
+      "name": "Sprava prekladov cez Crowdin",
+      "description": "Prepaja e-shop s prekladatelskym nastrojom Crowdin. Umoznuje synchronizovat prekladove subory medzi e-shopom a Crowdin projektami, kde ich mozu prekladatelia spracovat.",
+      "behavior": [
+        "System sa pripoji k Crowdin cez API token",
+        "Podporuje beznu aj Enterprise verziu Crowdin",
+        "Enterprise verzia sa automaticky aktivuje ak je vyplneny nazov organizacie",
+        "V Enterprise rezime su navyse dostupne: skupiny a sablony workflow",
+        "Prekladove subory sa nahraju do Crowdin projektu cez docasne ulozisko (storage)",
+        "Pri aktualizacii existujuceho suboru sa zachovaju vsetky existujuce preklady a schvalenia",
+        "Projekty mozu byt zalozene na suboroch (napr. JSON/XLIFF) alebo na retazcoch",
+        "System umoznuje spravovat priecinky, subory a projekty v Crowdin"
+      ],
+      "settings": [
+        "Pristupovy token pre Crowdin API",
+        "Nazov organizacie (pre Enterprise verziu, volitelne)",
+        "Debug rezim"
+      ],
+      "verify_items": [
+        "[VERIFY] Ci existuje automaticka synchronizacia prekladov spat do e-shopu alebo sa riesii manualne",
+        "[VERIFY] Ktore prekladove subory sa synchronizuju (jazykove subory sablony, preklady obsahu, atd.)"
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "from": "Objednavka",
+      "to": "Faktura (Superfaktura)",
+      "type": "one-to-many",
+      "description": "Objednavka moze mat viacero faktur (ostra, zalohova, dobropis, danovy doklad), ktore sa vsetky synchronizuju do Superfaktury"
+    },
+    {
+      "from": "Faktura",
+      "to": "Superfaktura (externy system)",
+      "type": "one-to-one",
+      "description": "Kazda faktura v e-shope sa mapuje na jeden doklad v Superfakture cez externe ID"
+    },
+    {
+      "from": "Polozka faktury",
+      "to": "Superfaktura polozka (externy system)",
+      "type": "one-to-one",
+      "description": "Kazda polozka faktury sa mapuje na jednu polozku dokladu v Superfakture cez externe ID"
+    },
+    {
+      "from": "Zalohova faktura",
+      "to": "Danovy doklad",
+      "type": "one-to-one",
+      "description": "Danovy doklad z prijatej platby sa automaticky previaze so zalohovou fakturou pri synchronizacii do Superfaktury"
+    },
+    {
+      "from": "Jazykova mutacia",
+      "to": "Ecomail zoznam",
+      "type": "one-to-one",
+      "description": "Kazda jazykova mutacia e-shopu moze byt priradena k inemu zoznamu odberatelov v Ecomail"
+    },
+    {
+      "from": "Prihlasenie na newsletter",
+      "to": "Ecomail odberatel",
+      "type": "one-to-one",
+      "description": "Kazde prihlasenie na newsletter automaticky vytvori alebo aktualizuje odberatela v Ecomail"
+    },
+    {
+      "from": "Otazka k produktu",
+      "to": "Ecomail odberatel",
+      "type": "one-to-one",
+      "description": "Zakaznik, ktory polozi otazku k produktu, sa automaticky prihlasi na odber v Ecomail"
+    },
+    {
+      "from": "Objednavka",
+      "to": "Retino feed",
+      "type": "many-to-one",
+      "description": "Objednavky za poslednych N dni sa automaticky zahrnaju do XML feedu pre Retino"
+    },
+    {
+      "from": "Web",
+      "to": "CJ konfigurácia",
+      "type": "one-to-one",
+      "description": "Kazdy web (domena/jazykova mutacia) ma vlastne CJ sledovacie identifikatory"
+    },
+    {
+      "from": "Prekladovy subor",
+      "to": "Crowdin projekt",
+      "type": "many-to-one",
+      "description": "Prekladove subory sa nahraju do konkretneho Crowdin projektu, kde ich spracovavaju prekladatelia"
+    }
+  ],
+  "business_rules": [
+    {
+      "rule": "Ak faktura uz ma externe ID v Superfakture, system ju upravi namiesto vytvorenia novej",
+      "source": "libs/Integrations/Superfaktura/Superfaktura.php",
+      "verify": false
+    },
+    {
+      "rule": "OSS (One Stop Shop) sa aktivuje na fakture ak: odberatel je z EU krajiny, nema IC DPH a jeho krajina sa lisi od krajiny dodavatela",
+      "source": "libs/Integrations/Superfaktura/Superfaktura.php",
+      "verify": false
+    },
+    {
+      "rule": "Danovy doklad z prijatej platby (typ TAX_RECEIPT_RECEIVED_PAYMENT) sa v Superfakture mapuje na typ 'regular' s priznakom tax_document a prevazuje sa na prisluchajucu zalohovu fakturu",
+      "source": "libs/Integrations/Superfaktura/Superfaktura.php",
+      "verify": false
+    },
+    {
+      "rule": "Ostra faktura sa moze prevazat na zalohovu fakturu aj danovy doklad sucasne (obe ID sa poslu cez proforma_id oddelene ciarkou)",
+      "source": "libs/Integrations/Superfaktura/Superfaktura.php",
+      "verify": false
+    },
+    {
+      "rule": "Faktura sa oznaci ako uhradena ak je objednavka v stave 'uhradena'",
+      "source": "libs/Integrations/Superfaktura/Superfaktura.php",
+      "verify": false
+    },
+    {
+      "rule": "Zaokruhlenie sa na fakture zobrazi len ak je suma zaokruhlenia vacsia ako nula",
+      "source": "libs/Integrations/Superfaktura/Superfaktura.php",
+      "verify": false
+    },
+    {
+      "rule": "Neaktivne polozky faktury sa pri synchronizacii do Superfaktury preskakuju",
+      "source": "libs/Integrations/Superfaktura/Superfaktura.php",
+      "verify": false
+    },
+    {
+      "rule": "Polozky v Superfakture, ktore uz neexistuju v e-shope, sa pri synchronizacii automaticky zmazuju",
+      "source": "libs/Integrations/Superfaktura/Superfaktura.php",
+      "verify": false
+    },
+    {
+      "rule": "Kontrola platieb cez Superfakturu spracovava len B2B objednavky (non-B2B sa preskakuju)",
+      "source": "libs/Integrations/Superfaktura/Commands/PaymentsCheckCommand.php",
+      "verify": false
+    },
+    {
+      "rule": "Ak uhradena suma faktury zodpoveda celkovej cene objednavky, objednavka sa oznaci ako uhradena. Ak je nizsia, oznaci sa ako ciastocne uhradena",
+      "source": "libs/Integrations/Superfaktura/Commands/PaymentsCheckCommand.php",
+      "verify": false
+    },
+    {
+      "rule": "Ecomail integracia nevykona ziadnu akciu ak nie je nastaveny platny API kluc",
+      "source": "libs/Integrations/Ecomail/Ecomail.php",
+      "verify": false
+    },
+    {
+      "rule": "Ak pre danu jazykovu mutaciu nie je nastaveny specificky Ecomail zoznam, pouzije sa zoznam oznaceny ako 'default'",
+      "source": "libs/Integrations/Ecomail/Ecomail.php",
+      "verify": false
+    },
+    {
+      "rule": "Odberatelia sa v Ecomail vzdy aktualizuju ak uz existuju (update_existing: true) a znova prihlasuju ak sa predtym odhlasili (resubscribe: true)",
+      "source": "libs/Integrations/Ecomail/Entities/SubscriptionEntity.php",
+      "verify": false
+    },
+    {
+      "rule": "Automaticke e-mailove scenare v Ecomail sa po prihlaseni odberatela vzdy spustia (trigger_autoresponders: true)",
+      "source": "libs/Integrations/Ecomail/Entities/SubscriptionEntity.php",
+      "verify": false
+    },
+    {
+      "rule": "Retino feed je chraneny tajnym klucom - bez spravneho kluca sa feed nezobrazi (vrati chybu 404)",
+      "source": "libs/Integrations/Retino/RetinoFeedPresenter.php",
+      "verify": false
+    },
+    {
+      "rule": "Retino feed predvolene obsahuje objednavky za poslednych 7 dni, ale casovy rozsah je mozne zmenit v konfiguraci aj parametrom v URL",
+      "source": "libs/Integrations/Retino/Retino.php",
+      "verify": false
+    },
+    {
+      "rule": "Doprava a platba sa do Retino feedu zahrnu len ak maju nenulovu cenu",
+      "source": "libs/Integrations/Retino/Retino.php",
+      "verify": false
+    },
+    {
+      "rule": "XML feed pre Retino sa generuje postupne a zapisuje po 25 objednavkach kvoli optimalizacii pamati",
+      "source": "libs/Integrations/Retino/Retino.php",
+      "verify": false
+    },
+    {
+      "rule": "CJ parameter cjdata sa automaticky prenasa medzi vsetkymi strankami e-shopu (persistentny URL parameter)",
+      "source": "libs/Integrations/CJ/CjPresenterIntegration.php",
+      "verify": false
+    },
+    {
+      "rule": "CJ sledovanie na stranke kosika posiela detaily kazdy polozky: ID produktu, jednotkovu cenu s DPH, mnozstvo a zlavu",
+      "source": "libs/Integrations/CJ/Types/Cart.php",
+      "verify": false
+    },
+    {
+      "rule": "Crowdin Enterprise rezim sa automaticky aktivuje ak je v konfiguraci vyplneny nazov organizacie",
+      "source": "libs/Integrations/Crowdin/Crowdin.php",
+      "verify": false
+    },
+    {
+      "rule": "Pri aktualizacii prekladoveho suboru v Crowdin sa zachovaju vsetky existujuce preklady a schvalenia (rezim keep_translations_and_approvals)",
+      "source": "libs/Integrations/Crowdin/Crowdin.php",
+      "verify": false
+    }
+  ]
+}

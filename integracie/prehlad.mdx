@@ -1,0 +1,268 @@
+---
+title: "Integrácie"
+description: "Prehľad externých služieb prepojených s vaším e-shopom - fakturácia, e-mailový marketing, recenzie, affiliate sledovanie a preklady."
+---
+
+{/* Generated from: libs/Integrations/Superfaktura/*.php, libs/Integrations/Ecomail/*.php, libs/Integrations/Retino/*.php, libs/Integrations/CJ/*.php, libs/Integrations/Crowdin/*.php | 2026-03-19T00:00:00Z */}
+
+Venalio sa prepája s niekoľkými externými službami, ktoré rozširujú možnosti vášho e-shopu. Každá integrácia funguje samostatne a vyžaduje vlastné nastavenie. Na tejto stránke nájdete prehľad všetkých dostupných integrácií, ich správanie a čo je potrebné nakonfigurovať.
+
+---
+
+## Superfaktúra
+
+Superfaktúra je fakturačný systém, do ktorého Venalio automaticky odosiela faktúry. Vďaka tomuto prepojeniu nemusíte faktúry vytvárať ručne na dvoch miestach - systém sa postará o synchronizáciu.
+
+### Čo integrácia robí
+
+- Keď v e-shope vznikne nová [faktúra](/faktury/prehlad), systém ju automaticky odošle do Superfaktúry
+- Keď existujúcu faktúru upravíte, zmeny sa premietnu aj do Superfaktúry
+- Ak faktúra ešte v Superfaktúre neexistuje, vytvorí sa nová. Ak už existuje, systém ju aktualizuje
+- Faktúry môžete exportovať aj hromadne zo zoznamu faktúr v administrácii
+
+### Synchronizované údaje
+
+Na faktúru sa prenášajú kompletné údaje:
+
+- **Údaje odberateľa** - názov firmy alebo meno, e-mail, telefón, IČO, DIČ, IČ DPH, fakturačná a dodacia adresa
+- **Položky faktúry** - názov, množstvo, kód produktu, jednotka, cena bez dane a percento dane
+- **Typ dokladu** - ostrá faktúra, zálohová faktúra, dobropis, dodací list, cenová ponuka a ďalšie
+- **Jazyk faktúry** - systém automaticky zvolí jazyk podľa [jazykovej mutácie](/nastavenia/web) objednávky (podporuje 14 jazykov vrátane slovenčiny, češtiny, angličtiny a nemčiny)
+
+### Automatické správanie
+
+- Neaktívne položky faktúry sa pri synchronizácii preskakujú
+- Položky, ktoré existujú v Superfaktúre ale už nie sú na faktúre v e-shope, systém automaticky zmaže
+- Daňový doklad z prijatej platby sa automaticky previaže so zálohovou faktúrou
+- Ostrá faktúra sa môže previazať na zálohovú faktúru aj daňový doklad súčasne
+- Faktúra sa označí ako uhradená, ak je [objednávka](/objednavky/prehlad) v stave "uhradená"
+- Zaokrúhlenie sa na faktúre zobrazí len ak je suma zaokrúhlenia väčšia ako nula
+- Chybové správy zo Superfaktúry sa zobrazujú priamo v administrácii
+
+### OSS režim (One Stop Shop)
+
+Systém automaticky nastavuje príznak OSS na faktúrach pre správne zdaňovanie pri predaji do krajín EÚ. OSS sa aktivuje ak sú splnené všetky tieto podmienky:
+
+- Odberateľ je z krajiny EÚ
+- Odberateľ nemá IČ DPH
+- Krajina odberateľa sa líši od krajiny dodávateľa
+
+Vo všetkých ostatných prípadoch sa OSS vypne.
+
+### Kontrola platieb
+
+Systém pravidelne kontroluje, či boli B2B faktúry uhradené v Superfaktúre, a podľa výsledku aktualizuje stav [platby](/platby/prehlad) objednávky v e-shope.
+
+- Kontrolujú sa len neuhradené objednávky, ktoré majú faktúru odoslanú do Superfaktúry
+- Kontrolujú sa len B2B objednávky (objednávky firemných zákazníkov)
+- Ak je faktúra plne uhradená a suma sa zhoduje s celkovou cenou objednávky, objednávka sa označí ako uhradená
+- Ak je uhradená suma nižšia ako celková cena, objednávka sa označí ako čiastočne uhradená
+- Kontrola sa spúšťa ako naplánovaný príkaz (cron)
+
+<Warning>Presná frekvencia spúšťania kontroly platieb závisí od nastavenia cron-u na serveri. [VERIFY]</Warning>
+
+### Konfigurácia
+
+Na prepojenie so Superfaktúrou potrebujete nastaviť:
+
+- **E-mail** - prihlasovací e-mail do vášho účtu v Superfaktúre
+- **API kľúč** - prístupový kľúč, ktorý nájdete v nastaveniach Superfaktúry
+- **ID firmy** - vyplňte len ak máte v Superfaktúre viacero firiem pod jedným účtom
+- **Sandbox režim** - zapne testovacie prostredie, faktúry sa nevytvoria naozaj (vhodné na overenie pred ostrým spustením)
+- **Debug režim** - faktúry sa neodošlú, len sa zobrazujú diagnostické správy
+- **Automatická synchronizácia** - zapne alebo vypne automatické odosielanie faktúr pri každom vytvorení alebo úprave
+
+[SCREENSHOT: Nastavenia integrácie Superfaktúra v administrácii - formulár s poľami pre e-mail, API kľúč, ID firmy a prepínačmi pre sandbox, debug a automatickú synchronizáciu]
+
+<Frame><img src="/images/placeholder.png" /><caption>Nastavenia integrácie Superfaktúra v administrácii</caption></Frame>
+
+---
+
+## Ecomail
+
+Ecomail je nástroj na e-mailový marketing. Integrácia automaticky prihlasuje zákazníkov do vašich zoznamov odberateľov v Ecomail, takže nemusíte kontakty prenášať ručne.
+
+### Čo integrácia robí
+
+- Keď sa [zákazník](/zakaznici/prehlad) prihlási na odber [newslettera](/newsletter/prehlad), jeho e-mail sa automaticky pošle do Ecomail
+- Keď zákazník položí otázku k [produktu](/produkty/prehlad), jeho e-mail sa tiež pridá do zoznamu v Ecomail
+- Po prihlásení sa spustia automatické e-mailové scenáre, ktoré máte nastavené v Ecomail
+
+### Viacjazyčný e-shop
+
+Každá [jazyková mutácia](/nastavenia/web) vášho e-shopu môže mať priradený iný zoznam odberateľov v Ecomail. Napríklad:
+
+- Slovenská verzia e-shopu prihlasuje do slovenského zoznamu
+- Česká verzia do českého zoznamu
+- Ak pre konkrétny jazyk nemáte priradený zoznam, systém použije predvolený
+
+### Automatické správanie
+
+- Ak odberateľ už v Ecomail existuje, systém aktualizuje jeho údaje (meno, priezvisko)
+- Ak sa odberateľ predtým odhlásil, systém ho znovu prihlási
+- Bez platného API kľúča sa žiadne dáta neodošlú
+- S prihlásením sa posielajú aj meno a priezvisko zákazníka
+
+<Warning>Nie je potvrdené, či sa v produkčnom prostredí vyžaduje potvrdenie odberu cez e-mail (double opt-in), alebo sa preskakuje. [VERIFY]</Warning>
+
+### Konfigurácia
+
+Na prepojenie s Ecomail potrebujete nastaviť:
+
+- **API kľúč** - prístupový kľúč z vášho účtu v Ecomail
+- **Zapnuté** - hlavný prepínač integrácie (zapne alebo vypne celú integráciu)
+- **Mapovanie jazykov na zoznamy** - priradenie každej jazykovej mutácie k zoznamu odberateľov v Ecomail
+- **Debug režim** - dáta sa neodošlú do Ecomail, len sa zobrazujú diagnostické správy
+
+[SCREENSHOT: Nastavenia integrácie Ecomail v administrácii - API kľúč, hlavný prepínač a mapovanie jazykových mutácií na zoznamy]
+
+<Frame><img src="/images/placeholder.png" /><caption>Nastavenia integrácie Ecomail v administrácii</caption></Frame>
+
+---
+
+## Retino
+
+Retino je služba na správu recenzií a vrátení tovaru. Integrácia generuje XML feed vašich objednávok, ktorý si Retino pravidelne sťahuje. Na základe týchto dát Retino odosiela zákazníkom žiadosti o recenzie a spravuje proces vrátenia tovaru.
+
+### Čo integrácia robí
+
+- Systém sprístupní špeciálnu URL adresu s feedom vašich [objednávok](/objednavky/prehlad)
+- Retino si tento feed pravidelne sťahuje
+- Feed obsahuje objednávky za posledných 7 dní (predvolene)
+- Na základe objednávok Retino kontaktuje zákazníkov a žiada ich o recenzie
+
+### Čo feed obsahuje
+
+Každá objednávka vo feede obsahuje:
+
+- **Základné údaje** - číslo objednávky, kód faktúry, dátum, mena, sledovacie číslo zásielky
+- **Údaje zákazníka** - e-mail, telefón, fakturačná adresa, dodacia adresa
+- **Položky objednávky** - názov produktu, kód, názov varianty, výrobca, množstvo, váha, ceny s [DPH](/nastavenia/dph) aj bez DPH
+- **Osobitné položky** - [doprava](/doprava/prehlad), [platba](/platby/prehlad) a [zľava](/zlavy/prehlad) (len ak majú nenulovú cenu)
+- **Odkaz** do administrácie na detail objednávky
+
+### Zabezpečenie
+
+Feed je chránený tajným kľúčom. Bez správneho kľúča sa feed nezobrazí - systém vráti chybu. To znamená, že k vašim dátam objednávok sa dostane len ten, kto pozná kľúč.
+
+### Konfigurácia
+
+Na prepojenie s Retino potrebujete nastaviť:
+
+- **Tajný kľúč** - heslo na overenie prístupu k feedu objednávok
+- **Časové obmedzenie** - ako ďaleko do minulosti sa objednávky zahŕňajú do feedu (predvolene 7 dní)
+- **Kompresia feedu** - zapne gzip kompresiu pre rýchlejší prenos (vhodné pri veľkom počte objednávok)
+- **Debug režim** - namiesto súboru na stiahnutie zobrazí XML priamo v prehliadači (vhodné na kontrolu obsahu)
+
+<Note>Časový rozsah feedu je možné zmeniť aj jednorazovo priamo v URL adrese pri konkrétnom dotaze, bez zmeny globálneho nastavenia.</Note>
+
+[SCREENSHOT: Nastavenia integrácie Retino v administrácii - tajný kľúč, časové obmedzenie a prepínače pre kompresiu a debug]
+
+<Frame><img src="/images/placeholder.png" /><caption>Nastavenia integrácie Retino v administrácii</caption></Frame>
+
+---
+
+## CJ (Commission Junction)
+
+CJ je affiliate platforma, ktorá umožňuje sledovať návštevníkov prichádzajúcich cez affiliate partnerov a správne im priradiť konverzie (nákupy). Integrácia vkladá na stránky e-shopu sledovací skript CJ.
+
+### Čo integrácia robí
+
+- Na každú stránku e-shopu sa vloží sledovací skript CJ
+- Skript identifikuje typ stránky, na ktorej sa zákazník nachádza
+- Parameter sledovania sa automaticky prenáša medzi stránkami pri navigácii zákazníka
+- Na stránke [košíka](/kosik/prehlad) sa navyše posielajú detaily položiek: ID produktu, jednotková cena, množstvo a zľava
+
+### Typy sledovaných stránok
+
+Systém rozlišuje 11 typov stránok a pre každý odosiela príslušný typ udalosti:
+
+- Hlavná stránka
+- Oddelenie
+- [Kategória](/kategorie/prehlad)
+- Podkategória
+- Detail [produktu](/produkty/prehlad)
+- [Košík](/kosik/prehlad)
+- Výsledky hľadania
+- Vyhľadávač predajní
+- Registrácia
+- Účet zákazníka
+- Potvrdenie konverzie
+
+<Warning>Nie je potvrdené, či sú implementované sledovacie skripty pre všetky typy stránok okrem hlavnej stránky, detailu produktu a košíka. [VERIFY]</Warning>
+
+### Viacero webov
+
+Každý [web](/nastavenia/web) (doména alebo jazyková mutácia) môže mať vlastnú konfiguráciu CJ s rôznymi identifikátormi. To umožňuje sledovať affiliate výkon pre každý web samostatne.
+
+### Konfigurácia
+
+Na prepojenie s CJ potrebujete pre každý web nastaviť:
+
+- **Enterprise ID** - identifikátor vašej firmy v systéme CJ
+- **Action ID** - identifikátor akcie (konverzie) v systéme CJ
+- **Tag ID** - identifikátor sledovacieho skriptu v systéme CJ
+
+<Warning>Nie je potvrdené, kde presne sa CJ identifikátory nastavujú - pravdepodobne v konfigurácii webu v administrácii. [VERIFY]</Warning>
+
+[SCREENSHOT: Nastavenia CJ integrácie - polia pre Enterprise ID, Action ID a Tag ID]
+
+<Frame><img src="/images/placeholder.png" /><caption>Nastavenia CJ affiliate sledovania</caption></Frame>
+
+---
+
+## Crowdin
+
+Crowdin je nástroj na správu prekladov. Integrácia umožňuje synchronizovať prekladové súbory medzi e-shopom a Crowdin projektmi, kde ich spracovávajú prekladatelia.
+
+### Čo integrácia robí
+
+- Prekladové súbory z e-shopu sa nahrávajú do Crowdin projektu
+- Prekladatelia pracujú na prekladoch priamo v Crowdin rozhraní
+- Pri aktualizácii existujúceho súboru sa zachovajú všetky existujúce preklady a schválenia - nič sa nestratí
+- Systém umožňuje spravovať priečinky, súbory a projekty v Crowdin
+
+### Bežná a Enterprise verzia
+
+Crowdin ponúka bežnú a Enterprise verziu. Systém automaticky rozpozná, ktorú verziu používate:
+
+- Ak vyplníte názov organizácie, systém aktivuje Enterprise režim
+- V Enterprise režime sú navyše dostupné skupiny a šablóny workflow
+- Ak názov organizácie nevyplníte, systém použije bežnú verziu
+
+### Typy projektov
+
+Crowdin projekty môžu byť založené na:
+
+- **Súboroch** - napríklad JSON alebo XLIFF súbory s prekladmi
+- **Reťazcoch** - jednotlivé texty na preklad
+
+<Warning>Nie je potvrdené, či existuje automatická synchronizácia prekladov späť do e-shopu, alebo sa preklady prenášajú manuálne. [VERIFY]</Warning>
+
+<Warning>Nie je potvrdené, ktoré konkrétne prekladové súbory sa synchronizujú (jazykové súbory šablóny, preklady obsahu a podobne). [VERIFY]</Warning>
+
+### Konfigurácia
+
+Na prepojenie s Crowdin potrebujete nastaviť:
+
+- **Prístupový token** - autorizačný token z vášho účtu v Crowdin
+- **Organizácia** - názov organizácie v Crowdin (vyplňte len ak používate Enterprise verziu)
+- **Debug režim** - zapne ladenie integrácie
+
+[SCREENSHOT: Nastavenia integrácie Crowdin v administrácii - prístupový token, názov organizácie a debug prepínač]
+
+<Frame><img src="/images/placeholder.png" /><caption>Nastavenia integrácie Crowdin v administrácii</caption></Frame>
+
+---
+
+## Súhrn integrácií
+
+| Integrácia | Účel | Typ prepojenia |
+|---|---|---|
+| Superfaktúra | Synchronizácia faktúr a kontrola platieb | Automatické odosielanie cez API |
+| Ecomail | Prihlasovanie odberateľov do e-mailových zoznamov | Automatické odosielanie cez API |
+| Retino | Feed objednávok pre recenzie a vrátenia | XML feed (Retino si dáta sťahuje) |
+| CJ | Affiliate sledovanie návštevníkov a konverzií | Sledovací skript na stránkach |
+| Crowdin | Správa prekladov e-shopu | Synchronizácia súborov cez API |
+
+<Tip>Každú integráciu nastavujete nezávisle. Ak niektorú službu nepoužívate, jednoducho ju nenakonfigurujte alebo ju vypnite - nebude ovplyvňovať chod e-shopu.</Tip>

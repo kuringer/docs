@@ -1,0 +1,804 @@
+{
+  "domain": "Marketing",
+  "source_files": [
+    "app/Facades/NewsletterFacade.php",
+    "app/Facades/SmsFacade.php",
+    "app/Facades/CookiesFacade.php",
+    "app/Model/Settings/NewslettersSettings.php",
+    "app/Model/Settings/SmsSettings.php",
+    "app/Model/Settings/PriceComparersSettings.php",
+    "app/Model/Enums/NewsletterMessageSendStatesEnum.php",
+    "app/Model/Enums/CookieCategoriesEnum.php",
+    "app/Model/Enums/CookieTypesEnum.php",
+    "app/Model/Enums/PriceComparersEnum.php",
+    "app/Model/Repositories/NewsletterMessagesRepository.php",
+    "app/Model/Repositories/NewsletterAddressesRepository.php",
+    "app/Model/Repositories/NewsletterAddressCategoriesRepository.php",
+    "app/Model/Repositories/NewsletterMessageSendsRepository.php",
+    "app/Model/Repositories/ReviewsRepository.php",
+    "app/Model/Repositories/SmsRepository.php",
+    "app/Model/Repositories/ConsentsRepository.php",
+    "app/Model/Repositories/CookiesRepository.php",
+    "app/Model/Repositories/PriceComparerSettingsRepository.php",
+    "app/BackendModule/MarketingModule/Presenters/NewsletterMessagesPresenter.php",
+    "app/BackendModule/MarketingModule/Presenters/NewsletterAddressesPresenter.php",
+    "app/BackendModule/MarketingModule/Presenters/NewsletterAddressCategoriesPresenter.php",
+    "app/BackendModule/MarketingModule/Presenters/ComparisonsPresenter.php",
+    "app/BackendModule/MarketingModule/Presenters/ConsentsPresenter.php",
+    "app/BackendModule/MarketingModule/Presenters/CookiesPresenter.php",
+    "app/BackendModule/StoreModule/Presenters/ReviewsPresenter.php",
+    "app/Commands/Eshop/NewsletterSendCommand.php",
+    "app/Commands/Eshop/ReviewsAskCommand.php",
+    "app/Commands/Eshop/SmsSendCommand.php",
+    "app/Domain/SMS/SmsMessage.php",
+    "app/Domain/SMS/SmsResponse.php",
+    "app/Infrastructure/SMS/BulkGateSmsSender.php"
+  ],
+  "generated_at": "2026-03-19T12:00:00Z",
+  "entities": [
+    {
+      "name": "Newslettrová správa",
+      "name_en": "Newsletter Message",
+      "description": "Hromadný e-mail, ktorý sa posiela odberateľom. Skladá sa z blokov (nadpis, text, obrázok, produkty, tlačidlo) a posiela sa na naplánovaný dátum a čas.",
+      "fields": [
+        {
+          "name": "Predmet",
+          "type": "text",
+          "description": "Predmet e-mailu. Podporuje premenné %firstName% a %surname% pre personalizáciu.",
+          "verify": false
+        },
+        {
+          "name": "Náhľadový text",
+          "type": "text",
+          "description": "Krátky text, ktorý sa zobrazí ako úryvok v e-mailovom klientovi (napr. Gmail). Podporuje premenné %firstName% a %surname%.",
+          "verify": false
+        },
+        {
+          "name": "Vlastné HTML",
+          "type": "text",
+          "description": "Voliteľné vlastné HTML telo e-mailu. Ak je vyplnené, použije sa namiesto blokového obsahu.",
+          "verify": false
+        },
+        {
+          "name": "Bloky obsahu (elementy)",
+          "type": "text",
+          "description": "Zoznam obsahových blokov newslettra uložený v JSON formáte. Typy blokov: Nadpis, Text, Obrázok, Produkty, Tlačidlo, CTA tlačidlo, Medzera.",
+          "verify": false
+        },
+        {
+          "name": "Kategórie",
+          "type": "text",
+          "description": "Zoznam kategórií odberateľov, ktorým sa newsletter posiela. Ak nie sú vybrané žiadne, pošle sa všetkým.",
+          "verify": false
+        },
+        {
+          "name": "Web / jazyk",
+          "type": "relation",
+          "description": "Konkrétny web a jazyk, pre ktorý je newsletter určený.",
+          "verify": false
+        },
+        {
+          "name": "Stav odoslania",
+          "type": "enum",
+          "description": "Aktuálny stav odosielania newslettra.",
+          "values": ["Vytvorený", "Spracováva sa", "Pozastavený", "Odoslaný"],
+          "verify": false
+        },
+        {
+          "name": "Dátum a čas odoslania",
+          "type": "text",
+          "description": "Naplánovaný dátum a čas, kedy sa newsletter začne posielať.",
+          "verify": false
+        },
+        {
+          "name": "Generovanie kupónu",
+          "type": "boolean",
+          "description": "Ak je zapnuté, každý príjemca dostane v e-maili unikátny zľavový kupón.",
+          "verify": false
+        },
+        {
+          "name": "Percentuálna zľava kupónu",
+          "type": "number",
+          "description": "Výška percentuálnej zľavy generovaného kupónu.",
+          "verify": false
+        },
+        {
+          "name": "Exspirácia kupónu v dňoch",
+          "type": "number",
+          "description": "Počet dní, po ktorých kupón vyprší.",
+          "verify": false
+        },
+        {
+          "name": "Prefix kupónu",
+          "type": "text",
+          "description": "Voliteľný prefix pre kód generovaného kupónu.",
+          "verify": false
+        },
+        {
+          "name": "Počet odoslaní",
+          "type": "number",
+          "description": "Celkový počet adries, na ktoré bol newsletter odoslaný.",
+          "verify": false
+        },
+        {
+          "name": "Počet otvorení",
+          "type": "number",
+          "description": "Celkový počet adries, ktoré newsletter otvorili.",
+          "verify": false
+        },
+        {
+          "name": "Počet odhlásení",
+          "type": "number",
+          "description": "Celkový počet adries, ktoré sa cez tento newsletter odhlásili z odberu.",
+          "verify": false
+        }
+      ]
+    },
+    {
+      "name": "Newslettrová adresa",
+      "name_en": "Newsletter Address",
+      "description": "E-mailová adresa prihlásená k odberu newslettrov. Obsahuje informácie o prihlásení/odhlásení a štatistiky otvorení.",
+      "fields": [
+        {
+          "name": "E-mail",
+          "type": "text",
+          "description": "E-mailová adresa odberateľa.",
+          "verify": false
+        },
+        {
+          "name": "Meno",
+          "type": "text",
+          "description": "Krstné meno odberateľa.",
+          "verify": false
+        },
+        {
+          "name": "Priezvisko",
+          "type": "text",
+          "description": "Priezvisko odberateľa.",
+          "verify": false
+        },
+        {
+          "name": "Web",
+          "type": "relation",
+          "description": "Web, ku ktorému je adresa prihlásená.",
+          "verify": false
+        },
+        {
+          "name": "Jazyk",
+          "type": "relation",
+          "description": "Jazyková mutácia, v ktorej odberateľ dostáva newslettre.",
+          "verify": false
+        },
+        {
+          "name": "Dátum prihlásenia",
+          "type": "text",
+          "description": "Dátum, kedy sa adresa prihlásila k odberu.",
+          "verify": false
+        },
+        {
+          "name": "Dátum odhlásenia",
+          "type": "text",
+          "description": "Dátum odhlásenia z odberu. Ak je vyplnené, adresa je odhlásená.",
+          "verify": false
+        },
+        {
+          "name": "Hash",
+          "type": "text",
+          "description": "Náhodný kód pre identifikáciu pri odhlásení a double opt-in.",
+          "verify": false
+        },
+        {
+          "name": "Počet odoslaní",
+          "type": "number",
+          "description": "Koľko newslettrov bolo na túto adresu odoslaných.",
+          "verify": false
+        },
+        {
+          "name": "Počet otvorení",
+          "type": "number",
+          "description": "Koľko newslettrov táto adresa otvorila.",
+          "verify": false
+        }
+      ]
+    },
+    {
+      "name": "Kategória newslettrových adries",
+      "name_en": "Newsletter Address Category",
+      "description": "Skupina odberateľov. Umožňuje rozdeliť odberateľov do kategórií a posielať im cielené newslettre.",
+      "fields": [
+        {
+          "name": "Názov",
+          "type": "text",
+          "description": "Názov kategórie odberateľov.",
+          "verify": false
+        },
+        {
+          "name": "Kód",
+          "type": "text",
+          "description": "Interný kód kategórie. Viditeľný len pre vývojárov.",
+          "verify": false
+        },
+        {
+          "name": "Stav",
+          "type": "enum",
+          "description": "Stav kategórie.",
+          "values": ["Aktívna", "Zmazaná"],
+          "verify": false
+        }
+      ]
+    },
+    {
+      "name": "Odoslanie newslettrovej správy",
+      "name_en": "Newsletter Message Send",
+      "description": "Záznam o odoslaní konkrétneho newslettra na konkrétnu adresu. Sleduje otvorenie a odhlásenie.",
+      "fields": [
+        {
+          "name": "Hash",
+          "type": "text",
+          "description": "Unikátny kód pre sledovanie otvorenia a odhlásenia.",
+          "verify": false
+        },
+        {
+          "name": "Dátum otvorenia",
+          "type": "text",
+          "description": "Kedy príjemca otvoril newsletter.",
+          "verify": false
+        },
+        {
+          "name": "Dátum odhlásenia",
+          "type": "text",
+          "description": "Kedy sa príjemca cez tento newsletter odhlásil z odberu.",
+          "verify": false
+        }
+      ]
+    },
+    {
+      "name": "SMS správa",
+      "name_en": "SMS Message",
+      "description": "SMS správa odosielaná zákazníkovi. Správy sa zaraďujú do fronty a odosielajú automaticky cez externú službu BulkGate.",
+      "fields": [
+        {
+          "name": "Príjemca",
+          "type": "text",
+          "description": "Telefónne číslo príjemcu SMS.",
+          "verify": false
+        },
+        {
+          "name": "Správa",
+          "type": "text",
+          "description": "Text SMS správy.",
+          "verify": false
+        },
+        {
+          "name": "Počet znakov",
+          "type": "number",
+          "description": "Počet znakov v SMS správe.",
+          "verify": false
+        },
+        {
+          "name": "Meno odosielateľa",
+          "type": "text",
+          "description": "Meno, pod ktorým sa SMS zobrazí príjemcovi.",
+          "verify": false
+        },
+        {
+          "name": "Naplánované odoslanie",
+          "type": "text",
+          "description": "Voliteľný dátum a čas, kedy sa SMS odošle. Ak nie je vyplnené, odošle sa ihneď.",
+          "verify": false
+        },
+        {
+          "name": "Externé ID",
+          "type": "text",
+          "description": "ID pridelené externou službou po odoslaní.",
+          "verify": false
+        },
+        {
+          "name": "Stav",
+          "type": "text",
+          "description": "Stav odoslania z externej služby (napr. 'accepted').",
+          "verify": false
+        },
+        {
+          "name": "Odoslaná",
+          "type": "boolean",
+          "description": "Či bola SMS úspešne odoslaná.",
+          "verify": false
+        }
+      ]
+    },
+    {
+      "name": "Recenzia",
+      "name_en": "Review",
+      "description": "Hodnotenie produktu od zákazníka. Recenzie sa zobrazujú na stránke produktu a môžu byť schválené alebo zamietnuté.",
+      "fields": [
+        {
+          "name": "Externé ID",
+          "type": "text",
+          "description": "ID recenzie z externého systému, ak bola importovaná.",
+          "verify": true
+        },
+        {
+          "name": "Stav",
+          "type": "enum",
+          "description": "Stav recenzie - aktívna, neaktívna alebo zmazaná.",
+          "values": ["Aktívna", "Neaktívna", "Zmazaná"],
+          "verify": true
+        }
+      ]
+    },
+    {
+      "name": "Cookie",
+      "name_en": "Cookie",
+      "description": "Záznam o konkrétnom cookie, ktoré e-shop používa. Každé cookie patrí do kategórie a má preložiteľný popis pre návštevníkov.",
+      "fields": [
+        {
+          "name": "Názov",
+          "type": "text",
+          "description": "Technický názov cookie (napr. _ga, session_id).",
+          "verify": false
+        },
+        {
+          "name": "Doména",
+          "type": "text",
+          "description": "Doména, na ktorej cookie funguje.",
+          "verify": false
+        },
+        {
+          "name": "Typ",
+          "type": "enum",
+          "description": "Či ide o cookie prvej alebo tretej strany.",
+          "values": ["Prvej strany", "Tretej strany"],
+          "verify": false
+        },
+        {
+          "name": "Kategória",
+          "type": "enum",
+          "description": "Do akej kategórie cookie patrí.",
+          "values": ["Povinné", "Funkčné", "Analytické", "Marketingové"],
+          "verify": false
+        },
+        {
+          "name": "Popis",
+          "type": "text",
+          "description": "Popis cookie pre návštevníkov e-shopu. Preložiteľný do viacerých jazykov.",
+          "verify": false
+        },
+        {
+          "name": "Stav",
+          "type": "enum",
+          "description": "Stav cookie záznamu.",
+          "values": ["Aktívna", "Neaktívna", "Zmazaná"],
+          "verify": false
+        }
+      ]
+    },
+    {
+      "name": "Súhlas návštevníka",
+      "name_en": "Consent",
+      "description": "Záznam o súhlase konkrétneho návštevníka s kategóriami cookies. Systém sleduje každú reláciu návštevníka a eviduje, s čím súhlasil.",
+      "fields": [
+        {
+          "name": "ID relácie",
+          "type": "text",
+          "description": "Identifikátor relácie návštevníka.",
+          "verify": false
+        },
+        {
+          "name": "Súhlas - Povinné",
+          "type": "boolean",
+          "description": "Súhlas s povinnými cookies. Vždy zapnuté.",
+          "verify": false
+        },
+        {
+          "name": "Súhlas - Funkčné",
+          "type": "boolean",
+          "description": "Súhlas s funkčnými cookies.",
+          "verify": false
+        },
+        {
+          "name": "Súhlas - Analytické",
+          "type": "boolean",
+          "description": "Súhlas s analytickými cookies.",
+          "verify": false
+        },
+        {
+          "name": "Súhlas - Marketingové",
+          "type": "boolean",
+          "description": "Súhlas s marketingovými cookies.",
+          "verify": false
+        },
+        {
+          "name": "Dátum aktualizácie súhlasu",
+          "type": "text",
+          "description": "Kedy návštevník naposledy potvrdil alebo zmenil svoj súhlas.",
+          "verify": false
+        },
+        {
+          "name": "Posledná návšteva",
+          "type": "text",
+          "description": "Kedy návštevník naposledy navštívil e-shop.",
+          "verify": false
+        }
+      ]
+    },
+    {
+      "name": "Nastavenia porovnávača cien",
+      "name_en": "Price Comparer Settings",
+      "description": "Nastavenia pre integráciu s porovnávačom cien (napr. Heuréka). Konfigurácia pre konkrétny web a jazykovú mutáciu.",
+      "fields": [
+        {
+          "name": "Typ porovnávača",
+          "type": "enum",
+          "description": "Typ porovnávača cien.",
+          "values": ["Heuréka"],
+          "verify": false
+        },
+        {
+          "name": "ID na porovnávači",
+          "type": "text",
+          "description": "Identifikátor e-shopu na porovnávači cien.",
+          "verify": false
+        },
+        {
+          "name": "Kľúč merania konverzií",
+          "type": "text",
+          "description": "Kľúč pre meranie konverzií na Heuréke. Špecifické pre Heuréku.",
+          "verify": false
+        },
+        {
+          "name": "Web / jazyk",
+          "type": "relation",
+          "description": "Jazyková mutácia webu, pre ktorú platia nastavenia.",
+          "verify": false
+        }
+      ]
+    }
+  ],
+  "features": [
+    {
+      "name": "Hromadné posielanie newslettrov",
+      "description": "Systém umožňuje vytvárať a posielať hromadné e-maily (newslettre) odberateľom. Newsletter sa skladá z blokov obsahu, podporuje personalizáciu a automatické generovanie kupónov.",
+      "behavior": [
+        "Newsletter sa posiela automaticky podľa naplánovaného dátumu a času.",
+        "Ak nie sú vybrané žiadne kategórie odberateľov, newsletter sa pošle všetkým prihláseným adresám pre daný web a jazyk.",
+        "Ak sú vybrané kategórie, newsletter sa pošle iba odberateľom v týchto kategóriách.",
+        "Systém posiela iba na adresy, ktoré nie sú odhlásené (unsubscribed).",
+        "Systém pred odoslaním skontroluje, či newsletter nebol medzitým pozastavený alebo zmazaný - ak áno, prestane posielať.",
+        "Newsletter, ktorý sa práve posiela (stav Spracováva sa), je možné pozastaviť a neskôr pokračovať v odosielaní.",
+        "Systém sleduje, komu už bol newsletter odoslaný, a neposiela duplicitne.",
+        "Ak je zapnuté generovanie kupónov, každý príjemca dostane unikátny jednorázový zľavový kupón s nastavenou percentuálnou zľavou a exspiráciou.",
+        "V predmete a texte sa dajú použiť premenné %firstName%, %surname% a %couponCode%.",
+        "Systém podporuje paralelné odosielanie cez MOD clustering (max 5 paralelných procesov).",
+        "Po odoslaní každých 100 e-mailov sa prepočítajú štatistiky správy.",
+        "Newsletter možno vytvoriť ako kópiu existujúceho newslettra (šablóna).",
+        "Newsletter možno uložiť ako koncept pred odoslaním. Koncept sa automaticky ukladá.",
+        "Pred odoslaním je možné odoslať ukážku na testovací e-mail."
+      ],
+      "settings": [
+        "Newsletter funkciu je možné globálne zapnúť/vypnúť.",
+        "Cielenie na konkrétny web a jazykovú mutáciu.",
+        "Cielenie na kategórie odberateľov."
+      ],
+      "verify_items": []
+    },
+    {
+      "name": "Blokový editor newslettra",
+      "description": "Newsletter sa vytvára z obsahových blokov, ktoré je možné pridávať, upravovať, mazať a meniť ich poradie.",
+      "behavior": [
+        "Dostupné typy blokov: Nadpis (s voliteľným zarovnaním), Text (s editorom), Obrázok (s voliteľným odkazom), Produkty (výber zo zoznamu aktívnych produktov), Tlačidlo (text, URL, zarovnanie), CTA tlačidlo (text nad tlačidlom, URL, zarovnanie), Medzera (malá alebo veľká).",
+        "Bloky sa ukladajú v JSON formáte a ich poradie je možné meniť drag-and-drop.",
+        "Ak je vyplnené vlastné HTML, použije sa prioritne namiesto blokového obsahu.",
+        "V bloku Produkty sa zobrazujú produkty s cenami podľa predvolenej cenovej hladiny pre daný web."
+      ],
+      "settings": [],
+      "verify_items": []
+    },
+    {
+      "name": "Správa odberateľov newslettra",
+      "description": "Administrácia e-mailových adries prihlásených k odberu newslettrov. Umožňuje filtrovanie, hromadné operácie a import.",
+      "behavior": [
+        "Odberateľov je možné filtrovať podľa: e-mailu, mena, priezviska, webu, kategórie, stavu prihlásenia, dátumu prihlásenia/odhlásenia, počtu odoslaní a otvorení.",
+        "Hromadné operácie: pridať do kategórie, zmazať z kategórie, prihlásiť, odhlásiť, zmazať.",
+        "Import odberateľov z CSV súboru (oddeľovač čiarka alebo bodkočiarka). Súbor musí mať hlavičku 'email' a voliteľné stĺpce 'meno' a 'priezvisko'.",
+        "Pri importe sa preskočia neplatné e-mailové adresy a už prihlásené adresy.",
+        "Import sa vykonáva s uzamknutím - nie je možné spustiť dva importy naraz.",
+        "Manuálne pridanie odberateľa s overením, či e-mail ešte nie je prihlásený na danom webe.",
+        "Odberateľa je možné odhlásiť a opätovne prihlásiť."
+      ],
+      "settings": [],
+      "verify_items": []
+    },
+    {
+      "name": "Double opt-in prihlásenie k newslettru",
+      "description": "Voliteľné dvojkrokové prihlásenie k odberu newslettrov. Odberateľ musí potvrdiť prihlásenie kliknutím na odkaz v e-maili.",
+      "behavior": [
+        "Ak je zapnutý double opt-in, nová adresa sa najprv uloží ako odhlásená.",
+        "Systém odošle potvrdzovací e-mail s predmetom 'Dokončenie prihlásenia k odberu newslettrov'.",
+        "E-mail obsahuje odkaz s unikátnym hash kódom na dokončenie prihlásenia.",
+        "Po prihlásení sa vyvolá udalosť (event), ktorú môžu spracovať ďalšie časti systému."
+      ],
+      "settings": [],
+      "verify_items": [
+        "[VERIFY] Nie je zrejmé, kde presne sa double opt-in zapína/vypína - pravdepodobne sa riadi parametrom pri volaní z frontendu."
+      ]
+    },
+    {
+      "name": "Sledovanie štatistík newslettrov",
+      "description": "Systém automaticky sleduje štatistiky newslettrov - počet odoslaní, otvorení a odhlásení.",
+      "behavior": [
+        "Otvorenie newslettra sa sleduje (pravdepodobne cez sledovací pixel).",
+        "Pri otvorení sa zaznamenáva dátum a čas.",
+        "Pri odhlásení cez newsletter sa zaznamenáva dátum na úrovni konkrétneho odoslania aj na úrovni adresy.",
+        "Štatistiky sa prepočítavajú asynchrónne po otvorení alebo odhlásení.",
+        "Na úrovni správy sa sleduje: celkový počet odoslaní, otvorení a odhlásení.",
+        "Na úrovni adresy sa sleduje: celkový počet odoslaní a otvorení."
+      ],
+      "settings": [],
+      "verify_items": []
+    },
+    {
+      "name": "SMS notifikácie",
+      "description": "Systém umožňuje odosielať SMS správy zákazníkom cez externú službu BulkGate. SMS sa zaraďujú do fronty a odosielajú automaticky.",
+      "behavior": [
+        "SMS správy sa najprv uložia do fronty s príjemcom, textom a voliteľným časom odoslania.",
+        "Automatický proces periodicky kontroluje frontu a odosiela neodoslané SMS.",
+        "SMS sa odosiela iba ak je odosielateľ (sender) v aktívnom stave.",
+        "Ak je nastavený čas odoslania (send_at), SMS sa odošle až po tomto čase.",
+        "Po odoslaní sa uloží externé ID, stav a príznak úspešného odoslania.",
+        "Odosielanie používa službu BulkGate s podporou Unicode znakov.",
+        "Meno odosielateľa (sender name) sa zobrazí príjemcovi namiesto telefónneho čísla.",
+        "Každý web/jazyková mutácia môže mať vlastného odosielateľa SMS.",
+        "Systém používa uzamknutie, aby sa neodoslala tá istá SMS dvakrát."
+      ],
+      "settings": [
+        "SMS funkciu je možné globálne zapnúť/vypnúť."
+      ],
+      "verify_items": [
+        "[VERIFY] Nie je zrejmé, pri akých udalostiach sa SMS automaticky odosielajú (pravdepodobne zmeny stavu objednávky, ale toto nie je viditeľné z analyzovaných súborov)."
+      ]
+    },
+    {
+      "name": "Automatické požiadavky na recenzie",
+      "description": "Systém automaticky posiela zákazníkom e-mail so žiadosťou o ohodnotenie produktov z ich objednávky.",
+      "behavior": [
+        "E-mail sa posiela automaticky každý deň o 9:00.",
+        "Systém vyberá objednávky, ktoré boli odoslané (stav Odoslaná) pred nastaveným počtom dní.",
+        "E-mail sa posiela iba ak objednávka nie je externá (nemá external_id) a ešte nebol odoslaný e-mail so žiadosťou.",
+        "Funkcia berie do úvahy iba objednávky vytvorené od 1.11.2024.",
+        "Po odoslaní sa objednávka označí príznakom, aby sa e-mail neposlal znova.",
+        "E-mail sa posiela na kontaktný e-mail zákazníka v príslušnom jazyku."
+      ],
+      "settings": [
+        "Počet dní od odoslania objednávky do odoslania požiadavky na recenziu (predvolene 14 dní).",
+        "Funkciu je možné globálne zapnúť/vypnúť cez nastavenie hodnotení (ratings.enabled)."
+      ],
+      "verify_items": [
+        "[VERIFY] Nie je jasné, aké polia recenzia obsahuje (text, hodnotenie, autor) - entita Reviews nemá definované polia v analyzovanom kóde."
+      ]
+    },
+    {
+      "name": "Správa recenzií",
+      "description": "Administrácia recenzií produktov. Recenzie je možné schvaľovať, deaktivovať a mazať.",
+      "behavior": [
+        "Recenzie sa zobrazujú zoradené od najnovšej.",
+        "Recenzie majú stavy: aktívna, neaktívna, zmazaná.",
+        "Stav recenzie je možné meniť (schváliť/deaktivovať) cez zmenu stavu."
+      ],
+      "settings": [],
+      "verify_items": [
+        "[VERIFY] Nie je zrejmé, či zákazníci pridávajú recenzie priamo na e-shope alebo len cez externý systém - z kódu je viditeľné iba external_id pole."
+      ]
+    },
+    {
+      "name": "Správa cookies a súhlasov (GDPR)",
+      "description": "Systém eviduje cookies používané na e-shope a spravuje súhlasy návštevníkov s ich používaním podľa GDPR.",
+      "behavior": [
+        "Cookies sú rozdelené do 4 kategórií: Povinné (vždy aktívne), Funkčné, Analytické, Marketingové.",
+        "Cookies sú buď prvej strany (vlastné) alebo tretej strany (externé).",
+        "Každé cookie má preložiteľný popis pre návštevníkov.",
+        "Pre každého návštevníka sa vytvára záznam o súhlase viazaný na jeho reláciu.",
+        "Povinné cookies sú vždy povolené, ostatné kategórie si návštevník volí.",
+        "Návštevník môže prijať všetky cookies, odmietnuť všetky (okrem povinných), alebo vybrať jednotlivé kategórie.",
+        "Lišta so súhlasom sa zobrazí znova: vždy po 1 roku od posledného súhlasu, alebo skôr (podľa nastavenia), ak návštevník nedal úplný súhlas.",
+        "Pre vyhľadávacie roboty (crawlery) sa lišta nezobrazuje a povolené sú iba povinné cookies.",
+        "Čas poslednej návštevy sa aktualizuje maximálne raz za 15 minút.",
+        "V administrácii je zoznam všetkých zaznamenaných súhlasov."
+      ],
+      "settings": [
+        "Cookie wall režim - zapnutie/vypnutie blokovania obsahu.",
+        "Veľkosť lišty: Malá alebo Veľká.",
+        "Tlačidlo Odmietnuť všetky: Žiadne, Malé alebo Veľké.",
+        "Počet dní po ktorých sa lišta znova zobrazí pri neúplnom súhlase (predvolene 7 dní).",
+        "Prednastavené súhlasy pre nových návštevníkov: zvlášť pre Funkčné, Analytické a Marketingové cookies."
+      ],
+      "verify_items": []
+    },
+    {
+      "name": "Integrácia s porovnávačmi cien",
+      "description": "Systém umožňuje nastaviť integráciu s porovnávačmi cien. Aktuálne je podporovaná Heuréka (SK a CZ).",
+      "behavior": [
+        "Porovnávač Heuréka je dostupný pre slovenské a české jazykové mutácie.",
+        "Pre každý web/jazykovú mutáciu sa nastavuje ID e-shopu na porovnávači.",
+        "Pre Heuréku je možné nastaviť kľúč merania konverzií.",
+        "Nastavenia sú viazané na konkrétnu jazykovú mutáciu webu."
+      ],
+      "settings": [
+        "Porovnávače cien je možné globálne zapnúť/vypnúť.",
+        "ID e-shopu na porovnávači cien.",
+        "Kľúč merania konverzií (špecifické pre Heuréku)."
+      ],
+      "verify_items": [
+        "[VERIFY] Nie je zrejmé, či systém generuje XML feed pre Heuréku alebo len integruje meranie konverzií - z tohto kódu je viditeľná len konfigurácia, nie generovanie feedu.",
+        "[VERIFY] Porovnávač 'SlovakEuro' sa v šablóne zobrazuje pre SK mutácie, ale nie je definovaný v PriceComparersEnum."
+      ]
+    },
+    {
+      "name": "Kategórie newslettrových adries",
+      "description": "Správa kategórií pre segmentáciu odberateľov newslettra. Umožňuje rozdeliť odberateľov do skupín a posielať cielené newslettre.",
+      "behavior": [
+        "Každá kategória má názov a voliteľný kód (kód je prístupný len vývojárom).",
+        "Kategórie sa soft-delete mazajú (zachovávajú sa v databáze).",
+        "Odberateľ môže patriť do viacerých kategórií súčasne.",
+        "Kategórie sa dajú vytvárať aj programovo podľa kódu - ak kategória s daným kódom existuje, použije sa existujúca."
+      ],
+      "settings": [],
+      "verify_items": []
+    }
+  ],
+  "relationships": [
+    {
+      "from": "Newslettrová správa",
+      "to": "Kategória newslettrových adries",
+      "type": "many-to-many",
+      "description": "Newsletter sa môže posielať viacerým kategóriám odberateľov a jedna kategória môže dostávať viacero newslettrov."
+    },
+    {
+      "from": "Newslettrová správa",
+      "to": "Odoslanie newslettrovej správy",
+      "type": "one-to-many",
+      "description": "Jeden newsletter má záznam o odoslaní pre každú adresu, na ktorú bol poslaný."
+    },
+    {
+      "from": "Newslettrová adresa",
+      "to": "Odoslanie newslettrovej správy",
+      "type": "one-to-many",
+      "description": "Jedna adresa má záznamy o všetkých newslettroch, ktoré jej boli odoslané."
+    },
+    {
+      "from": "Newslettrová adresa",
+      "to": "Kategória newslettrových adries",
+      "type": "many-to-many",
+      "description": "Odberateľ môže patriť do viacerých kategórií a kategória obsahuje viacerých odberateľov."
+    },
+    {
+      "from": "Newslettrová adresa",
+      "to": "Web",
+      "type": "many-to-one",
+      "description": "Adresa je prihlásená k odberu na konkrétnom webe."
+    },
+    {
+      "from": "Newslettrová správa",
+      "to": "Web",
+      "type": "many-to-one",
+      "description": "Newsletter je určený pre konkrétny web a jazyk."
+    },
+    {
+      "from": "SMS správa",
+      "to": "Odosielateľ SMS",
+      "type": "many-to-one",
+      "description": "SMS správa je odosielaná cez konkrétneho odosielateľa, ktorý definuje meno a konfiguráciu."
+    },
+    {
+      "from": "Cookie",
+      "to": "Súhlas návštevníka",
+      "type": "many-to-many",
+      "description": "Cookies sú zaradené do kategórií a súhlasy sa evidujú na úrovni kategórií, nie jednotlivých cookies."
+    },
+    {
+      "from": "Nastavenia porovnávača cien",
+      "to": "Jazyková mutácia",
+      "type": "many-to-one",
+      "description": "Nastavenia porovnávača sú viazané na konkrétnu jazykovú mutáciu webu."
+    },
+    {
+      "from": "Recenzia",
+      "to": "Objednávka",
+      "type": "many-to-one",
+      "description": "Systém odosiela žiadosti o recenzie na základe objednávok. Objednávka eviduje, či bola žiadosť odoslaná.",
+      "verify": true
+    }
+  ],
+  "business_rules": [
+    {
+      "rule": "Jeden e-mail môže byť prihlásený k odberu newslettra na konkrétnom webe iba raz. Duplicitné prihlásenie sa ignoruje.",
+      "source": "app/Facades/NewsletterFacade.php",
+      "verify": false
+    },
+    {
+      "rule": "Pri opätovnom prihlásení odhlásanej adresy sa nastaví nový dátum prihlásenia a vygeneruje sa nový hash.",
+      "source": "app/Facades/NewsletterFacade.php",
+      "verify": false
+    },
+    {
+      "rule": "Newsletter sa posiela iba ak má stav Vytvorený alebo Spracováva sa, je aktívny a naplánovaný čas odoslania už uplynul.",
+      "source": "app/Commands/Eshop/NewsletterSendCommand.php",
+      "verify": false
+    },
+    {
+      "rule": "Systém uprednostňuje pokračovanie v rozpracovanom (Spracováva sa) newslettri pred začatím nového (Vytvorený).",
+      "source": "app/Commands/Eshop/NewsletterSendCommand.php",
+      "verify": false
+    },
+    {
+      "rule": "Newsletter, ktorý už bol odoslaný alebo sa práve posiela, nie je možné upraviť - kategórie a dátum odoslania sú uzamknuté. Konceptové tlačidlá sú skryté.",
+      "source": "app/BackendModule/MarketingModule/Presenters/NewsletterMessagesPresenter.php",
+      "verify": false
+    },
+    {
+      "rule": "Pozastavenie je možné iba počas stavu Spracováva sa. Pokračovanie je možné iba zo stavu Pozastavený.",
+      "source": "app/BackendModule/MarketingModule/Presenters/NewsletterMessagesPresenter.php",
+      "verify": false
+    },
+    {
+      "rule": "SMS sa neodošle, ak odosielateľ (sender) nie je v aktívnom stave.",
+      "source": "app/Facades/SmsFacade.php",
+      "verify": false
+    },
+    {
+      "rule": "SMS s naplánovaným odoslaním (send_at) sa odošle až po uplynutí naplánovaného času.",
+      "source": "app/Commands/Eshop/SmsSendCommand.php",
+      "verify": false
+    },
+    {
+      "rule": "Súhlas s povinnými cookies je vždy aktívny a nedá sa vypnúť.",
+      "source": "app/Facades/CookiesFacade.php",
+      "verify": false
+    },
+    {
+      "rule": "Súhlas s cookies sa musí obnoviť po 1 roku od posledného udelenia, bez ohľadu na rozsah súhlasu.",
+      "source": "app/Facades/CookiesFacade.php",
+      "verify": false
+    },
+    {
+      "rule": "Ak návštevník neudelil úplný súhlas (všetky kategórie), lišta sa znova zobrazí po nastavenom počte dní (predvolene 7).",
+      "source": "app/Facades/CookiesFacade.php",
+      "verify": false
+    },
+    {
+      "rule": "Vyhľadávacím robotom (crawlerom) sa cookie lišta nezobrazuje a sú im povolené iba povinné cookies.",
+      "source": "app/Facades/CookiesFacade.php",
+      "verify": false
+    },
+    {
+      "rule": "Žiadosť o recenziu sa posiela iba pre objednávky bez externého ID (nie importované objednávky).",
+      "source": "app/Commands/Eshop/ReviewsAskCommand.php",
+      "verify": false
+    },
+    {
+      "rule": "Žiadosť o recenziu sa posiela iba raz - po odoslaní sa objednávka označí príznakom review_mail_sent.",
+      "source": "app/Commands/Eshop/ReviewsAskCommand.php",
+      "verify": false
+    },
+    {
+      "rule": "Automatické žiadosti o recenzie sa spúšťajú iba ak sú hodnotenia (ratings) globálne zapnuté.",
+      "source": "app/Commands/Eshop/ReviewsAskCommand.php",
+      "verify": false
+    },
+    {
+      "rule": "Heuréka integrácia je dostupná iba pre slovenské a české jazykové mutácie.",
+      "source": "app/BackendModule/MarketingModule/Presenters/ComparisonsPresenter.php",
+      "verify": false
+    },
+    {
+      "rule": "Generovaný kupón v newslettri je jednorázový, percentuálny a platí pre retailovú kategóriu zákazníkov. Nie je kombikovateľný so zľavami.",
+      "source": "app/Commands/Eshop/NewsletterSendCommand.php",
+      "verify": false
+    },
+    {
+      "rule": "Import newslettrových adries je zabezpečený súborovým zámkom - dva simultánne importy nie sú povolené.",
+      "source": "app/BackendModule/MarketingModule/Presenters/NewsletterAddressesPresenter.php",
+      "verify": false
+    }
+  ]
+}

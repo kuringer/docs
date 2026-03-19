@@ -74,6 +74,32 @@
               "obsah/stranky-a-elementy",
               "obsah/media-a-seo"
             ]
+          },
+          {
+            "group": "Marketing",
+            "pages": [
+              "marketing/newsletter",
+              "marketing/recenzie-a-sms"
+            ]
+          },
+          {
+            "group": "Sklad a predajne",
+            "pages": [
+              "sklad/prehlad"
+            ]
+          },
+          {
+            "group": "Integrácie",
+            "pages": [
+              "integracie/prehlad"
+            ]
+          },
+          {
+            "group": "Systém",
+            "pages": [
+              "system/pristupove-prava",
+              "system/weby-a-preklady"
+            ]
           }
         ]
       }

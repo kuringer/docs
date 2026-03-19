@@ -1,0 +1,255 @@
+---
+title: "Newsletter"
+description: "Hromadné e-maily pre odberateľov - tvorba správ, správa odberateľov, sledovanie štatistík, cookies a integrácia s Heurékou"
+---
+
+{/* Generated from: NewsletterFacade.php, CookiesFacade.php, NewsletterMessagesPresenter.php, NewsletterAddressesPresenter.php, NewsletterAddressCategoriesPresenter.php, NewsletterSendCommand.php, ConsentsPresenter.php, CookiesPresenter.php, ComparisonsPresenter.php, NewslettersSettings.php, PriceComparersSettings.php, CookieCategoriesEnum.php, CookieTypesEnum.php, PriceComparersEnum.php | 2026-03-19T12:00:00Z */}
+
+Newsletter slúži na posielanie hromadných e-mailov vašim odberateľom. Správy vytvárate pomocou blokového editora, cielite na konkrétne skupiny odberateľov a systém automaticky sleduje otvorenia aj odhlásenia.
+
+## Ako newsletter funguje
+
+Každý newsletter prechádza týmito fázami:
+
+1. **Vytvorenie** - pripravíte obsah, vyberiete príjemcov a naplánujete čas odoslania
+2. **Odosielanie** - systém automaticky začne posielať v naplánovanom čase
+3. **Sledovanie** - systém zaznamenáva otvorenia a odhlásenia
+
+Newsletter sa posiela iba na adresy, ktoré nie sú odhlásené z odberu. Ak nevyberiete žiadnu kategóriu odberateľov, newsletter sa pošle všetkým prihláseným adresám pre daný web a jazyk. Ak vyberiete kategórie, dostanú ho iba odberatelia v týchto kategóriách.
+
+<Note>Newsletter funkciu je možné globálne zapnúť alebo vypnúť v nastaveniach.</Note>
+
+## Stavy newslettra
+
+Každá newslettrová správa má jeden z týchto stavov:
+
+- **Vytvorený** - newsletter je pripravený na odoslanie, ale ešte sa nezačal posielať
+- **Spracováva sa** - systém práve posiela e-maily odberateľom
+- **Pozastavený** - odosielanie bolo dočasne zastavené, je možné ho obnoviť
+- **Odoslaný** - všetky e-maily boli úspešne odoslané
+
+Pozastavenie je možné iba počas stavu "Spracováva sa". Pokračovanie v odosielaní je možné iba zo stavu "Pozastavený". Systém si pamätá, komu už newsletter odoslal, a po obnovení pokračuje tam, kde prestal.
+
+Newsletter, ktorý sa už posiela alebo bol odoslaný, nie je možné upraviť. Kategórie príjemcov a dátum odoslania sa uzamknú.
+
+## Blokový editor
+
+Obsah newslettra vytvárate z blokov, ktoré pridávate, upravujete, mažete a meníte ich poradie.
+
+### Dostupné typy blokov
+
+- **Nadpis** - textový nadpis s voliteľným zarovnaním
+- **Text** - formátovaný text (s editorom)
+- **Obrázok** - obrázok s voliteľným odkazom
+- **Produkty** - výber produktov zo zoznamu, zobrazujú sa s cenami podľa predvolenej cenovej hladiny pre daný web
+- **Tlačidlo** - tlačidlo s textom, odkazom a zarovnaním
+- **CTA tlačidlo** - tlačidlo s textom nad ním, odkazom a zarovnaním
+- **Medzera** - vizuálna medzera (malá alebo veľká)
+
+Poradie blokov je možné meniť potiahnutím (drag-and-drop).
+
+[SCREENSHOT: Blokový editor newslettra s ukážkou rôznych typov blokov]
+
+<Frame><img src="/images/placeholder.png" /><caption>Blokový editor newslettra</caption></Frame>
+
+### Vlastné HTML
+
+Ak potrebujete úplnú kontrolu nad vzhľadom newslettra, vyplňte pole "Vlastné HTML". V tom prípade systém použije vaše HTML namiesto blokového obsahu.
+
+## Personalizácia a premenné
+
+V predmete e-mailu, náhľadovom texte a obsahu správy môžete použiť tieto premenné:
+
+- `%firstName%` - krstné meno odberateľa
+- `%surname%` - priezvisko odberateľa
+- `%couponCode%` - kód vygenerovaného kupónu (ak je zapnuté generovanie kupónov)
+
+## Generovanie kupónov
+
+Pri vytváraní newslettra môžete zapnúť automatické generovanie kupónov. Každý príjemca potom dostane v e-maili unikátny zľavový kupón.
+
+Nastavenia kupónu:
+
+- **Percentuálna zľava** - výška zľavy v percentách
+- **Exspirácia v dňoch** - počet dní, po ktorých kupón vyprší
+- **Prefix** - voliteľný prefix pre kód kupónu (napríklad "LETO-")
+
+Vygenerovaný kupón je jednorázový, percentuálny a platí pre retailovú kategóriu zákazníkov. Nie je možné ho kombinovať s inými zľavami.
+
+Kód kupónu vložíte do textu pomocou premennej `%couponCode%`.
+
+## Testovanie pred odoslaním
+
+Pred naplánovaním odoslania si môžete poslať testovaciu ukážku na ľubovoľný e-mail. Takto si overíte, ako newsletter vyzerá v e-mailovom klientovi.
+
+Newsletter je možné uložiť ako koncept a vracať sa k nemu neskôr. Koncept sa automaticky ukladá.
+
+Newsletter je možné vytvoriť aj ako kópiu existujúceho newslettra, čo ušetrí čas pri opakovaných kampaniach.
+
+## Správa odberateľov
+
+### Zoznam odberateľov
+
+Odberateľov je možné filtrovať podľa:
+
+- E-mailu, mena a priezviska
+- Webu a kategórie
+- Stavu prihlásenia (prihlásený / odhlásený)
+- Dátumu prihlásenia alebo odhlásenia
+- Počtu odoslaní a otvorení
+
+[SCREENSHOT: Zoznam odberateľov newslettra s filtrami]
+
+<Frame><img src="/images/placeholder.png" /><caption>Zoznam odberateľov newslettra</caption></Frame>
+
+### Hromadné operácie
+
+S viacerými odberateľmi naraz je možné:
+
+- Pridať do kategórie
+- Odstrániť z kategórie
+- Prihlásiť k odberu
+- Odhlásiť z odberu
+- Zmazať
+
+### Pridanie odberateľa
+
+Odberateľa pridáte manuálne zadaním e-mailovej adresy. Systém overí, či e-mail ešte nie je prihlásený na danom webe. Jeden e-mail môže byť prihlásený k odberu na konkrétnom webe iba raz.
+
+Odhlásená adresa sa dá opätovne prihlásiť. Pri opätovnom prihlásení systém nastaví nový dátum prihlásenia.
+
+### Import odberateľov
+
+Odberateľov je možné hromadne importovať z CSV súboru.
+
+<Steps>
+  <Step title="Pripravte CSV súbor">
+    Súbor musí mať hlavičku `email`. Voliteľné stĺpce: `meno` a `priezvisko`. Oddeľovač: čiarka alebo bodkočiarka.
+  </Step>
+  <Step title="Nahrajte súbor v administrácii">
+    V sekcii odberateľov newslettra zvoľte import a vyberte súbor.
+  </Step>
+  <Step title="Skontrolujte výsledok">
+    Systém preskočí neplatné e-mailové adresy a adresy, ktoré sú už prihlásené. Po importe sa zobrazí súhrn.
+  </Step>
+</Steps>
+
+<Note>Import je chránený proti súbežnému spusteniu. Nie je možné spustiť dva importy naraz.</Note>
+
+## Kategórie odberateľov
+
+Kategórie umožňujú rozdeliť odberateľov do skupín a posielať im cielené newslettre. Napríklad môžete mať kategóriu "VIP zákazníci" alebo "Záujemcovia o novinky".
+
+- Každá kategória má názov
+- Odberateľ môže patriť do viacerých kategórií súčasne
+- Pri vytváraní newslettra vyberiete, ktorým kategóriám sa má poslať
+
+[SCREENSHOT: Správa kategórií odberateľov]
+
+<Frame><img src="/images/placeholder.png" /><caption>Kategórie odberateľov</caption></Frame>
+
+## Double opt-in
+
+Double opt-in je dvojkrokové overenie prihlásenia k odberu. Keď sa návštevník prihlási k newslettru:
+
+1. Systém uloží adresu ako nepotvrdenú
+2. Na zadaný e-mail sa odošle správa s predmetom "Dokončenie prihlásenia k odberu newslettrov"
+3. E-mail obsahuje odkaz na potvrdenie prihlásenia
+4. Až po kliknutí na odkaz sa adresa aktivuje a začne dostávať newslettre
+
+<Warning>Táto informácia vyžaduje overenie. [VERIFY] Nie je jasné, kde presne sa double opt-in zapína alebo vypína v administrácii.</Warning>
+
+## Sledovanie štatistík
+
+Systém automaticky sleduje tri kľúčové metriky pre každý newsletter:
+
+- **Počet odoslaní** - koľkým odberateľom bol newsletter odoslaný
+- **Počet otvorení** - koľko odberateľov newsletter otvorilo
+- **Počet odhlásení** - koľko odberateľov sa cez tento newsletter odhlásilo z odberu
+
+Na úrovni jednotlivého odberateľa systém eviduje celkový počet odoslaní a otvorení naprieč všetkými newslettrami.
+
+Štatistiky sa prepočítavajú priebežne - po každom otvorení alebo odhlásení.
+
+[SCREENSHOT: Štatistiky newslettra - prehľad odoslaní, otvorení a odhlásení]
+
+<Frame><img src="/images/placeholder.png" /><caption>Štatistiky newslettra</caption></Frame>
+
+## Dôležité vedieť
+
+- Systém uprednostňuje pokračovanie v rozpracovanom newslettri pred začatím nového
+- Odosielanie prebieha automaticky a podporuje paralelné spracovanie (až 5 súbežných procesov)
+- Po odoslaní každých 100 e-mailov sa prepočítajú štatistiky správy
+- Systém pri každom odoslaní kontroluje, či newsletter nebol medzitým pozastavený alebo zmazaný
+
+---
+
+## Cookies a súhlasy (GDPR)
+
+Systém eviduje cookies používané na vašom e-shope a spravuje súhlasy návštevníkov podľa GDPR.
+
+### Kategórie cookies
+
+Cookies sú rozdelené do štyroch kategórií:
+
+- **Povinné** - nevyhnutné pre fungovanie e-shopu, sú vždy aktívne a nedajú sa vypnúť
+- **Funkčné** - zlepšujú používateľský zážitok (napr. zapamätanie preferencií)
+- **Analytické** - slúžia na meranie návštevnosti a správania
+- **Marketingové** - používané na cielenie reklám a remarketing
+
+Každé cookie je buď "prvej strany" (vaše vlastné) alebo "tretej strany" (externé služby). Ku každému cookie môžete pridať popis v rôznych jazykoch, ktorý sa zobrazí návštevníkom.
+
+### Cookie lišta
+
+Návštevníkovi sa pri prvej návšteve zobrazí lišta so žiadosťou o súhlas s cookies. Návštevník má tri možnosti:
+
+- Prijať všetky cookies
+- Odmietnuť všetky (okrem povinných)
+- Vybrať jednotlivé kategórie
+
+Lišta sa zobrazí znova v týchto prípadoch:
+
+- Po 1 roku od posledného súhlasu (bez ohľadu na rozsah súhlasu)
+- Po nastavenom počte dní (predvolene 7), ak návštevník neudelil úplný súhlas
+
+Pre vyhľadávacie roboty (Google, Bing a pod.) sa lišta nezobrazuje a povolené sú iba povinné cookies.
+
+### Nastavenia cookie lišty
+
+- **Cookie wall** - zapnutie alebo vypnutie blokovania obsahu pokiaľ návštevník neudelí súhlas
+- **Veľkosť lišty** - malá alebo veľká
+- **Tlačidlo Odmietnuť všetky** - žiadne, malé alebo veľké
+- **Počet dní na opätovné zobrazenie** - po koľkých dňoch sa lišta znova zobrazí pri neúplnom súhlase (predvolene 7)
+- **Prednastavené súhlasy** - pre nových návštevníkov môžete prednastaviť súhlas zvlášť pre funkčné, analytické a marketingové cookies
+
+[SCREENSHOT: Nastavenia cookie lišty v administrácii]
+
+<Frame><img src="/images/placeholder.png" /><caption>Nastavenia cookie lišty</caption></Frame>
+
+### Evidencia súhlasov
+
+V administrácii máte k dispozícii zoznam všetkých zaznamenaných súhlasov. Pre každého návštevníka systém eviduje, s ktorými kategóriami cookies súhlasil a kedy naposledy potvrdil alebo zmenil svoj súhlas.
+
+---
+
+## Integrácia s porovnávačmi cien
+
+Systém umožňuje nastaviť integráciu s porovnávačmi cien. Aktuálne je podporovaná **Heuréka** pre slovenské a české jazykové mutácie.
+
+### Nastavenia pre Heuréku
+
+Pre každú jazykovú mutáciu webu nastavíte:
+
+- **ID e-shopu na Heuréke** - identifikátor vášho e-shopu
+- **Kľúč merania konverzií** - pre sledovanie konverzií z Heuréky
+
+<Note>Porovnávače cien je možné globálne zapnúť alebo vypnúť v nastaveniach.</Note>
+
+<Warning>Táto informácia vyžaduje overenie. [VERIFY] Nie je jasné, či systém automaticky generuje XML feed pre Heuréku, alebo slúži iba na integráciu merania konverzií.</Warning>
+
+<Warning>Táto informácia vyžaduje overenie. [VERIFY] Porovnávač "SlovakEuro" sa zobrazuje pre slovenské mutácie, ale jeho podpora nemusí byť úplná.</Warning>
+
+## Súvisiace funkcie
+
+- [Kupóny](/kupony/prehlad) - zľavové kódy generované cez newsletter
+- [Objednávky](/objednavky/prehlad) - objednávky, na základe ktorých sa posielajú žiadosti o recenzie
