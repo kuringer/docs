@@ -3,9 +3,9 @@
   "theme": "mint",
   "name": "Venalio Dokumentácia",
   "colors": {
-    "primary": "#1E40AF",
-    "light": "#3B82F6",
-    "dark": "#1E3A8A"
+    "primary": "#0B3A32",
+    "light": "#D1F8C9",
+    "dark": "#D1F8C9"
   },
   "favicon": "/favicon.svg",
   "navigation": {
