@@ -301,7 +301,7 @@ Mark [VERIFY] items with Warning tags.
 
 ### Agent: reviewer (faktická kontrola)
 
-Kontroluje správnosť vygenerovanej dokumentácie voči kódu a discovery dátam. Model: Claude Opus 4.6.
+Kontroluje správnosť vygenerovanej dokumentácie voči kódu a discovery dátam. Model: GPT-5.3-Codex (OpenAI).
 
 ```
 Review the Venalio product overview page for FACTUAL ACCURACY.
@@ -336,7 +336,7 @@ Output a structured list of issues:
 
 ### Agent: oracle (strategická komunikácia)
 
-Kontroluje vhodnosť a presvedčivosť komunikácie z pohľadu potenciálneho klienta. Model: Claude Opus 4.6.
+Kontroluje vhodnosť a presvedčivosť komunikácie z pohľadu potenciálneho klienta. Model: GPT-5.4 (OpenAI).
 
 ```
 Review the Venalio product overview page from a STRATEGIC
@@ -386,7 +386,7 @@ Na základe tohto review bola stránka prepracovaná - feature tabulky presunute
 
 ### Orchestrácia
 
-Všetky agenty riadi hlavný orchestračný agent (Claude Sonnet 4.6), ktorý:
+Všetky agenty riadi hlavný orchestračný agent (Claude Sonnet 4), ktorý:
 
 1. Analyzuje štruktúru kódu a identifikuje domény
 2. Mapuje kľúčové súbory per doména (Facades, Forms, Settings, Enums, Repositories)
