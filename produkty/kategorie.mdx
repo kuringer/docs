@@ -1,128 +1,108 @@
 ---
-title: "Kategórie produktov"
-description: "Stromová štruktúra kategórií, zaradenie produktov a pravidlá predvolenej kategórie."
+title: "Kategórie"
+description: "Stromová štruktúra kategórií, zaradenie produktov do kategórií a predvolená kategória"
 ---
 
-{/* Generated from: app/Model/Repositories/CategoriesRepository.php, app/Facades/ProductsFacade.php | 2026-03-19T12:00:00Z */}
+{/* Generated from: CategoriesRepository.php, ProductsFacade.php | 2026-03-19T12:00:00Z */}
 
-Kategórie organizujú produkty do prehľadnej stromovej štruktúry. Zákazník sa v katalógu pohybuje cez kategórie a podkategórie, kým nenájde, čo hľadá. Každý produkt môže byť zaradený vo viacerých kategóriách naraz - jedna z nich je vždy predvolená.
+Kategória je skupina produktov podľa typu - napríklad "Oblečenie", "Elektronika" alebo "Doplnky". Kategórie tvoria stromovú štruktúru, kde každá kategória môže mať podkategórie. Zákazník prehliada katalóg cez túto štruktúru.
 
----
+## Stromová štruktúra
 
-## Stromová štruktúra kategórií
+Kategórie sú usporiadané do stromu s neobmedzenou hĺbkou. Koreňová kategória nemá nadradenú kategóriu. Každá ďalšia kategória má práve jednu nadradenú.
 
-Kategórie tvoria strom: každá kategória môže mať ľubovoľný počet podkategórií, ktoré môžu mať ďalšie podkategórie. Hĺbka stromu nie je technicky obmedzená.
+**Príklad:**
+- Oblečenie (koreňová)
+  - Pánske
+    - Tričká
+    - Nohavice
+  - Dámske
+    - Šaty
+    - Blúzky
 
-Príklad:
-```
-Elektronika
-├── Mobilné telefóny
-│   ├── Apple
-│   └── Samsung
-└── Notebooky
-    ├── Pre prácu
-    └── Herné
-```
+Poradie kategórií sa dá meniť ručne pretiahnutím v administrácii.
 
-Poradie kategórií v zozname môžete meniť **pretiahnutím** priamo v administrácii. Zmena sa okamžite prejaví na webe.
+[SCREENSHOT: Stromová štruktúra kategórií v administrácii s možnosťou pretiahnutia]
 
-<Frame>
-  <img src="/images/placeholder.png" />
-  <caption>[SCREENSHOT: Správa kategórií - stromová štruktúra s možnosťou preusporiadania ťahaním]</caption>
-</Frame>
+## Vlastnosti kategórie
 
-### Ako zákazník prechádza kategóriami
+### Názov a krátky názov
 
-Keď zákazník otvorí kategóriu, vidí všetky produkty zaradené v tejto kategórii aj v jej podkategóriách. Produkt zaradený v podkategórii "Apple" sa teda automaticky zobrazí aj pri prehliadaní nadradenej kategórie "Mobilné telefóny".
+- **Názov** - plný názov kategórie, prekladá sa do všetkých jazykov
+- **Krátky názov** - skrátený názov, ktorý sa používa v navigácii a breadcrumbs, kde je málo miesta. Ak nie je vyplnený, použije sa plný názov
 
----
+### URL adresa (slug)
 
-## Čo kategória obsahuje
+Webová adresa kategórie. Ak ju nevyplníte, systém ju automaticky vygeneruje z názvu. Pri duplicite pridá číslo na koniec (-1, -2...).
 
-| Pole | Popis |
-|------|-------|
-| **Názov** | Hlavný názov kategórie, prekladateľný do viacerých jazykov |
-| **Krátky názov** | Skrátená verzia zobrazovaná napríklad v navigácii |
-| **URL adresa** | Webová adresa stránky kategórie, automaticky generovaná z názvu |
-| **Popis** | Text zobrazený na stránke kategórie, prekladateľný |
-| **Nadradená kategória** | Kategória, pod ktorou sa táto nachádza v strome |
-| **Obrázok** | Hlavný obrázok kategórie - zobrazuje sa napríklad na prehľade kategórií |
+### Popis
 
----
+HTML popis kategórie, ktorý sa zobrazuje na stránke kategórie. Prekladá sa do všetkých jazykov.
 
-## Zaradenie produktu do kategórií
+### Obrázok
 
-Jeden produkt môže byť zaradený vo **viacerých kategóriách** naraz. Napríklad "Vodeodolný bluetooth reproduktor" môže byť v kategóriách "Reproduktory" aj "Outdoorové vybavenie".
+Hlavný obrázok kategórie. Zobrazuje sa podľa šablóny webu, napríklad v zozname kategórií alebo v hlavičke stránky kategórie.
 
-<Steps>
-  <Step title="Otvorte produkt v administrácii">
-    Prejdite na záložku alebo sekciu Kategórie v detaile produktu.
-  </Step>
-  <Step title="Vyberte kategóriu">
-    Z kategoriálneho stromu vyberte kategóriu, do ktorej chcete produkt zaradiť.
-  </Step>
-  <Step title="Uložte">
-    Systém uloží zaradenie. Pri prvej kategórii ju automaticky nastaví ako predvolenú.
-  </Step>
-</Steps>
+### SEO atribúty
 
-<Frame>
-  <img src="/images/placeholder.png" />
-  <caption>[SCREENSHOT: Zaradenie produktu do kategórií - výber z kategoriálneho stromu, zvýraznenie predvolenej kategórie]</caption>
-</Frame>
+<Warning>Kategória má SEO atribúty (Title, META description). Presný rozsah dostupných SEO polí vyžaduje overenie. [VERIFY]</Warning>
 
-### Hromadné presúvanie produktov
+## Zaradenie produktov do kategórií
 
-Produkty môžete presúvať medzi kategóriami aj hromadne - napríklad keď rušíte kategóriu alebo reorganizujete katalóg.
+Produkt môže patriť do viacerých kategórií súčasne. Napríklad "Červené pánske tričko" môže byť zaradené v kategóriách "Tričká", "Pánske" aj "Červené oblečenie".
 
----
+### Predvolená kategória
 
-## Predvolená kategória
+Každý produkt má jednu predvolenú kategóriu. Predvolená kategória sa používa:
 
-Každý produkt musí mať presne **jednu predvolenú kategóriu**. Predvolená kategória sa používa pri:
+- V breadcrumbs navigácii (drobčeková navigácia)
+- V URL adrese produktu
+- Ako hlavné zaradenie produktu
 
-- Zobrazení navigačnej cesty (breadcrumb) na stránke produktu
-- Exportoch do cenových porovnávačov (Heureka a podobné)
+**Automatické správanie:**
 
-### Automatické pravidlá
+- Ak produktu pridáte prvú kategóriu, automaticky sa stane predvolenou
+- Ak odstránite predvolenú kategóriu, systém automaticky nastaví ďalšiu dostupnú kategóriu ako predvolenú
+- Predvolenú kategóriu môžete kedykoľvek zmeniť ručne
 
-Systém spravuje predvolenú kategóriu automaticky:
+### Dedenie kategórií u variánt
 
-| Situácia | Čo sa stane |
-|----------|-------------|
-| Pridáte prvú kategóriu | Systém ju automaticky nastaví ako predvolenú |
-| Odstránite predvolenú kategóriu | Systém automaticky nastaví ako predvolenú prvú zostávajúcu kategóriu |
-| Pridáte ďalšie kategórie | Predvolená kategória sa nemení - zostáva pôvodná |
+Varianta dedí kategórie od rodičovského produktu. Pri vyhľadávaní a filtrovaní sa produkt nájde aj v nadradených kategóriách - ak je produkt v kategórii "Tričká", nájde sa aj pri prehliadaní kategórie "Pánske" alebo "Oblečenie".
 
-<Note>Predvolenú kategóriu môžete kedykoľvek zmeniť ručne v detaile produktu.</Note>
+### Hromadný presun produktov
 
----
+Systém podporuje hromadný presun produktov medzi kategóriami. Všetky produkty z jednej kategórie sa presunú do inej jedným krokom.
 
 ## Heureka kategórie
 
-Pre export produktov do cenových porovnávačov Heureka môžete ku každej kategórii priradiť zodpovedajúcu Heureka kategóriu.
+Každej kategórii sa dá priradiť Heureka kategória pre exportné feedy:
 
-| Pole | Popis |
-|------|-------|
-| **Slovenská Heureka kategória** | Kategória z Heureka.sk pre export na slovenský trh |
-| **Česká Heureka kategória** | Kategória z Heureka.cz pre export na český trh |
+- **Heureka SK** - priradenie do Heureka.sk stromovej kategórie
+- **Heureka CZ** - priradenie do Heureka.cz stromovej kategórie
 
-Priradenie na úrovni kategórie sa automaticky použije pre všetky produkty v nej zaradené pri generovaní exportu. Správne zaradenie zlepšuje viditeľnosť produktov na Heureke.
+Toto priradenie sa používa pri generovaní exportných feedov pre porovnávače cien. Viac o exportoch nájdete v [prehľade produktov](/produkty/prehlad#exportne-feedy).
 
-<Tip>Ak produkt patrí do viacerých kategórií, pri exporte sa použije Heureka kategória priradená k **predvolenej kategórii** produktu.</Tip>
+## Kategórie a weby
 
----
+Kategória sa zobrazuje na vybraných webových stránkach. Ak prevádzkujete viacero webov (napríklad rôzne jazykové mutácie), každá kategória sa dá priradiť k jednému alebo viacerým webom.
 
-## SEO nastavenia kategórie
+## Dôležité vedieť
 
-<Warning>Táto informácia vyžaduje overenie. [VERIFY] - Presné umiestnenie a dostupnosť SEO polí (title, meta description) v nastaveniach kategórie sa zatiaľ nepodarilo potvrdiť. Overte s vývojovým tímom.</Warning>
+- Kategórie majú neobmedzenú hĺbku vnorenia, ale príliš hlboká štruktúra môže byť neprehľadná pre zákazníka
+- Produkt musí byť zaradený aspoň v jednej kategórii, aby bol dobre nájditeľný
+- Pri vyhľadávaní systém automaticky zahrnie aj nadradené kategórie
+- Poradie kategórií aj produktov v kategórii sa dá meniť ručne
 
-Kategórie podporujú SEO nastavenia - title a meta description - ktoré sa zobrazujú vo výsledkoch vyhľadávania. Tieto polia sú prekladateľné pre každý jazyk zvlášť.
+## Súvisiace funkcie
 
----
+<Card title="Produkty" href="/produkty/prehlad">
+  Základný prehľad produktového systému a typy produktov
+</Card>
 
-## Kategórie a viac webov
+<Card title="Parametre" href="/produkty/parametre">
+  Vlastnosti produktov a filtrovanie v katalógu
+</Card>
 
-Ak prevádzkujete viacero webov alebo jazykových mutácií, každá kategória sa zobrazuje len na tých weboch, ku ktorým je priradená.
-
-<Note>Produkt zaradený v kategórii sa zobrazí na danom webe len vtedy, ak je aj samotná kategória priradená k tomuto webu.</Note>
+<Card title="Ceny a zľavy" href="/produkty/ceny-a-zlava">
+  Cenové hladiny a zľavy na produktoch
+</Card>

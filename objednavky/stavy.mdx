@@ -1,128 +1,183 @@
 ---
-title: "Stavy objednávok"
-description: "Prehľad stavov objednávky, automatické prechody a čo sa deje pri každej zmene stavu."
+title: "Stavy objednávky"
+description: "Aké stavy objednávka prechádza, čo sa pri každom stave deje, automatické zmeny stavov a notifikácie zákazníkom."
 ---
 
-{/* Generated from: app/Model/Enums/OrderStatesEnum.php, app/Model/Repositories/OrderStatesRepository.php, app/Model/Repositories/OrderStateItemsRepository.php, app/Commands/ProcessOrderStatesCommand.php, app/Facades/OrderFacade.php | 2026-03-19 */}
+{/* Generated from: OrderStatesEnum.php, OrderStateItemsRepository.php, OrderStatesRepository.php, OrderFacade.php, ProcessOrderStatesCommand.php, OrdersSettings.php | 2026-03-19T00:00:00Z */}
 
-Stav objednávky určuje, v akej fáze spracovania sa objednávka nachádza. Pri každej zmene stavu systém automaticky spúšťa procesy - odoslanie e-mailu, vystavenie faktúry, úprava skladu a ďalšie.
+Objednávka prechádza medzi stavmi, ktoré určujú, v akej fáze spracovania sa nachádza. Stavy sú konfigurovateľné - môžete si vytvárať vlastné stavy, meniť ich názvy, farby a priradiť im systémové správanie.
 
----
+## Systémové stavy
 
-## Základné stavy
+Každý stav má priradený systémový kód, ktorý určuje, čo systém pri zmene na daný stav automaticky vykoná. Dostupné systémové kódy sú:
 
-Systém obsahuje tieto preddefinované stavy:
+### Čaká na platbu
 
-| Stav | Čo znamená | Automaticky sa deje |
-|---|---|---|
-| **Nová** | Objednávka bola práve vytvorená | Potvrdenie e-mailom, skladová rezervácia |
-| **Zaplatená** | Platba bola prijatá | Notifikácia administrátorovi |
-| **Vybavená** | Objednávka bola odoslaná zákazníkovi | E-mail zákazníkovi, pripísanie vernostných bodov |
-| **Zrušená** | Objednávka bola zrušená | Uvoľnenie skladu, vrátenie vernostných bodov |
-| **Storno** | Objednávka bola stornovaná (po odoslaní) | Vystavenie dobropisu |
-| **Neprevzatá** | Zákazník neprevzal zásielku | Vystavenie dobropisu |
+Predvolený stav pre objednávky s online platbou. Objednávka čaká na potvrdenie úhrady od platobnej brány.
 
-<Warning>
-  Objednávku je možné označiť ako "Neprevzatá" iba ak je na dobierku a nebola uhradená. Navyše musí mať existujúcu zásielku od prepravcu. [VERIFY]
-</Warning>
+Čo sa deje:
+- Objednávka je vytvorená, sklad je znížený a kusy zarezervované
+- Zákazník dostane pokyny na zaplatenie
+- Systém automaticky posiela pripomienku a po čase objednávku zruší (viď [Automatické procesy](#automatické-procesy) nižšie)
 
----
+### Prijatá
 
-## Vlastné stavy
+Predvolený stav pre objednávky bez online platby (dobierka, prevod, hotovosť). Objednávka je potvrdená a čaká na spracovanie.
 
-Okrem preddefinovaných stavov si môžete vytvoriť vlastné stavy podľa potrieb vášho e-shopu. Každý stav má:
+### Spracováva sa
 
-- **Názov** - zobrazí sa v administrácii aj zákazníkovi
-- **Farba** - pre rýchlu orientáciu v zozname objednávok
-- **Poradie** - určuje logickú postupnosť stavov
-- **E-mailová šablóna** - automatický e-mail zákazníkovi pri zmene na tento stav
+Objednávka je v procese prípravy. Administrátor na nej aktívne pracuje - kompletizuje tovar, pripravuje zásielku.
 
-<Tip>
-  Poradie stavov je dôležité - určuje, v akom poradí sa stavy zobrazujú v administrácii a zákazníkovi v jeho účte.
-</Tip>
+### Odoslaná
 
----
+Objednávka bola odovzdaná prepravcovi. Pri zmene na tento stav systém automaticky:
 
-## Čo sa deje pri zmene stavu
+- Aktivuje [darčekové poukážky](/objednavky/prehlad#darčekové-poukážky) - vygeneruje kupónové kódy a odošle ich emailom príjemcovi
+- K emailu o zmene stavu priloží [faktúru](/faktury/prehlad) a formulár na odstúpenie od zmluvy (pre neveľkoobchodných zákazníkov, ak existuje príslušný PDF súbor)
 
-### Notifikácie
+### Vybavená
 
-Pri zmene stavu systém automaticky posiela e-mail zákazníkovi podľa nastavenej šablóny. Šablóny e-mailov pre jednotlivé stavy nastavíte v sekcii Šablóny objednávok.
+Objednávka je dokončená a uzavretá. Pri zmene na tento stav systém automaticky:
 
-### Sklad
-
-- **Nová objednávka**: Systém rezervuje tovar na sklade
-- **Zrušenie/Storno**: Systém uvoľní rezerváciu a vráti tovar na sklad
-- **Vybavená**: Skutočné vyskladnenie tovaru
+- Overí, či sú všetky bežné produktové položky kompletne zarezervované na sklade. Ak nie, zmenu zamietne.
+- Vytvorí výdajku zo skladu (tovar sa vyskladní)
+- Pri digitálnych produktoch sa vyskladnenie preskočí
+- Aktivuje darčekové poukážky (rovnako ako pri stave "Odoslaná")
+- K emailu priloží faktúru a formulár na odstúpenie od zmluvy
+- Uzamkne objednávku proti ďalším zmenám
 
 <Note>
-  Pri zrušení objednávky sa uvoľnené zásoby automaticky prerozdeľujú medzi čakajúce objednávky v poradí, v akom boli vytvorené (FIFO).
+Objednávku nie je možné prepnúť do stavu "Vybavená", ak nie sú všetky produktové položky kompletne zarezervované na sklade.
 </Note>
 
-### Fakturácia
+### Nedostupná
 
-| Zmena stavu | Doklad |
-|---|---|
-| Zaplatená (záloha) | Zálohová faktúra |
-| Vybavená | Riadna faktúra |
-| Zrušená / Storno / Neprevzatá | Dobropis |
+Jeden alebo viac produktov nie je na sklade. Objednávka čaká na doplnenie.
 
-<Warning>
-  Presný typ dokladu (daňový doklad vs. faktúra) závisí od nastavenia fakturácie a krajiny. [VERIFY]
-</Warning>
+### Zrušená
 
-### Vernostné body
+Objednávka bola zrušená (zákazníkom alebo administrátorom). Pri zmene na tento stav systém automaticky:
 
-- **Vybavená**: Zákazníkovi sa pripíšu vernostné body
-- **Zrušená**: Ak zákazník použil vernostné body, vrátia sa mu s novým dátumom expirácie
+- Vráti všetky zarezervované kusy späť na sklad
+- Ak zákazník použil vernostné body, vráti ich späť
+- Uvoľnené kusy sa automaticky zarezervujú pre iné čakajúce objednávky v poradí podľa dátumu vytvorenia (najstaršia objednávka má prednosť)
 
----
+### Vrátená
 
-## Stav úhrady
+Zákazník vrátil tovar. Tento stav slúži na evidenciu vrátení.
 
-Okrem stavu objednávky systém sleduje aj **stav úhrady** - či je objednávka zaplatená alebo nie.
+### Neprevzatá
 
-Zmena stavu úhrady na "Zaplatená" automaticky:
-- Zmení stav objednávky (ak je to nastavené)
-- Zaznamená dátum úhrady
+Zákazník si neprevzal zásielku (typicky pri dobierke). Pri zmene na tento stav systém automaticky:
+
+- Vytvorí príjemku - vráti tovar späť na sklad
+- Ak existuje faktúra, automaticky vytvorí dobropis
 
 <Note>
-  Stav úhrady sa mení automaticky pri online platbách (cez platobnú bránu) alebo manuálne administrátorom.
+Stav "Neprevzatá" je povolený len pre neuhradené objednávky s platbou na dobierku.
 </Note>
 
----
+## Počiatočné stavy
 
-## Automatické spracovanie
+Pri vytvorení objednávky systém automaticky nastaví jeden z predvolených stavov:
 
-Systém automaticky spracováva niektoré zmeny stavov na pozadí:
+- **Počiatočný stav** - pre bežné objednávky (typicky "Prijatá")
+- **Počiatočný stav pre online platbu** - pre objednávky platené online (typicky "Čaká na platbu")
+- **Počiatočný stav pre veľkoobchod** - pre B2B objednávky (ak je nastavený)
 
-### Automatické zrušenie neuhradených objednávok
+Ktorý stav je počiatočný, nastavíte v konfigurácii stavov objednávok.
 
-Objednávky, ktoré neboli uhradené do stanovenej doby, systém automaticky zruší. Predvolená doba je 24 hodín.
+## Notifikácie pri zmene stavu
 
-### Pripomienka platby
+Pri každej zmene stavu môže systém automaticky odoslať zákazníkovi:
 
-Zákazníkom, ktorí nezaplatili do 1 hodiny od vytvorenia objednávky, systém odošle pripomienku s odkazom na platbu.
+- **Email** - s konfigurovateľným predmetom a textom
+- **SMS** - s konfigurovateľným textom
 
-<Warning>
-  Presné časové intervaly (24h pre zrušenie, 1h pre pripomienku) môžu byť konfigurovateľné v nastaveniach. [VERIFY]
-</Warning>
+Odosielanie emailu a SMS zapínate alebo vypínate pre každý stav samostatne.
 
----
+### Zástupné symboly v šablónach
+
+V texte emailu a SMS môžete použiť tieto zástupné symboly:
+
+- `%firstName%` - krstné meno zákazníka
+- `%orderCode%` - kód objednávky
+- `%paymentInfo%` - informácie o platbe
+- `%created%` - dátum vytvorenia objednávky
+- `%totalPrice%` - celková suma objednávky
+
+### Prílohy emailu
+
+Pri zmene stavu na "Odoslaná" alebo "Vybavená" systém k emailu automaticky priloží:
+
+- Faktúru (ak existuje)
+- Formulár na odstúpenie od zmluvy (PDF, ak existuje, len pre neveľkoobchodných zákazníkov)
+
+Administrátor môže pri zmene stavu pripojiť aj vlastné prílohy (až 10 súborov).
+
+## Konfigurácia stavov
+
+Každý stav objednávky má tieto nastavenia:
+
+- **Názov** - zobrazuje sa zákazníkovi aj v administrácii. Preložiteľný do viacerých jazykov.
+- **Systémový kód** - určuje automatické správanie (viď vyššie)
+- **Typ objednávky** - či stav platí pre objednávky, rezervácie, alebo oboje
+- **Farba pozadia** - farebné odlíšenie v zozname objednávok pre rýchlu vizuálnu orientáciu
+- **Poradie** - poradie zobrazenia v zozname stavov (zmeniteľné ťahaním)
+- **Posielať email** - zapnutie/vypnutie emailovej notifikácie
+- **Posielať SMS** - zapnutie/vypnutie SMS notifikácie
+- **Email text a predmet** - šablóna emailu per jazyk
+- **SMS text** - šablóna SMS per jazyk
+
+## História stavov
+
+Každá zmena stavu sa zaznamenáva do histórie. Záznam obsahuje:
+
+- Na aký stav sa objednávka zmenila
+- Kedy sa zmena udiala (dátum a čas)
+- Kto zmenu vykonal (administrátor, alebo automatický proces)
+
+Históriu stavov vidíte v detaile objednávky v administrácii.
+
+## Automatické procesy
+
+Systém na pozadí automaticky spravuje objednávky čakajúce na platbu:
+
+### Pripomienka na zaplatenie
+
+Objednávke v stave "Čaká na platbu" systém odošle pripomienku emailom 1 hodinu po vytvorení. Pripomienka sa pošle len raz.
+
+Email pripomienky sa riadi šablónou objednávky a podporuje rovnaké zástupné symboly ako bežné stavové emaily.
+
+### Automatické zrušenie
+
+Objednávky v stave "Čaká na platbu" staršie ako 24 hodín systém automaticky zruší. Pri zrušení sa uvoľní sklad rovnako ako pri manuálnom zrušení.
+
+<Warning>Časový limit 24 hodín na automatické zrušenie a 1 hodina na odoslanie pripomienky sú pevne nastavené hodnoty. Nie je možné ich zmeniť v administrácii. [VERIFY]</Warning>
 
 ## Vrátenie do spracovania
 
-Administrátor môže vrátiť už uzatvorenú objednávku (vybavená alebo zamknutá) späť do spracovania. Toto je užitočné napríklad pri reklamáciách alebo keď je potrebné objednávku dodatočne upraviť.
+Ak potrebujete zmeniť už vybavenú objednávku, môžete ju vrátiť do stavu "Spracováva sa". Systém pritom:
 
----
+- Vytvorí príjemku - vráti tovar späť na sklad
+- Odomkne objednávku pre ďalšie úpravy
+- Zákazníkovi sa neposiela žiadna notifikácia
 
-## Súvisiace sekcie
+Táto funkcia je dostupná len pre objednávky v stave "Vybavená" alebo uzamknuté objednávky.
 
-<Columns cols={2}>
-  <Card title="Spracovanie objednávok" icon="clipboard-check" href="/objednavky/spracovanie">
-    Praktický návod na spracovanie objednávky krok za krokom.
-  </Card>
-  <Card title="Prehľad objednávok" icon="receipt" href="/objednavky/prehlad">
-    Základný prehľad objednávkového systému.
-  </Card>
-</Columns>
+## Dôležité vedieť
+
+- Každá zmena stavu je nevratná v tom zmysle, že sa zaznamená do histórie. Objednávku však môžete prepnúť na akýkoľvek povolený stav.
+- Systém kontroluje oprávnenosť zmeny stavu - napríklad stav "Neprevzatá" je povolený len pre neuhradené dobierky.
+- Uzamknutú objednávku (v stave "Vybavená") nie je možné bežne meniť. Najprv ju musíte vrátiť do spracovania.
+- Pri automatickom zrušení objednávky sa uvoľnené skladové kusy prerozdelujú medzi čakajúce objednávky podľa dátumu (najstaršia má prednosť).
+
+## Súvisiace funkcie
+
+<Card title="Objednávky - prehľad" icon="shopping-cart" href="/objednavky/prehlad">
+  Celkový prehľad objednávkového systému, štruktúra objednávky, cenové výpočty.
+</Card>
+
+<Card title="Spracovanie objednávok" icon="box-check" href="/objednavky/spracovanie">
+  Ako spracovať objednávku v administrácii - zásielky, fakturácia, rozdelenie, skenovanie.
+</Card>

@@ -1,128 +1,109 @@
 ---
 title: "Parametre produktov"
-description: "Vlastnosti produktov ako farba, veľkosť alebo materiál - nastavenie, hodnoty a použitie vo filtri katalógu."
+description: "Vlastnosti produktov, hodnoty parametrov, filtrovanie v katalógu a kategórie parametrov"
 ---
 
-{/* Generated from: app/BackendModule/CatalogModule/Forms/ParameterFormFactory.php, app/BackendModule/CatalogModule/Forms/ParameterValueFormFactory.php, app/Facades/ProductsFacade.php | 2026-03-19T12:00:00Z */}
+{/* Generated from: ParameterFormFactory.php, ParameterValueFormFactory.php, ProductParametersRepository.php | 2026-03-19T12:00:00Z */}
 
-Parametre sú vlastnosti produktov - napríklad farba, veľkosť, materiál alebo výkon. Zákazníci ich vidia na stránke produktu a podľa nich môžu filtrovať produkty v katalógu. Správne nastavené parametre výrazne zlepšujú prehľadnosť e-shopu.
+Parameter je vlastnosť produktu - napríklad farba, veľkosť, materiál alebo výkon. Parametre slúžia na dva účely: popisujú produkt v detaile a umožňujú zákazníkom filtrovať katalóg.
 
----
+## Ako parametre fungujú
 
-## Čo je parameter
+Každý parameter má názov a zoznam možných hodnôt. Napríklad parameter "Farba" môže mať hodnoty "Červená", "Modrá", "Zelená". Produktu potom priradíte konkrétne hodnoty z dostupného zoznamu.
 
-Parameter je definovaná vlastnosť, ktorú môžete priradiť k produktom. Každý parameter má:
+Názov parametra aj jeho hodnoty sa prekladajú do všetkých jazykov.
 
-- **Názov** - zobrazuje sa zákazníkovi na stránke produktu (napr. "Farba", "Veľkosť")
-- **Označenie** - alternatívny názov, ktorý sa môže zobraziť napríklad vo filtri na webe
-- **Zoznam hodnôt** - konkrétne možnosti, z ktorých vyberiete pri každom produkte (napr. červená, modrá, XL)
+[SCREENSHOT: Zoznam parametrov v administrácii s vyznačeným filtrovateľným parametrom]
 
-Parameter vytvoríte raz v administrácii a potom ho priraďujete k ľubovoľnému počtu produktov.
+## Nastavenia parametra
 
-<Frame>
-  <img src="/images/placeholder.png" />
-  <caption>[SCREENSHOT: Zoznam parametrov v administrácii - prehľad parametrov s možnosťami filtrovania a zobrazenia]</caption>
-</Frame>
+### Názov a označenie
 
----
+Parameter má dva texty:
+
+- **Názov** - hlavný názov parametra (napr. "Farba")
+- **Označenie** - alternatívne pomenovanie, ktoré sa používa napríklad vo filtri. Ak nie je vyplnené, použije sa názov
+
+### Zobrazenie v detaile produktu
+
+Ak je zapnuté, parameter sa zobrazí v tabuľke vlastností na detaile produktu. Zákazník tak vidí všetky priradené vlastnosti prehľadne na jednom mieste.
+
+### Filtrovateľnosť
+
+Ak je parameter filtrovateľný, zákazník podľa neho môže filtrovať produkty v katalógu. Napríklad parameter "Farba" s filtrovateľnosťou umožní zákazníkovi zobraziť len červené produkty.
+
+<Warning>Konkrétne možnosti zoradenia hodnôt vo filtri (napr. abecedne, podľa poradia) vyžadujú overenie. [VERIFY]</Warning>
+
+### Krátky popis a popis
+
+Parameter môže mať krátky popis a dlhší popis. Obe funkcie sa zapínajú v nastaveniach. Popisy sa prekladajú do všetkých jazykov.
+
+## Obrázkový parameter
+
+Parameter môže zobrazovať hodnoty ako farebné vzorky alebo obrázky namiesto textu. Typicky sa používa pre farby - zákazník vidí farebnú vzorku namiesto slova.
+
+**Dôležité obmedzenie:** Na jednom produkte môže byť maximálne jeden obrázkový parameter. Systém nedovolí zmeniť parameter na obrázkový, ak produkt už má iný obrázkový parameter.
+
+[SCREENSHOT: Obrázkový parameter s farebnými vzorkami na detaile produktu]
 
 ## Hodnoty parametra
 
-Každý parameter má zoznam hodnôt. Hodnotu vyberiete pri konkrétnom produkte - napríklad parameter "Farba" má hodnoty "červená", "modrá", "zelená" a pri každom produkte vyberiete tú správnu.
+Každý parameter má zoznam hodnôt, z ktorých vyberáte pri priraďovaní produktom.
 
-Každá hodnota môže mať:
+### Základné vlastnosti hodnoty
 
-| Pole | Popis |
-|------|-------|
-| **Názov** | Text zobrazený zákazníkovi, prekladateľný do viacerých jazykov |
-| **Označenie** | Alternatívny názov, napríklad skratka používaná vo filtri |
+- **Názov** - text hodnoty (napr. "Červená", "XL", "Bavlna"). Prekladá sa do všetkých jazykov
+- **Označenie** - alternatívne pomenovanie hodnoty
 
-<Tip>Hodnoty parametra je potrebné vytvoriť pred tým, ako ich začnete priraďovať k produktom. Ak potrebujete novú hodnotu, pridáte ju priamo v nastaveniach parametra.</Tip>
+### Obrázkové vlastnosti
 
----
+Ak je parameter obrázkový, každá hodnota môže mať:
 
-## Obrázkový parameter (farebné vzorky)
+- **Farba** - farba vzorky zobrazená zákazníkovi
+- **Obrázok** - obrázok vzorky namiesto farby
+- **Orámovanie** - zapne orámovanie okolo vzorky. Užitočné pre svetlé farby (napríklad biela), kde by vzorka bez rámu splynula s pozadím
 
-Špeciálny typ parametra, kde sa hodnoty zobrazujú ako farebné vzorky alebo obrázky namiesto textu. Typicky sa používa pre farbu produktu.
+### Zlúčenie hodnôt vo filtri
 
-Pri obrázkovom parametri má každá hodnota navyše:
+Viacero hodnôt parametra sa dá zlúčiť pod jednu pre účely filtrovania. Nastavuje sa cez pole "Filtrovať ako" na hodnote parametra.
 
-| Pole | Popis |
-|------|-------|
-| **Farba** | Farba vzorky zobrazená zákazníkovi - povinná pre obrázkový parameter |
-| **Obrázok** | Voliteľný obrázok namiesto farebnej vzorky (napríklad vzor látky) |
-| **Orámovanie** | Rámček okolo vzorky - užitočné pre svetlé farby, aby boli viditeľné na bielom pozadí |
+**Príklad:** Máte hodnoty "Svetlo modrá", "Tmavo modrá" a "Námornícka modrá". Všetky tri nastavíte, aby sa filtrovali ako "Modrá". Zákazník vo filtri uvidí len jednu možnosť "Modrá", ktorá nájde všetky tri odtiene.
 
-<Frame>
-  <img src="/images/placeholder.png" />
-  <caption>[SCREENSHOT: Produkt s obrázkovým parametrom Farba - farebné vzorky na detaile produktu]</caption>
-</Frame>
-
-<Warning>Na jednom produkte môže byť **len jeden obrázkový parameter**. Ak sa pokúsite nastaviť druhý parameter ako obrázkový, systém zmenu zamietne.</Warning>
-
----
-
-## Zobrazenie na webe
-
-Pre každý parameter nastavíte, kde sa zákazníkovi zobrazí:
-
-| Nastavenie | Čo ovplyvňuje |
-|------------|---------------|
-| **Zobrazuje sa v detaile** | Parameter a jeho hodnota sa zobrazia na stránke produktu v zozname vlastností |
-| **Filtrovateľný** | Zákazníci môžu podľa parametra filtrovať produkty v kategórii |
-
-Parameter môžete nastaviť na jedno, obidve alebo žiadne z týchto možností - napríklad interný parameter "Kód dodávateľa" môžete mať skrytý, ale filtrovateľný len pre potreby administrácie.
-
-<Frame>
-  <img src="/images/placeholder.png" />
-  <caption>[SCREENSHOT: Stránka produktu - tabuľka vlastností so zobrazenými parametrami]</caption>
-</Frame>
-
----
-
-## Zlúčenie hodnôt vo filtri
-
-Niekedy chcete, aby sa viaceré odtiene zobrazili zákazníkovi vo filtri pod jednou možnosťou. Napríklad "svetlo modrá" a "tmavo modrá" sa pri filtrovaní správajú ako "modrá".
-
-Na to slúži pole **Filtrovať ako** pri každej hodnote parametra. Stačí nastaviť, pod ktorú hlavnú hodnotu sa má táto hodnota zaradiť pri filtrovaní.
-
-Zákazník teda vidí vo filtri "modrá" a dostane výsledky pre oba odtiene - aj "svetlo modrá" aj "tmavo modrá".
-
-<Note>Zlúčenie hodnôt ovplyvňuje len zobrazenie vo filtri. Na stránke produktu sa naďalej zobrazuje presná hodnota ("svetlo modrá").</Note>
-
----
-
-## Zoradenie hodnôt vo filtri
-
-<Warning>Táto informácia vyžaduje overenie. [VERIFY] - Presné možnosti zoradenia hodnôt parametra vo filtri (napr. abecedne, podľa poradia, podľa počtu produktov) sa zatiaľ nepodarilo potvrdiť. Overte s vývojovým tímom.</Warning>
-
----
+Toto je užitočné ak máte veľa podobných hodnôt a nechcete zákazníka zahltiť dlhým zoznamom vo filtri.
 
 ## Kategórie parametrov
 
-Parametre môžete zaradiť do skupín - kategórií parametrov. Táto funkcia pomáha pri správe väčšieho počtu parametrov v administrácii.
+Parametre sa dajú zaradiť do kategórií parametrov. Táto funkcia je voliteľná a zapína sa v nastaveniach.
 
-<Note>Kategórie parametrov musíte najprv zapnúť v nastaveniach e-shopu.</Note>
+Kategórie parametrov slúžia na logické zoskupenie parametrov - napríklad "Rozmery", "Materiál", "Výkon". Na detaile produktu sa potom parametre zobrazia prehľadne rozdelené podľa kategórií.
 
----
+## Priradenie parametrov produktom
 
-## Popisy parametra
+Produkt môže mať priradených viacero parametrov s rôznymi hodnotami. Napríklad tričko môže mať:
 
-K parametru môžete pridať popis, ktorý zákazníkom vysvetlí, čo vlastnosť znamená.
+- Farba: Červená
+- Veľkosť: XL
+- Materiál: Bavlna
 
-| Pole | Popis |
-|------|-------|
-| **Krátky popis** | Stručné vysvetlenie parametra |
-| **Dlhý popis** | Podrobný popis s formátovaním (nadpisy, zoznamy, tučné písmo) |
+Pri zmene hodnoty parametra systém automaticky synchronizuje všetky dotknuté produkty vo vyhľadávacom indexe. Zákazníci tak okamžite nájdu produkty podľa aktualizovaných hodnôt.
 
-<Note>Pole pre popisy parametra musíte najprv zapnúť v nastaveniach e-shopu.</Note>
+## Typy parametrov
 
----
+<Warning>Parametre majú technický typ, ktorý nastavuje len vývojár. Konkrétne typy a ich správanie vyžadujú overenie. [VERIFY]</Warning>
 
-## Ako parametre ovplyvňujú vyhľadávanie
+## Dôležité vedieť
 
-Parametre sú súčasťou vyhľadávacieho indexu. Keď zákazník hľadá produkt alebo filtruje v kategórii, systém berie parametre do úvahy.
+- Parameter môže byť súčasne filtrovateľný aj viditeľný v detaile - zákazník podľa neho filtruje a zároveň ho vidí v tabuľke vlastností
+- Na jednom produkte môže byť maximálne jeden obrázkový parameter
+- Pri vyhľadávaní a filtrovaní sa produkt nájde aj v nadradených [kategóriách](/produkty/kategorie)
+- Hodnoty parametrov sa dajú zlučovať pre jednoduchšie filtrovanie
 
-Pri každej zmene hodnoty parametra systém automaticky označí všetky dotknuté produkty na opätovnú synchronizáciu s vyhľadávaním. Zákazníci teda vždy dostanú aktuálne výsledky.
+## Súvisiace funkcie
 
-<Tip>Ak zmeníte nastavenie filtrovateľnosti parametra alebo jeho hodnôt, zmena sa prejaví vo filtri po automatickej synchronizácii - nemusíte robiť nič ručne.</Tip>
+<Card title="Produkty" href="/produkty/prehlad">
+  Základný prehľad produktového systému
+</Card>
+
+<Card title="Kategórie" href="/produkty/kategorie">
+  Stromová štruktúra kategórií produktov
+</Card>

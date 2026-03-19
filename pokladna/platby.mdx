@@ -1,161 +1,156 @@
 ---
 title: "Platby"
-description: "Spôsoby platby za objednávky, cenové úrovne, platobné brány Comgate a TrustPay a správa refundácií."
+description: "Spôsoby úhrady objednávky, cenové úrovne, platobné brány (Comgate, TrustPay), stavy platieb a refundácie."
 ---
 
-{/* Generated from: PaymentsRepository.php, PaymentLevelsRepository.php, PaymentShippingsRepository.php, Comgate.php, TrustPay.php, PaymentRequestStatus.php, RefundRequestStatus.php, IPayment.php, IRedirectPayment.php, INestedPayment.php | 2026-03-19T00:00:00Z */}
+{/* Generated from: PaymentsRepository.php, PaymentLevelsRepository.php, PaymentShippingsRepository.php, PaymentFactory.php, Payment.php, IPayment.php, IRedirectPayment.php, INestedPayment.php, RedirectPayment.php, NestedPayment.php, PaymentStatusDTO.php, RefundStatusDTO.php, Comgate.php, TrustPay.php, PaymentRequestStatus.php, RefundRequestStatus.php | 2026-03-19T00:00:00Z */}
 
-Platba určuje, ako zákazník uhradí svoju Objednávku. Môžete ponúkať viacero spôsobov – od dobierky a bankového prevodu až po online platbu kartou, Apple Pay alebo Google Pay.
+Platba určuje, akým spôsobom zákazník uhradí objednávku. Každý spôsob platby má vlastný názov, voliteľný príplatok a môže byť napojený na platobnú bránu pre online úhradu.
 
-<Frame>
-  <img src="/images/placeholder.png" alt="Zoznam Platieb" />
-  <caption>[SCREENSHOT: Zoznam Platieb v administrácii s názvami, logami a typmi (online / offline)]</caption>
-</Frame>
+## Vlastnosti platby
 
-## Online a offline Platby
+Každý spôsob platby má tieto vlastnosti:
 
-**Online Platby** - po dokončení Objednávky systém zákazníka automaticky presmeruje na platobnú bránu alebo zobrazí platobné polia priamo v e-shope. Zákazník zaplatí okamžite. Systém sleduje stav platby a podľa výsledku automaticky aktualizuje Objednávku. Dostupné platobné brány: Comgate, TrustPay, TatraPay Plus, 24pay.
+- **Názov** - zobrazený zákazníkovi, prekladateľný podľa jazykovej mutácie.
+- **Cena (príplatok)** - vypočítaná dynamicky podľa úrovní platby (cenových pravidiel). Napríklad príplatok za dobierku.
+- **Obrázok** - voliteľné logo platobnej metódy.
+- **Platobná brána** - napojenie na externú platobnú službu (napr. Comgate, TrustPay). Ak je vyplnené, zákazník je po dokončení objednávky presmerovaný na platbu.
+- **Online platba** - príznak, či ide o platbu, ktorá prebehne okamžite online (kartou, online prevodom).
 
-**Offline Platby** - zákazník platí mimo e-shopu (dobierka, bankový prevod, platba v predajni). Systém platbu nevybavuje automaticky; potvrdenie príchodu platby je na vás.
+Každá platba je dostupná len na nakonfigurovaných weboch (doménach). Každá objednávka má práve jeden spôsob platby.
 
-## Čo tvorí jednu Platbu
+[SCREENSHOT: Zoznam spôsobov platby v administrácii s ich nastaveniami]
 
-Každá Platba má tieto hlavné vlastnosti:
+## Cenové úrovne platby
 
-| Vlastnosť | Popis |
+Príplatok za platbu nie je pevný - systém ho dynamicky vyberá podľa podmienok objednávky. Každá platba môže mať viacero cenových úrovní, pričom každá úroveň je viazaná na konkrétnu menu.
+
+Systém pri výbere správnej ceny zohľadňuje:
+
+- **Krajina** - iný príplatok pre rôzne krajiny.
+- **Mena** - iná suma v EUR a CZK.
+- **Celková cena objednávky** - napríklad bez príplatku nad určitú sumu.
+- **Kategória zákazníka** - iné podmienky pre VIP zákazníkov alebo veľkoobchodníkov.
+
+<Note>Na rozdiel od dopravy, pri platbe sa nezohľadňuje váha objednávky.</Note>
+
+## Kombinácie platba-doprava
+
+Nie každý spôsob platby je dostupný pri každej doprave. Administrátor nastavuje povolené kombinácie.
+
+- V administrácii existuje tabuľka, kde sa pre každú platbu zaškrtáva, pri ktorej doprave je dostupná.
+- Nepovolené kombinácie sa zákazníkovi zobrazujú ako zašednuté (neaktívne).
+- Administrátor môže ľubovoľnú kombináciu aktivovať alebo deaktivovať.
+
+**Príklad:** Dobierku povolíte len pri kuriérskej doprave, ale nie pri osobnom odbere. Online platbu kartou povolíte pri všetkých dopravách.
+
+<Tip>Ak zákazník zmení spôsob dopravy, systém automaticky resetuje výber platby - zákazník musí zvoliť platbu nanovo. To zabezpečuje, že nikdy nedôjde k neplatnej kombinácii.</Tip>
+
+[SCREENSHOT: Tabuľka väzieb platba-doprava v administrácii - matica s checkboxmi]
+
+## Typy platobných brán
+
+Systém rozlišuje dva typy platobných brán:
+
+### Presmerovanie (redirect)
+
+Zákazník je po dokončení objednávky presmerovaný na externú stránku platobnej brány, kde vykoná platbu. Po úspešnej alebo neúspešnej platbe sa vráti späť na e-shop.
+
+### Vnorený formulár (embedded)
+
+Platobný formulár sa zobrazí priamo na e-shope bez presmerovania. Zákazník zadá platobné údaje bez opustenia stránky.
+
+### Bez brány
+
+Platby ako dobierka alebo bankový prevod nemajú platobnú bránu. Po dokončení objednávky zákazník vidí stránku s potvrdením.
+
+## Comgate
+
+Comgate je platobná brána pre online platby kartou a bankovým prevodom.
+
+**Typ:** Presmerovanie - zákazník je presmerovaný na stránku Comgate.
+
+**Hlavné vlastnosti:**
+
+- Podporuje platby kartou aj bankovým prevodom.
+- Každý web má vlastné prihlasovacie údaje (Merchant ID, Secret kľúč).
+- Podporuje viacjazyčné platobné stránky (slovenčina, čeština, poľština, angličtina).
+- Podporuje testovací aj produkčný režim.
+- Podporuje refundácie - čiastočné aj plné vrátenie platby.
+
+**Stavy platby cez Comgate:**
+
+| Odpoveď Comgate | Stav v systéme |
 |---|---|
-| **Názov** | Zobrazí sa zákazníkovi v Pokladni; prekladateľný do všetkých jazykov e-shopu |
-| **Logo / ikona** | Obrázok vedľa názvu v Pokladni |
-| **Platobná brána** | Comgate alebo TrustPay – ak je priradená, ide o online Platbu |
-| **Cenové úrovne** | Príplatok za zvolený spôsob Platby pre rôzne krajiny, meny a hodnoty Objednávky |
+| Uhradené / Autorizované | Uhradené |
+| Čakajúce | Spracováva sa |
+| Zrušené | Zlyhané |
 
-## Cenové úrovne Platby
+[SCREENSHOT: Nastavenie platobnej brány Comgate v administrácii - Merchant ID, Secret]
 
-Jedna Platba môže mať viacero **Úrovní platby**. Vďaka tomu môžete nastaviť napríklad:
-- inú výšku príplatku pre EUR a CZK,
-- príplatok len pre Objednávky pod určitú sumu,
-- príplatok pre zákazníkov z konkrétnej krajiny.
+## TrustPay
 
-Systém automaticky vyberie správnu Úroveň podľa meny a krajiny zákazníka a celkovej hodnoty Košíka.
+TrustPay je platobná brána pre platby kartou s podporou Apple Pay a Google Pay.
 
-<Note>
-  Ceny Platby (príplatky) sa zákazníkovi zobrazujú **bez DPH**.
-</Note>
+**Typ:** Presmerovanie aj vnorený formulár - podľa konfigurácie.
 
-<Warning>
-  Dostupnosť a cena Platby sa môže líšiť aj podľa Kategórie zákazníka. [VERIFY]
-</Warning>
+**Hlavné vlastnosti:**
 
-## Väzba Platba – Doprava
+- Podporuje dva režimy: presmerovanie na stránku TrustPay, alebo vnorený formulár priamo na e-shope.
+- Vnorený formulár podporuje Apple Pay a Google Pay.
+- Každý web má vlastné prihlasovacie údaje (Project ID, Secret Key, API Key).
+- Podporuje testovací aj produkčný režim.
+- Systém overuje podpis odpovede od TrustPay pre bezpečnosť.
 
-Nie každá Platba je povolená pri každej Doprave. Napríklad dobierka nemusí byť dostupná pri doručení na Packeta výdajňu.
+**Stavy platby cez TrustPay (presmerovanie):**
 
-Vo väzbe Platba–Doprava určíte, ktoré kombinácie sú povolené. Systém v Pokladni automaticky zablokuje nepovolené kombinácie – zákazník ich vidí, ale nemôže ich vybrať.
-
-<Warning>
-  Presná logika vyhodnocovania povolených kombinácií Platby a Dopravy môže byť v niektorých prípadoch odlišná. [VERIFY]
-</Warning>
-
-<Frame>
-  <img src="/images/placeholder.png" alt="Nastavenie väzby Platba–Doprava" />
-  <caption>[SCREENSHOT: Tabuľka väzby Platba–Doprava v administrácii – zaškrtávacie políčka pre každú kombináciu]</caption>
-</Frame>
-
-## Platobná brána Comgate
-
-Comgate je online platobná brána, pri ktorej zákazník po dokončení Objednávky opustí e-shop a zaplatí priamo na stránke Comgate.
-
-**Ako platba prebieha:**
-
-<Steps>
-  <Step title="Zákazník dokončí Objednávku">
-    Klikne na „Dokončiť nákup" v Pokladni.
-  </Step>
-  <Step title="Presmerovanie na Comgate">
-    Systém vytvorí platobnú požiadavku a zákazníka presmeruje na platobnú stránku Comgate.
-  </Step>
-  <Step title="Zákazník zaplatí">
-    Zákazník vyberie spôsob platby a zaplatí (karta, iná metóda).
-  </Step>
-  <Step title="Výsledok platby">
-    Comgate informuje systém o výsledku. Systém aktualizuje stav Objednávky.
-  </Step>
-</Steps>
-
-**Jazyky platobnej stránky Comgate:** SK, CS, PL, EN
-
-**Refundácie cez Comgate:** Comgate podporuje vrátenie celej aj čiastočnej sumy priamo cez administráciu e-shopu.
-
-**Nastavenia Comgate** (konfiguruje technický tím):
-
-| Nastavenie | Popis |
+| Odpoveď TrustPay | Stav v systéme |
 |---|---|
-| Merchant ID | Identifikátor obchodníka v Comgate |
-| Secret | Tajný kľúč pre autentifikáciu požiadaviek |
-| Brána | URL platobnej brány Comgate |
-| Typ platby | Typ platobnej metódy (napr. iba platby kartou) |
-| Produkčný režim | Prepína medzi testovacím a ostrým prostredím |
+| Uhradené | Uhradené |
+| Čakajúce / Autorizované | Spracováva sa |
+| Zamietnuté | Neuhradené |
 
-## Platobná brána TrustPay
+**Vnorený formulár** má rozsiahlejšie mapovanie stavov - systém rozpoznáva špecifické situácie ako úspešné 3D Secure overenie, nedostatok prostriedkov na karte, zamietnuté CVV a ďalšie.
 
-TrustPay ponúka dva spôsoby, ako zákazník zaplatí:
+<Note>Ak TrustPay zaznamenáva vysoký počet požiadaviek, systém automaticky odloží ďalšiu kontrolu stavu platby namiesto hlásenia chyby.</Note>
 
-**Presmerovanie na TrustPay** - zákazník je po Objednávke presmerovaný na platobnú stránku TrustPay. Po zaplatení sa vráti späť na e-shop. Princíp je rovnaký ako pri Comgate.
+<Warning>Nie je overené, či TrustPay podporuje refundácie - v analyzovanom kóde nebola metóda refundácie implementovaná. [VERIFY]</Warning>
 
-**Platba priamo v e-shope** - platobné polia sa zobrazia priamo v kroku Platby v Pokladni - zákazník neodchádza z e-shopu. Tento spôsob podporuje aj **Apple Pay** a **Google Pay**.
+## Stavy online platby
 
-[SCREENSHOT: Platobné polia TrustPay (číslo karty, platnosť, CVV, Apple Pay a Google Pay tlačidlá) zobrazené priamo v kroku Platba v Pokladni]
+Každá online platba prechádza stavmi:
 
-**Bezpečnosť:** Systém overuje každú odpoveď od TrustPay kryptografickým podpisom, aby predišiel podvodnému potvrdeniu platby. Pri príliš veľkom počte dopytov na stav platby za krátky čas systém automaticky odloží ďalšie overenie – predchádza sa tak zbytočnému zaťaženiu.
-
-**Nastavenia TrustPay** (konfiguruje technický tím):
-
-| Nastavenie | Popis |
+| Stav | Význam |
 |---|---|
-| API kľúč | Pre platbu priamo v e-shope (vložená platobná stránka) |
-| Project ID | Pre presmerovanie na stránku TrustPay |
-| Secret Key | Pre overovanie podpisu a autentifikáciu |
-| Produkčný režim | Prepína medzi testovacím a ostrým prostredím |
+| Neuhradené | Platba ešte nebola vykonaná alebo bola zamietnutá |
+| Spracováva sa | Platba čaká na potvrdenie od brány |
+| Uhradené | Platba bola úspešne prijatá |
+| Refundované | Platba bola vrátená zákazníkovi |
+| Zlyhané | Platba zlyhala (zrušená zákazníkom alebo technická chyba) |
 
-## Stavy Platby
-
-Každá online Platba prechádza týmito stavmi:
-
-| Stav | Popis |
-|---|---|
-| **Neuhradené** | Zákazník ešte nezaplatil alebo k platbe neprišiel |
-| **Spracováva sa** | Platba prebieha, čakáme na potvrdenie od platobnej brány |
-| **Uhradené** | Platba bola úspešne prijatá |
-| **Refundované** | Suma bola vrátená zákazníkovi |
-| **Zlyhané** | Platba sa nepodarila (napr. zamietnutá karta, nedostatok prostriedkov) |
-
-<Note>
-  Stav Platby vidíte v detaile každej Objednávky. Pri online Platbách ho systém aktualizuje automaticky na základe odpovedí platobnej brány.
-</Note>
+Systém priebežne kontroluje stav platieb cez platobnú bránu.
 
 ## Refundácie
 
-Refundácia je vrátenie zaplatenej sumy zákazníkovi. Požiadavku na vrátenie odošlete priamo z administrácie e-shopu – systém ju sám prenesie do platobnej brány.
+Systém podporuje vrátenie peňazí zákazníkovi cez platobnú bránu.
+
+**Comgate:**
+
+- Podporuje čiastočné aj plné refundácie.
+- Ak sa nezadá konkrétna suma, refunduje sa celá objednávka.
+- Po úspešnej refundácii sa stav platby zmení na "Refundované".
 
 **Stavy refundácie:**
 
-| Stav | Popis |
+| Stav | Význam |
 |---|---|
-| **Spracováva sa** | Požiadavka na vrátenie bola odoslaná, čakáme na potvrdenie |
-| **Refundované** | Suma bola úspešne vrátená zákazníkovi |
-| **Zlyhané** | Vrátenie sa nepodarilo – je potrebný manuálny zásah |
+| Refundované | Peniaze boli úspešne vrátené zákazníkovi |
+| Spracováva sa | Refundácia čaká na spracovanie bránou |
+| Zlyhané | Refundácia sa nepodarila |
 
-<Note>
-  **Comgate** podporuje aj čiastočnú refundáciu – môžete vrátiť iba časť zo zaplatenej sumy (napr. pri vrátení jedného produktu z Objednávky s viacerými položkami).
-</Note>
+## Dôležité vedieť
 
-## Súvisiace funkcie
-
-<CardGroup cols={2}>
-  <Card title="Priebeh Pokladne" icon="shopping-cart" href="/pokladna/checkout-flow">
-    Ako zákazník prechádza Pokladňou a vyberá Platbu.
-  </Card>
-  <Card title="Doprava" icon="truck" href="/pokladna/doprava">
-    Spôsoby doručenia a povolené kombinácie s Platbou.
-  </Card>
-</CardGroup>
+- Celková cena objednávky zahŕňa aj príplatok za platbu: **cena produktov + cena dopravy + príplatok za platbu - zľavy**.
+- Ak zvolená platba už nie je dostupná (napr. zmenila sa cena košíka), systém zákazníka vráti na krok výberu platby s chybovou hláškou.
+- Každý web (doména) môže mať vlastné prístupové údaje k platobným bránam.
+- Platobné brány podporujú testovací režim pre overenie fungovania pred nasadením do produkcie.

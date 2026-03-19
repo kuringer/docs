@@ -1,165 +1,244 @@
 ---
-title: "Produkty - prehľad"
-description: "Prehľad typov produktov, ich stavov, viditeľnosti a správania v systéme Venalio."
+title: "Produkty"
+description: "Prehľad produktového systému - typy produktov, životný cyklus, viditeľnosť a základné vlastnosti"
 ---
 
-{/* Generated from: app/Facades/ProductsFacade.php, app/Model/Enums/ProductTypesEnum.php, app/Model/Settings/ProductsSettings.php, app/Model/Repositories/ProductsRepository.php, app/Model/Enums/ProductImageType.php, app/Model/Settings/SimilarProductsSettings.php | 2026-03-19T12:00:00Z */}
+{/* Generated from: ProductsFacade.php, ProductsSettings.php, ProductTypesEnum.php, ProductsRepository.php | 2026-03-19T12:00:00Z */}
 
-Produktový katalóg je základ e-shopu. Systém Venalio podporuje šesť typov produktov - každý sa správa odlišne pri zobrazení zákazníkovi a pri predaji. Okrem typu má každý produkt vlastný stav, viditeľnosť, obrázky a preklady.
-
----
+Produkt je tovar, ktorý ponúkate zákazníkom vo vašom e-shope. Každý produkt má názov, cenu, obrázky, popis a ďalšie vlastnosti, ktoré ovplyvňujú ako sa zobrazí v katalógu a ako ho zákazník nájde.
 
 ## Typy produktov
 
-Typ produktu určuje, ako sa produkt zobrazuje na webe a ako zákazník nakupuje. Typ sa nastavuje pri vytvorení produktu a ovplyvňuje celú logiku jeho fungovania.
+Systém podporuje šesť typov produktov. Každý typ sa správa inak.
 
 ### Jednoduchý produkt
 
-Základný typ bez variantov. Zákazník si ho jednoducho pridá do košíka. Vhodný pre produkty, kde nie je potrebné vyberať farbu, veľkosť ani iné možnosti. Tento typ je vždy dostupný a nevyžaduje žiadne špeciálne nastavenie.
+Základný produkt bez variánt. Zákazník ho pridá do košíka priamo. Použite ho pre produkty, ktoré nemajú rôzne veľkosti, farby ani iné variácie.
 
 ### Variantový produkt
 
-Rodičovský produkt s viacerými variantami - napríklad tričko dostupné vo viacerých veľkostiach alebo farbách.
+Produkt s variantami, napríklad tričko dostupné vo viacerých veľkostiach a farbách. Skladá sa z rodičovského produktu a jednotlivých variánt pod ním.
 
-- Zákazník na stránke produktu vyberie konkrétny variant (napr. veľkosť M, farba modrá)
-- Na webe sa zobrazuje **najnižšia cena** spomedzi aktívnych variantov
-- Ak rodičovský produkt nemá žiadny aktívny variant s platnou cenou, **nezobrazí sa** vo vyhľadávaní ani v katalógu
-- Varianty bez vlastného obrázka automaticky prevezmú obrázok rodičovského produktu
-- Hodnotenia zákazníkov sa zbierajú na variantoch a zobrazujú sa súhrnne na rodičovi
-
-<Note>Variantové produkty musíte najprv zapnúť v nastaveniach e-shopu.</Note>
+- V katalógu sa zobrazuje len rodičovský produkt
+- Zákazník si vyberá konkrétnu variantu na detaile produktu
+- Variantový produkt sa zobrazí v katalógu len ak má aspoň jednu zapnutú variantu s cenou
+- Pri zmene názvu rodiča systém automaticky prepíše názvy všetkých variánt (názov rodiča + krátky názov varianty)
+- Varianta dedí kategórie, obrázky a niektoré vlastnosti od rodiča
 
 ### Zoskupený produkt
 
-Skupina samostatných produktov predávaných spoločne ako jeden celok. Zákazník pridá do košíka celú skupinu naraz.
-
-<Note>Zoskupené produkty musíte najprv zapnúť v nastaveniach e-shopu.</Note>
+Skupina produktov predávaných spolu ako balík.
 
 ### Zoskupený voliteľný produkt
 
-Podobný zoskupenému, ale zákazník si sám vyberá, ktoré produkty zo skupiny chce. Vhodné pre sety, kde zákazník kombinuje viacero položiek podľa vlastného výberu.
-
-<Note>Zapína sa rovnako ako zoskupené produkty v nastaveniach e-shopu.</Note>
+Skupina produktov, z ktorých si zákazník vyberá. Zákazník si z ponúkaných položiek vyberie tie, ktoré chce.
 
 ### Konfigurovateľný produkt
 
-Umožňuje zákazníkovi poskladať si produkt z voliteľných komponentov. Vhodné pre produkty s veľkým množstvom možností konfigurácie.
-
-<Note>Konfigurovateľné produkty musíte najprv zapnúť v nastaveniach e-shopu.</Note>
+Produkt, ktorý si zákazník konfiguruje podľa vlastných požiadaviek - napr. výberom parametrov.
 
 ### Darčeková poukážka
 
-Špeciálny typ produktu určený na predaj darčekových poukážok v e-shope.
+Poukážka s vlastnou hodnotou, ktorú zákazník môže darovať alebo uplatniť pri nákupe.
 
-<Note>Darčekové poukážky musíte najprv zapnúť v nastaveniach e-shopu.</Note>
+<Note>
+V katalógu a exportných feedoch sa zobrazujú len jednoduché a variantové produkty. Ostatné typy sa zobrazujú len na svojich detailných stránkach.
+</Note>
 
----
+## Základné vlastnosti produktu
 
-## Stav produktu
+Každý produkt má tieto základné údaje:
 
-Každý produkt má jeden z troch stavov, ktorý určuje jeho dostupnosť pre zákazníkov.
+- **Názov** - hlavný názov produktu, prekladá sa do všetkých jazykov
+- **Sekundárny názov** - druhý riadok názvu (voliteľné, zapína sa v nastaveniach)
+- **Terciárny názov** - tretí riadok názvu (voliteľné, zapína sa v nastaveniach)
+- **Kód produktu (SKU)** - interný kód produktu (voliteľné, zapína sa v nastaveniach)
+- **EAN** - čiarový kód produktu (voliteľné, zapína sa v nastaveniach)
+- **Popis** - podrobný HTML popis produktu, prekladá sa do všetkých jazykov
+- **Krátky popis** - stručný popis zobrazený v katalógu
+- **Hmotnosť** - hmotnosť produktu (voliteľné, zapína sa v nastaveniach)
 
-| Stav | Čo to znamená |
-|------|---------------|
-| **Aktívny** | Produkt je viditeľný na webe a zákazníci si ho môžu objednať |
-| **Neaktívny** | Produkt je skrytý pred zákazníkmi, zostáva dostupný v administrácii |
-| **Zmazaný** | Produkt je označený ako zmazaný a nie je prístupný zákazníkom ani cez priamu URL |
+Pri variante sa zobrazuje popis a krátky popis od rodiča, ak varianta nemá vlastný.
 
-<Note>Na webe sa zobrazia len produkty, ktoré majú vyplnený názov a URL adresu v danom jazyku.</Note>
+## URL adresa (slug)
 
-### Vypredaný produkt
+Každý produkt má svoju webovú adresu. Ak ju nevyplníte, systém ju automaticky vygeneruje z názvu produktu. Pri duplicite systém pridá číslo na koniec (-1, -2...) až kým nie je adresa unikátna v rámci jazyka.
 
-Okrem stavu má produkt aj príznak **Vypredané**. Keď je aktívny:
+Pri zmene názvu rodičovského produktu systém automaticky prepíše URL adresy všetkých jeho variánt.
 
-- Systém produkt automaticky vyradí z vyhľadávania - zákazníci ho nenájdu
-- Produkt zostáva v administrácii bez zmeny
+## Viditeľnosť produktu
 
-**Automatické zrušenie príznaku:** Keď sa variant alebo jednoduchý produkt vráti na sklad (prejde do stavu skladom), systém automaticky zruší príznak Vypredané na rodičovskom produkte.
+Produkt môže mať tri stavy:
 
-<Frame>
-  <img src="/images/placeholder.png" />
-  <caption>[SCREENSHOT: Formulár produktu v administrácii - prepínač Stav a príznak Vypredané]</caption>
-</Frame>
+- **Zapnutý** - produkt je viditeľný v e-shope
+- **Vypnutý** - produkt nie je viditeľný, ale ostáva v systéme
+- **Zmazaný** - produkt je označený na odstránenie
 
----
+Aby sa produkt zobrazil v katalógu a vo vyhľadávaní, musí mať vyplnený názov aj URL adresu.
 
-## Viditeľnosť vo vyhľadávaní
+### Viditeľnosť podľa krajiny
 
-Nie každý aktívny produkt sa zobrazuje vo výsledkoch vyhľadávania. Systém automaticky vyradí tieto produkty:
+Pre každý produkt sa dá nastaviť, v ktorých krajinách sa má zobraziť:
 
-- Produkty označené ako **Vypredané**
-- **Variantové produkty** bez aktívnych variantov s platnou cenou
-- Produkty bez vyplneného názvu a URL adresy v danom jazyku
+- **Whitelist** - produkt sa zobrazí len v uvedených krajinách
+- **Blacklist** - produkt sa zobrazí všade okrem uvedených krajín
 
-Tento mechanizmus zaručuje, že zákazníci nenarazia na produkty, ktoré si nemôžu objednať.
+Ak má produkt whitelist krajín a zákazníkova krajina v ňom nie je, produkt sa mu nezobrazí.
 
----
+## Obrázky produktov
 
-## Viditeľnosť podľa krajiny
+Každý produkt môže mať galériu obrázkov. Každý obrázok má jeden z troch typov:
 
-Produkty je možné zobraziť alebo skryť len pre zákazníkov z konkrétnych krajín - napríklad predávate produkt len na Slovensku, alebo máte položku nedostupnú v Čechách.
+- **Hlavný obrázok** - zobrazuje sa v katalógu a ako prvý na detaile produktu
+- **Náhľadový obrázok** - zobrazí sa pri prechode myšou cez kartičku produktu
+- **Galéria** - obrázok sa zobrazuje len v galérii na detaile
 
-Správanie:
-- Nastavíte **zobraziť len pre vybrané krajiny** - zákazníci z ostatných krajín produkt neuvidia
-- Nastavíte **skryť pre vybrané krajiny** - iba zákazníci z týchto krajín ho neuvidia
-- Skryté produkty sa nezobrazujú ani v katalógu, ani vo vyhľadávaní
+Ak žiadny obrázok nie je označený ako hlavný, systém automaticky nastaví prvý obrázok. Poradie obrázkov v galérii sa dá meniť. Obrázky podporujú nastavenie focal pointu pre správne orezávanie.
 
-<Warning>Táto informácia vyžaduje overenie. [VERIFY] - Kde presne v administrácii sa nastavuje viditeľnosť podľa krajiny, sa zatiaľ nepodarilo potvrdiť. Overte s vývojovým tímom.</Warning>
+Varianta dedí obrázky od rodičovského produktu, ak nemá vlastné.
 
----
+Systém podporuje aj 360° rotáciu produktu - obrázky označené ako spin sa zobrazia v rotujúcej galérii.
 
-## Obrázky produktu
+[SCREENSHOT: Galéria obrázkov produktu v administrácii s vyznačeným hlavným a náhľadovým obrázkom]
 
-Každý produkt môže mať galériu obrázkov. Systém rozlišuje tri typy obrázkov:
+## Metadáta produktu
 
-| Typ | Kde sa zobrazuje |
-|-----|-----------------|
-| **Hlavný obrázok** | V zoznamoch produktov a ako prvý na stránke produktu |
-| **Náhľadový obrázok** | Zobrazí sa keď zákazník prejde myšou cez produkt v zozname (hover efekt) |
-| **Galéria** | Ďalšie obrázky na stránke produktu |
+K produktu môžete pridať doplnkové informácie v štruktúrovanej forme. Metadáta majú názov a HTML obsah, napríklad:
 
-Dôležité vedieť:
-- Poradie obrázkov môžete zmeniť priamo v administrácii pretiahnutím
-- Ak nenastavíte hlavný obrázok, systém ho automaticky určí z dostupných obrázkov
-- Varianty bez vlastného obrázka zobrazujú obrázok rodičovského produktu
-- Systém podporuje **360-stupňovú rotáciu** - obrázky určené pre rotáciu označíte špeciálnym príznakom
+- Zloženie
+- Návod na použitie
+- Technické údaje
+- Inštrukcie na údržbu
 
-<Frame>
-  <img src="/images/placeholder.png" />
-  <caption>[SCREENSHOT: Správa obrázkov produktu - galéria s možnosťou preusporiadania a označenia hlavného obrázka]</caption>
-</Frame>
+Obsah metadát sa prekladá do všetkých jazykov.
 
----
+## Štítky
 
-## Viacjazyčnosť a preklady
+[Štítok](/produkty/prehlad#stitky) je vizuálne označenie na kartičke produktu v katalógu, napríklad "Novinka", "Akcia" alebo "Výpredaj".
 
-Produkty podporujú preklady do viacerých jazykov. Každý preklad má vlastný názov, popis a URL adresu.
+- Štítok má názov, farbu a voliteľný obrázok
+- Vizuálny štýl závisí od zvolenej šablóny webu
+- Štítok môže mať vlastnú URL podstránku so všetkými produktmi, ktoré ho nesú
+- Produkt môže mať viacero štítkov súčasne
+- Štítok "Akcia" sa pridáva a odoberá automaticky podľa toho, či má produkt aktívnu [zľavu](/produkty/ceny-a-zlava#zlavy-na-produktoch)
 
-**Pravidlá prekladov:**
+## Značky
 
-- Názov v hlavnom jazyku je povinný - bez neho systém produkt neuloží
-- V ostatných jazykoch je preklad voliteľný. Ak jazyk nemá vyplnený názov, produkt sa v ňom nezobrazuje
-- URL adresa sa automaticky generuje z názvu. Ak by vznikla duplicita, systém pridá číslo na koniec (napríklad `cervena-taska`, `cervena-taska-1`)
-- Pri zmene názvu rodičovského variantového produktu systém automaticky aktualizuje názvy a URL všetkých jeho variantov
+[Značka](/produkty/prehlad#znacky) je výrobca alebo brand produktu. Každý produkt patrí k jednej značke.
 
-<Tip>Systém umožňuje hromadne aktivovať preklady pre všetky jazyky, kde je vyplnený názov.</Tip>
+- Značka má názov, logo a vlastnú podstránku
+- Jedna značka sa dá priradiť k viacerým webom
+- Ak máte len jeden web, značka sa priradí automaticky
 
----
+## Tagy
 
-## Doplnkové funkcie produktov
+Tag je interné označenie produktu pre organizáciu a filtrovanie. Na rozdiel od štítka, tag nemusí byť vizuálny a slúži hlavne na správu produktov v administrácii.
+
+## USP (výhody)
+
+USP sú kľúčové výhody produktu alebo e-shopu, napríklad "Doprava zadarmo" alebo "Garancia vrátenia peňazí". Zobrazujú sa na detaile produktu.
+
+- Výhoda má názov, popis a voliteľný obrázok (ikonu)
+- Výhodu je možné skryť nastavením neviditeľnosti
+
+## Hodnotenia produktov
+
+Zákazníci môžu hodnotiť produkty známkou od 1 do 5 a napísať textové hodnotenie. Podrobnosti nájdete v sekcii nižšie.
+
+- Hodnotenie sa zobrazí len ak je schválené a má vyplnené meno aj text
+- Priemerné hodnotenie sa prepočíta automaticky po každej zmene
+- Pri variantovom produkte sa hodnotenia všetkých variánt počítajú do hodnotenia rodiča
+- Pri [podobných produktoch](/produkty/prehlad#podobne-produkty) (prepojených podľa farby) sa hodnotenia počítajú spoločne
+- Zákazníci môžu hlasovať za užitočnosť hodnotenia (palec hore/dolu). Jeden zákazník = jeden hlas, dá sa zmeniť
+- Administrátor môže hodnotenie schváliť, zamietnuť, zmazať alebo upraviť text
+
+Hodnotenia sa dajú triediť: najnovšie, najlepšie, najhoršie. Systém zobrazuje histogram s počtom hodnotení pre každú známku.
+
+## Otázky k produktom
+
+Zákazníci môžu klásť otázky priamo z detailu produktu.
+
+1. Zákazník odošle otázku z detailu produktu
+2. Systém odošle notifikáciu na nastavený kontaktný email
+3. Administrátor napíše odpoveď v administrácii
+4. Odpoveď sa zobrazí pod otázkou na detaile produktu
+
+Pre každú jazykovú mutáciu sa dá nastaviť iný kontaktný email.
+
+<Warning>Nie je jasné, či zákazník dostane notifikáciu o odpovedi na svoju otázku. [VERIFY]</Warning>
+
+## Obľúbené produkty
+
+Zákazníci si môžu ukladať produkty do zoznamu obľúbených. Funkcia sa zapína v nastaveniach.
+
+<Warning>Detailné správanie obľúbených produktov vyžaduje overenie. [VERIFY]</Warning>
+
+## Podobné produkty
+
+Systém vie prepojiť produkty, ktoré sú si podobné - napríklad rovnaký produkt v inej farbe. Prepojené produkty zdieľajú hodnotenia a priemernú známku.
+
+<Warning>Nie je jasné, aké ďalšie typy prepojenia podobných produktov okrem farby existujú. [VERIFY]</Warning>
+
+## Súbory k produktom
+
+K produktu je možné pripojiť súbory na stiahnutie, napríklad návod na použitie alebo katalógový list. Funkcia sa zapína v nastaveniach.
+
+<Warning>Detailné správanie súborov k produktom vyžaduje overenie. [VERIFY]</Warning>
+
+## Vyhľadávanie a zobrazenie
+
+Každá zmena produktu ho automaticky označí na synchronizáciu do vyhľadávacieho indexu. Synchronizácia zahŕňa názvy vo všetkých jazykoch, kategórie, ceny, parametre, štítky, tagy, značku a dostupnosť.
+
+Produkt sa z vyhľadávania odstráni ak je vypnutý, vypredaný alebo ak je variantový bez aktívnych variánt.
+
+### Boost vyhľadávania
+
+<Warning>Funkcia boostu vyhľadávania ovplyvňuje poradie produktu vo výsledkoch. Vyššia hodnota = produkt sa zobrazí vyššie. Presné správanie vyžaduje overenie. [VERIFY]</Warning>
+
+### Pridanie do košíka z katalógu
+
+Zákazník môže pridať produkt do košíka priamo z katalógu bez návštevy detailu produktu. Funkcia sa zapína v nastaveniach.
+
+### Zobrazenie produktov na stránkach
+
+Na obsahových stránkach e-shopu je možné vložiť zoznam produktov ako obsahový prvok. Produkty sa vyberajú dvoma spôsobmi:
+
+- **Automatický filter** - produkty sa zobrazia podľa definovaných pravidiel
+- **Ručný výber** - administrátor vyberie konkrétne produkty
+
+<Warning>Konkrétne filtrovacie kritériá pre automatický filter vyžadujú overenie. [VERIFY]</Warning>
+
+## Exportné feedy
+
+Systém generuje dátové feedy pre porovnávače cien (Heureka SK, Heureka CZ a ďalšie).
+
+Do exportu sa zahrnú len produkty, ktoré spĺňajú všetky tieto podmienky:
+
+- Sú zapnuté
+- Nie sú vypredané
+- Sú objednateľné (skladová varianta to povoľuje)
+- Majú cenu väčšiu ako 0
+- Nie sú označené ako vylúčené z exportov
+- Nie sú skryté pre maloobchodných zákazníkov
+
+Export zahŕňa Heureka kategóriu (SK aj CZ) priradenú v [kategórii](/produkty/kategorie) produktu.
+
+<Warning>Nie je jasné, aké ďalšie feed formáty okrem Heureka sú podporované. [VERIFY]</Warning>
+
+## Súvisiace funkcie
 
 <Card title="Parametre" href="/produkty/parametre">
-  Vlastnosti produktu (farba, veľkosť, materiál) zobrazené na detaile a použiteľné ako filtre v katalógu.
+  Vlastnosti produktov a filtrovanie v katalógu
 </Card>
 
 <Card title="Kategórie" href="/produkty/kategorie">
-  Zaradenie produktov do stromovej štruktúry kategórií vrátane pravidiel predvolenej kategórie.
+  Stromová štruktúra kategórií a zaradenie produktov
 </Card>
 
 <Card title="Ceny a zľavy" href="/produkty/ceny-a-zlava">
-  Cenové hladiny, DPH podľa krajiny zákazníka a časovo obmedzené zľavnené ceny.
+  Cenové hladiny, meny, DPH a zľavy na produktoch
 </Card>
 
-<Card title="Sklad a dostupnosť" href="/produkty/sklad">
-  Skladové varianty, počty kusov a správanie pri vypredaní produktu.
+<Card title="Sklad" href="/produkty/sklad">
+  Dostupnosť produktov, skladové stavy a varianty
 </Card>

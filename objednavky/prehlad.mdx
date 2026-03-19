@@ -1,126 +1,200 @@
 ---
-title: "Objednávky - prehľad"
-description: "Ako fungujú objednávky v systéme Venalio - od košíka po vybavenie."
+title: "Objednávky"
+description: "Ako funguje objednávkový systém - od košíka po vybavenie objednávky, štruktúra objednávky, typy a cenové výpočty."
 ---
 
-{/* Generated from: app/Facades/OrderFacade.php, app/FrontendModule/Facades/CartFacade.php, app/Model/Repositories/OrdersRepository.php, app/Model/Enums/OrderTypesEnum.php, app/Model/Enums/OrderStatesEnum.php | 2026-03-19 */}
+{/* Generated from: OrderFacade.php, CartFacade.php, OrdersSettings.php, CartsSettings.php, OrderTypesEnum.php, PaidStatesEnum.php, OrdersRepository.php, OrderItemsRepository.php, Ordering.php, DefaultCodeGenerator.php, ICodeGenerator.php | 2026-03-19T00:00:00Z */}
 
-Objednávka je nákup zákazníka od momentu dokončenia Pokladne až po doručenie. Systém Venalio spravuje celý životný cyklus objednávky vrátane automatických notifikácií, fakturácie a prepojenia na prepravcov.
+Objednávka je nákup vytvorený zákazníkom v [pokladni](/pokladna/prehlad) alebo administrátorom v administrácii. Obsahuje produkty, spôsob dopravy a platby, fakturačnú a dodaciu adresu a všetky informácie potrebné na vybavenie nákupu.
 
----
+## Cesta objednávky od košíka po vybavenie
 
-## Životný cyklus objednávky
+Každá objednávka prechádza týmito krokmi:
 
-Každá objednávka prechádza týmito fázami:
+1. **Košík** - zákazník pridáva produkty, mení množstvá, aplikuje [kupón](/kupony/prehlad)
+2. **Pokladňa** - zákazník vyplní adresy, zvolí dopravu a platbu
+3. **Vytvorenie objednávky** - systém vytvorí objednávku, zníži sklad, pošle notifikácie
+4. **Spracovanie** - administrátor spracuje objednávku, pripraví zásielku
+5. **Odoslanie** - objednávka je odoslaná prepravcom
+6. **Vybavenie** - objednávka je doručená a uzavretá
 
-<Steps>
-  <Step title="Košík">
-    Zákazník pridáva produkty do Košíka. Systém automaticky prepočítava ceny, aplikuje Kupóny a overuje dostupnosť.
-  </Step>
-  <Step title="Pokladňa">
-    Zákazník vyplní kontaktné údaje, vyberie Dopravu a Platbu, potvrdí objednávku.
-  </Step>
-  <Step title="Nová objednávka">
-    Systém vytvorí objednávku, vygeneruje unikátny kód, priradí počiatočný stav a pošle potvrdenie e-mailom.
-  </Step>
-  <Step title="Spracovanie">
-    Administrátor spracuje objednávku - vyskladní produkty, vytvorí Zásielku a vystaví Faktúru.
-  </Step>
-  <Step title="Vybavenie">
-    Objednávka je odoslaná a označená ako vybavená. Zákazníkovi sa pripíšu vernostné body.
-  </Step>
-</Steps>
-
----
-
-## Čo obsahuje objednávka
-
-Každá objednávka sa skladá z:
-
-| Časť | Popis |
-|---|---|
-| **Položky** | Produkty s cenami, množstvom a sadzbou DPH |
-| **Zákazník** | Fakturačné a doručovacie údaje |
-| **Doprava** | Zvolený spôsob doručenia a jeho cena |
-| **Platba** | Zvolený spôsob platby a jeho cena |
-| **Stav** | Aktuálna fáza spracovania objednávky |
-| **Stav úhrady** | Či je objednávka uhradená alebo nie |
-| **Kód objednávky** | Unikátny identifikátor (napr. 202603-00001) |
-
-<Note>
-  Objednávka si pamätá ceny z momentu vytvorenia. Ak sa ceny v katalógu zmenia, existujúce objednávky sa nezmenia.
-</Note>
-
----
+Podrobný popis jednotlivých [stavov objednávky](/objednavky/stavy) nájdete v samostatnom dokumente.
 
 ## Typy objednávok
 
-- **Bežná** - vzniká, keď zákazník dokončí nákup cez Pokladňu na webe. Najčastejší typ.
-- **Manuálna** - vytvorí administrátor priamo v administrácii. Používa sa pri telefonických objednávkach alebo špeciálnych požiadavkách zákazníka.
-- **Veľkoobchodná** - určená pre B2B zákazníkov. Má špeciálne pravidlá - napríklad B2B zákazníci nemôžu objednať produkty pod minimálnym skladovým počtom.
+Systém rozlišuje dva typy:
 
----
+- **Objednávka** - bežný nákup s doručením
+- **Rezervácia** - zákazník si rezervuje tovar na predajni
+
+Každý [stav objednávky](/objednavky/stavy) môže byť priradený k jednému alebo obom typom. To znamená, že objednávky a rezervácie môžu mať odlišnú sadu stavov.
+
+## Čo objednávka obsahuje
+
+### Položky objednávky
+
+Objednávka obsahuje jednu alebo viacero položiek. Položka môže byť:
+
+- **Produktová položka** - produkt z katalógu s cenou, množstvom, sadzbou DPH a hmotnosťou
+- **Voľná riadková položka** - ručne zadaná položka bez viazaného produktu (napríklad služba alebo príplatok)
+
+Pri každej položke systém eviduje:
+
+- Cenu s DPH a bez DPH v čase objednania
+- Pôvodnú cenu (pred zľavou) pre zobrazenie prečiarknutej ceny
+- Skutočnú cenu po rozpočítaní všetkých zliav - táto sa používa na [faktúrach](/faktury/prehlad)
+- Množstvo a hmotnosť
+- Počet kusov rezervovaných na sklade
+- Počet skompletizovaných kusov (pri procese vyskladňovania)
+
+### Zoskupené produkty (bundle)
+
+Ak objednávka obsahuje zoskupený produkt (balíček viacerých produktov), systém eviduje jednotlivé produkty v balíčku samostatne. Sklad sa znižuje pre každý produkt v balíčku zvlášť.
+
+### Adresy
+
+Objednávka obsahuje dve adresy:
+
+- **Fakturačná adresa** - meno, firma, IČO, DIČ, IČ DPH, ulica, PSČ, mesto, krajina
+- **Dodacia adresa** - meno, firma, ulica, PSČ, mesto, krajina, telefón, email
+
+PSČ sa automaticky normalizuje na veľké písmená bez medzier.
+
+### Doprava a platba
+
+Zákazník si volí spôsob [dopravy](/doprava/prehlad) a [platby](/platby/prehlad). Cena dopravy a platby sa počíta dynamicky podľa úrovní - závisí od celkovej ceny objednávky, hmotnosti, webu, meny, krajiny a kategórie zákazníka.
+
+Nie každá kombinácia dopravy a platby je povolená. Systém zobrazí len povolené kombinácie.
+
+Ak doprava používa odberné miesta, zákazník si musí vybrať konkrétnu pobočku.
+
+## Cenové výpočty
+
+Celková cena objednávky sa skladá z:
+
+- Cena produktov (súčet položiek)
+- Cena dopravy
+- Cena platby
+- Mínus zľavy (kupón, vernostné body, manuálna zľava)
+- Plus zaokrúhlenie (pri hotovostných platbách)
+
+### Zľavy na objednávke
+
+Na objednávku je možné aplikovať viacero typov zliav:
+
+- **Kupón** - zákazník zadá zľavový kód. Kupón poskytuje absolútnu alebo percentuálnu zľavu, prípadne dopravu zadarmo. Zľava sa rozpočítava na jednotlivé položky podľa ich podielu na celkovej cene. Na košík obsahujúci výlučne darčekové poukážky nie je možné kupón aplikovať.
+- **Vernostné body** - prihlásený zákazník uplatní body z [vernostného programu](/vernostny-program/prehlad). Body sa prepočítajú na peňažnú hodnotu podľa kurzu nastaveného pre danú menu. Zákazník môže použiť body maximálne do nastaveného percentuálneho limitu z celkovej ceny.
+- **Manuálna percentuálna zľava** - administrátor zadá zľavu 0-100 % na celú objednávku.
+- **Manuálna absolútna zľava** - administrátor zadá pevnú sumu zľavy.
+- **Hromadná zľava** - automatická zľava aktivovaná splnením podmienok kampane (napríklad kúpa N produktov z danej skupiny).
+
+Kombinácia zliav nikdy nespôsobí zápornú hodnotu objednávky. Zľava je vždy ohraničená celkovou cenou produktov.
+
+### Zaokrúhľovanie hotovostných platieb
+
+Pri hotovostných platbách v eurách na Slovensku systém zaokrúhľuje celkovú sumu podľa legislatívy platnej od 1.7.2022. Rozdiel zaokrúhlenia sa pripočíta k celkovej sume objednávky.
 
 ## Košík
 
-Košík je dočasný zoznam produktov, z ktorého sa po dokončení Pokladne vytvorí objednávka.
+Košík je dočasný zoznam produktov pred vytvorením objednávky. Je viazaný na reláciu (session) zákazníka.
 
-### Ako funguje Košík
+### Pridávanie produktov
 
-- Zákazník pridáva produkty z produktovej stránky alebo priamo zo zoznamu produktov
-- Ak produkt už v Košíku je, jeho množstvo sa zvýši
-- Systém automaticky prepočíta celkovú cenu po každej zmene
-- Pri variantových produktoch systém overí, či je v skladovom limite
+- Ak zákazník pridá produkt, ktorý už v košíku má (a nemá špeciálnu zľavu), systém zvýši množstvo namiesto vytvorenia duplicity.
+- Systém kontroluje dostupnosť na sklade. Ak je menej kusov ako zákazník požaduje, množstvo sa obmedzí na maximum.
+- Pri znížení množstva na 0 sa položka automaticky odstráni.
+- Ak produkt zmizne z ponuky, systém ho pri ďalšej návšteve automaticky odstráni z košíka.
 
-### Čo systém robí automaticky
+### Prepočet košíka
 
-- **Zľavové akcie**: Ak zákazník pridá dostatočný počet produktov, systém automaticky aplikuje zľavu (napr. "3 za cenu 2")
-- **Kupóny**: Zákazník môže zadať zľavový kód. Systém overí jeho platnosť a aplikuje zľavu.
-- **Vernostné body**: Prihlásený zákazník môže uplatniť nazbierané body na zľavu
-- **Kontrola dostupnosti**: Pred vytvorením objednávky systém overí, že všetky produkty sú stále na sklade
+Po každej zmene (pridanie, odobratie, zmena množstva, aplikácia kupónu) systém automaticky prepočíta celkový súčet košíka.
 
-<Tip>
-  Ak sa ceny produktov zmenia kým má zákazník otvorený Košík, systém môže ceny aktualizovať pri ďalšej návšteve. Toto správanie sa dá zapnúť v nastaveniach.
-</Tip>
+Pred dokončením objednávky systém overí, či sú všetky produkty stále dostupné a v požadovanom množstve.
 
----
+### Obnova cien
+
+Ak sa zmení cena produktu (nová akcia, koniec akcie, zmena cenníka), systém môže automaticky aktualizovať ceny v košíku. Toto správanie závisí od nastavenia obnovy cien v košíku.
 
 ## Kód objednávky
 
-Systém automaticky generuje unikátny kód pre každú objednávku. Kód obsahuje rok, mesiac a poradové číslo.
+Každá objednávka dostane unikátny kód. Predvolený formát je narastajúce číslo (napríklad 10001, 10002, ...). Počiatočné číslo je konfigurovateľné.
 
-<Note>
-  Ak by pri generovaní kódu došlo ku kolízii (rovnaký kód už existuje), systém automaticky vygeneruje nový. Toto sa stáva len veľmi zriedka.
-</Note>
+Ak pri generovaní kódu nastane kolízia (napríklad pri súbežnom vytváraní viacerých objednávok), systém skúsi vygenerovať nový kód - až 20 pokusov.
 
----
+## Stav úhrady
 
-## Zaokrúhľovanie
+Ak máte zapnutú funkciu stavov úhrady, systém sleduje platobný stav objednávky:
 
-Od 1.7.2022 platí na Slovensku povinnosť zaokrúhľovať hotovostné platby na najbližších 5 centov EUR. Systém toto robí automaticky pre objednávky platené hotovosťou.
+- **Neuhradená** - zákazník ešte nezaplatil
+- **Uhradená** - platba bola prijatá v plnej výške
+- **Čiastočne uhradená** - zákazník zaplatil časť sumy
+- **Refundovaná** - platba bola vrátená zákazníkovi
+- **Spracováva sa** - platba prebieha (napríklad online platobná brána)
 
-<Warning>
-  Pre maďarský forint (HUF) sa zaokrúhľuje na najbližší násobok 5. [VERIFY]
-</Warning>
+Pri zmene na "Uhradená" systém automaticky:
 
----
+- Prepne objednávku zo stavu "Čaká na platbu" do stavu "Prijatá"
+- Voliteľne vystaví [faktúru](/faktury/prehlad)
+
+Pri digitálnych produktoch sa po uhradení automaticky vystaví faktúra a objednávka sa dokončí bez vyskladnenia.
+
+## Čo sa deje pri vytvorení objednávky
+
+Keď zákazník dokončí nákup v pokladni, systém vykoná tieto kroky:
+
+1. Vygeneruje unikátny kód objednávky
+2. Nastaví počiatočný stav podľa typu platby:
+   - Online platba: stav "Čaká na platbu"
+   - Ostatné platby: stav "Prijatá"
+   - B2B objednávka: stav pre veľkoobchod (ak je nastavený)
+3. Zníži počet kusov na sklade a zarezervuje ich pre objednávku
+4. Ak klesne sklad produktu na nulu, zmení dostupnosť na "po vypredaní"
+5. Ak zákazník použil vernostné body, odpočíta ich (od najstarších nevyčerpaných)
+6. Pošle notifikácie (email, SMS) podľa nastavení stavu
+7. Vyčistí košík
+
+### B2B obmedzenia
+
+Veľkoobchodní zákazníci nemôžu objednať kusy, ktoré sú pod minimálnym skladovým počtom. Tieto kusy sú rezervované pre bežných (B2C) zákazníkov.
 
 ## Darčekové poukážky
 
-Ak objednávka obsahuje darčekové poukážky, systém ich vygeneruje a odošle pri zmene stavu na "Odoslaná". Každá poukážka dostane unikátny kód, ktorý zákazník použije ako Kupón pri ďalšom nákupe.
+Ak objednávka obsahuje darčekovú poukážku, systém ju aktivuje až pri zmene stavu na "Odoslaná" alebo "Vybavená". V tom momente:
 
----
+- Vygeneruje unikátny kupónový kód s platnosťou 1 rok a 1 použitím
+- Vytvorí personalizovaný obrázok s kódom a dátumom platnosti
+- Odošle email s poukážkou na adresu príjemcu (nie objednávateľa)
 
-## Súvisiace sekcie
+## Poznámky na objednávke
 
-<Columns cols={3}>
-  <Card title="Stavy objednávok" icon="arrows-spin" href="/objednavky/stavy">
-    Čo znamenajú jednotlivé stavy a ako sa menia.
-  </Card>
-  <Card title="Spracovanie objednávok" icon="clipboard-check" href="/objednavky/spracovanie">
-    Ako spracovať objednávku v administrácii.
-  </Card>
-  <Card title="Pokladňa" icon="cart-shopping" href="/pokladna/checkout-flow">
-    Ako prebieha proces objednávania.
-  </Card>
-</Columns>
+- **Interná poznámka** - viditeľná len pre administrátorov, zákazník ju nevidí
+- **Zákaznícka poznámka** - poznámka od zákazníka (zobrazuje sa len ak je funkcia zapnutá v nastaveniach)
+
+## Dôležité vedieť
+
+- Objednávka sa po vybavení uzamkne. Uzamknutú objednávku nie je možné bežne meniť.
+- Celková suma sa agreguje naprieč pôvodnou a všetkými podradenými (rozdelenými) objednávkami.
+- Prístup administrátora k objednávkam je obmedzený podľa predajne a jazykovej mutácie.
+- Zákaznícka zľava sa aplikuje na predajnú cenu. Ak je cena už akciová, správanie závisí od nastavenia.
+
+## Súvisiace funkcie
+
+<Card title="Stavy objednávky" icon="arrow-progress" href="/objednavky/stavy">
+  Aké stavy objednávka prechádza, čo sa pri zmene stavu deje, automatické procesy.
+</Card>
+
+<Card title="Spracovanie objednávok" icon="box-check" href="/objednavky/spracovanie">
+  Ako spracovať objednávku v administrácii - zásielky, fakturácia, rozdelenie.
+</Card>
+
+<Card title="Kupóny" icon="ticket" href="/kupony/prehlad">
+  Zľavové kódy a ich aplikácia na objednávku.
+</Card>
+
+<Card title="Doprava" icon="truck" href="/doprava/prehlad">
+  Spôsoby dopravy, cenové úrovne, odberné miesta.
+</Card>
+
+<Card title="Faktúry" icon="file-invoice" href="/faktury/prehlad">
+  Vystavovanie faktúr, zálohových faktúr a dobropisov.
+</Card>
