@@ -14,91 +14,9 @@
         "tab": "Dokumentácia",
         "groups": [
           {
-            "group": "Začíname",
+            "group": "",
             "pages": [
-              "index",
-              "produkt",
-              "slovnik",
-              "ako-vznikla-dokumentacia"
-            ]
-          },
-          {
-            "group": "Produkty a katalóg",
-            "pages": [
-              "produkty/prehlad",
-              "produkty/parametre",
-              "produkty/kategorie",
-              "produkty/ceny-a-zlava",
-              "produkty/sklad"
-            ]
-          },
-          {
-            "group": "Objednávky",
-            "pages": [
-              "objednavky/prehlad",
-              "objednavky/stavy",
-              "objednavky/spracovanie"
-            ]
-          },
-          {
-            "group": "Pokladňa",
-            "pages": [
-              "pokladna/checkout-flow",
-              "pokladna/doprava",
-              "pokladna/platby"
-            ]
-          },
-          {
-            "group": "Kupóny a zľavy",
-            "pages": [
-              "kupony/prehlad"
-            ]
-          },
-          {
-            "group": "Fakturácia",
-            "pages": [
-              "fakturacie/prehlad",
-              "fakturacie/ciselne-rady"
-            ]
-          },
-          {
-            "group": "Zákazníci",
-            "pages": [
-              "zakaznici/prehlad",
-              "zakaznici/vernostny-program"
-            ]
-          },
-          {
-            "group": "Obsah a CMS",
-            "pages": [
-              "obsah/stranky-a-elementy",
-              "obsah/media-a-seo"
-            ]
-          },
-          {
-            "group": "Marketing",
-            "pages": [
-              "marketing/newsletter",
-              "marketing/recenzie-a-sms"
-            ]
-          },
-          {
-            "group": "Sklad a predajne",
-            "pages": [
-              "sklad/prehlad"
-            ]
-          },
-          {
-            "group": "Integrácie",
-            "pages": [
-              "integracie/prehlad"
-            ]
-          },
-          {
-            "group": "Systém",
-            "pages": [
-              "system/pristupove-prava",
-              "system/weby-a-preklady"
+              "index"
             ]
           }
         ]
